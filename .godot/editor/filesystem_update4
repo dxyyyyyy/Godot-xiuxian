@@ -1,2 +1,3 @@
+res://scripts/game_state.gd
 res://scenes/main.tscn
 res://scripts/items_screen.gd

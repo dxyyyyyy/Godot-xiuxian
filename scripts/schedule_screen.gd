@@ -1,13 +1,20 @@
 extends "res://scripts/screen_base.gd"
-## 日程页：人物资料卡 + 今日行程列表
+## 日程页：人物资料卡（读 GameState）+ 今日行程（状态由 TimeManager 游戏时钟驱动）。
+## 行程规则：06:00 起每项 3 小时，时间到了自动 待办 → 进行中 → 已完成。
+
+const DAY_START := 6.0
+const ACTIVITY_HOURS := 3.0
 
 var schedules := [
-	{"time": "06:00", "activity": "晨练", "status": "completed", "desc": "修炼基础功法"},
-	{"time": "09:00", "activity": "采集灵草", "status": "completed", "desc": "后山采集药材"},
-	{"time": "12:00", "activity": "炼丹", "status": "current", "desc": "炼制回灵丹"},
-	{"time": "15:00", "activity": "闭关修炼", "status": "pending", "desc": "冲击筑基期"},
-	{"time": "18:00", "activity": "拜访师尊", "status": "pending", "desc": "请教修炼心得"},
+	{"time": "06:00", "activity": "晨练", "desc": "修炼基础功法"},
+	{"time": "09:00", "activity": "采集灵草", "desc": "后山采集药材"},
+	{"time": "12:00", "activity": "炼丹", "desc": "炼制回灵丹"},
+	{"time": "15:00", "activity": "闭关修炼", "desc": "冲击筑基期"},
+	{"time": "18:00", "activity": "拜访师尊", "desc": "请教修炼心得"},
 ]
+
+var _list: VBoxContainer
+var _status_cache := ""
 
 
 func _build(vb: VBoxContainer) -> void:
@@ -18,6 +25,18 @@ func _build(vb: VBoxContainer) -> void:
 	var sched := UiKit.card()
 	sched.add_child(UiKit.margin_wrap(_schedule_card(), 24))
 	vb.add_child(sched)
+
+	_status_cache = _status_key()
+	_rebuild_list()
+
+
+func _process(_delta: float) -> void:
+	if _list == null:
+		return
+	var key := _status_key()
+	if key != _status_cache:
+		_status_cache = key
+		_rebuild_list()
 
 
 func _profile_card() -> VBoxContainer:
@@ -30,8 +49,8 @@ func _profile_card() -> VBoxContainer:
 	var name_vb := VBoxContainer.new()
 	name_vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	name_vb.add_theme_constant_override("separation", 2)
-	name_vb.add_child(UiKit.label("修仙者", 20, UiKit.PINK_700, 600))
-	name_vb.add_child(UiKit.label("初入仙途", 12, UiKit.PINK_400))
+	name_vb.add_child(UiKit.label(GameState.player_name, 20, UiKit.PINK_700, 600))
+	name_vb.add_child(UiKit.label(GameState.player_title, 12, UiKit.PINK_400))
 	top.add_child(name_vb)
 	pv.add_child(top)
 
@@ -39,10 +58,10 @@ func _profile_card() -> VBoxContainer:
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 12)
 	grid.add_theme_constant_override("v_separation", 12)
-	grid.add_child(_stat_text("年纪", "18岁"))
-	grid.add_child(_stat_bar("灵力", 0.75, "750"))
-	grid.add_child(_stat_bar("生命", 0.90, "90%"))
-	grid.add_child(_stat_text("突破率", "45%"))
+	grid.add_child(_stat_text("年纪", "%d岁" % int(GameState.age)))
+	grid.add_child(_stat_bar("灵力", GameState.spirit_pct / 100.0, str(GameState.spirit)))
+	grid.add_child(_stat_bar("生命", GameState.health_pct / 100.0, "%d%%" % int(GameState.health_pct)))
+	grid.add_child(_stat_text("突破率", "%d%%" % int(GameState.breakthrough_pct)))
 	pv.add_child(grid)
 	return pv
 
@@ -84,20 +103,45 @@ func _schedule_card() -> VBoxContainer:
 	head.add_child(UiKit.icon_rect("calendar", 20, UiKit.PINK_700))
 	head.add_child(UiKit.label("今日行程", 18, UiKit.PINK_700, 600))
 	sv.add_child(head)
-	var list := VBoxContainer.new()
-	list.add_theme_constant_override("separation", 12)
-	for s in schedules:
-		list.add_child(_schedule_row(s))
-	sv.add_child(list)
+	_list = VBoxContainer.new()
+	_list.add_theme_constant_override("separation", 12)
+	sv.add_child(_list)
 	return sv
 
 
-func _schedule_row(s: Dictionary) -> PanelContainer:
+func _status_key() -> String:
+	return ",".join(_statuses())
+
+
+func _statuses() -> Array:
+	var tod := fmod(TimeManager.game_hours, 24.0)
+	var out := []
+	for i in schedules.size():
+		var start := DAY_START + i * ACTIVITY_HOURS
+		var status := "pending"
+		if tod < DAY_START or tod >= start + ACTIVITY_HOURS:
+			status = "completed"
+		elif tod >= start:
+			status = "current"
+		out.append(status)
+	return out
+
+
+func _rebuild_list() -> void:
+	for c in _list.get_children():
+		_list.remove_child(c)
+		c.queue_free()
+	var st := _statuses()
+	for i in schedules.size():
+		_list.add_child(_schedule_row(schedules[i], st[i]))
+
+
+func _schedule_row(s: Dictionary, status: String) -> PanelContainer:
 	var bg := UiKit.PINK_50
 	var border := 0
-	if s.status == "completed":
+	if status == "completed":
 		bg = Color(UiKit.PINK_50, 0.6)
-	elif s.status == "current":
+	elif status == "current":
 		border = 2
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", UiKit.stylebox(bg, 12, false, border, UiKit.PINK_300))
@@ -120,9 +164,9 @@ func _schedule_row(s: Dictionary) -> PanelContainer:
 	var title_row := HBoxContainer.new()
 	title_row.add_theme_constant_override("separation", 8)
 	title_row.add_child(UiKit.label(s.activity, 14, UiKit.PINK_700, 600))
-	if s.status == "completed":
+	if status == "completed":
 		title_row.add_child(UiKit.pill("已完成", UiKit.PINK_600, UiKit.PINK_200))
-	elif s.status == "current":
+	elif status == "current":
 		title_row.add_child(UiKit.pill("进行中", UiKit.WHITE, UiKit.PINK_400))
 	info.add_child(title_row)
 	info.add_child(UiKit.label(s.desc, 12, UiKit.PINK_400))

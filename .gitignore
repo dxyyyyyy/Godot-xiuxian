@@ -1,0 +1,13 @@
+# Godot 4 编辑器缓存（自动生成，不入库）
+.godot/
+
+# 导出预设（含签名/密钥等敏感信息时不入库；若团队共享导出配置可删除此行）
+/export_presets.cfg
+
+# Android 导出构建目录（点击导出时自动生成）
+/android/
+
+# 系统垃圾文件
+.DS_Store
+Thumbs.db
+desktop.ini
