@@ -1,5 +1,5 @@
-extends "res://scripts/screen_base.gd"
-## 设置页：所有控件接入 GameState / TimeManager，数值随存档持久化。
+extends "res://scripts/apps/app_base.gd"
+## 设置：音量/画质/红点总开关/时间调速，全部接入 GameState / TimeManager 随存档持久化。
 ## 音量目前只存数值，接入音频系统后应用到 AudioServer 总线即可。
 
 var quality_group := ButtonGroup.new()
@@ -9,15 +9,15 @@ var clock_caption: Label
 var _clock_cache := ""
 
 
-func _build(vb: VBoxContainer) -> void:
+func _build_content(vb: VBoxContainer) -> void:
 	vb.add_theme_constant_override("separation", 16)
-	vb.add_child(UiKit.label("游戏设置", 24, UiKit.PINK_600, 600))
+	vb.add_child(UiKit.label("设置", 24, UiKit.PINK_600, 600))
 	vb.add_child(_volume_card("volume-2", "音效", "sound"))
 	vb.add_child(_volume_card("music", "音乐", "music"))
 	vb.add_child(_quality_card())
-	vb.add_child(_notify_card())
+	vb.add_child(_red_dot_card())
 	vb.add_child(_speed_card())
-	vb.add_child(_version_card())
+	vb.add_child(_about_card())
 
 
 func _process(_delta: float) -> void:
@@ -83,18 +83,23 @@ func _quality_card() -> PanelContainer:
 	return c
 
 
-func _notify_card() -> PanelContainer:
+## 红点总开关（眼不见为净）：关闭后玉牌照常可用，只是没有提醒。
+func _red_dot_card() -> PanelContainer:
 	var c := UiKit.card()
+	var cv := VBoxContainer.new()
+	cv.add_theme_constant_override("separation", 10)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	var left := HBoxContainer.new()
 	left.add_theme_constant_override("separation", 12)
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left.add_child(UiKit.icon_rect("bell", 20, UiKit.PINK_500))
-	left.add_child(UiKit.label("推送通知", 16, UiKit.PINK_700, 600))
+	left.add_child(UiKit.label("红点提醒", 16, UiKit.PINK_700, 600))
 	row.add_child(left)
-	row.add_child(_make_switch(GameState.notifications, func(v: bool) -> void: GameState.notifications = v))
-	c.add_child(UiKit.margin_wrap(row, 16))
+	row.add_child(_make_switch(GameState.notifications, func(v: bool) -> void: GameState.set_notifications(v)))
+	cv.add_child(row)
+	cv.add_child(UiKit.label("眼不见为净——关闭后玉牌照常可用，只是没有提醒。", 12, UiKit.PINK_400))
+	c.add_child(UiKit.margin_wrap(cv, 16))
 	return c
 
 
@@ -127,14 +132,15 @@ func _speed_card() -> PanelContainer:
 	return c
 
 
-func _version_card() -> PanelContainer:
+## 「关于本牌」（文档 §7 原文风味）
+func _about_card() -> PanelContainer:
 	var c := UiKit.card()
-	var vv := VBoxContainer.new()
-	vv.alignment = BoxContainer.ALIGNMENT_CENTER
-	vv.add_theme_constant_override("separation", 4)
-	vv.add_child(UiKit.label("修仙模拟器", 14, UiKit.PINK_600, 400, HORIZONTAL_ALIGNMENT_CENTER))
-	vv.add_child(UiKit.label("版本 v1.0.0", 12, UiKit.PINK_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
-	c.add_child(UiKit.margin_wrap(vv, 16))
+	var cv := VBoxContainer.new()
+	cv.alignment = BoxContainer.ALIGNMENT_CENTER
+	cv.add_theme_constant_override("separation", 4)
+	cv.add_child(UiKit.label("百味宗后勤堂制 · 传讯阵三枚 · 续航：靠晾。", 13, UiKit.PINK_600, 400, HORIZONTAL_ALIGNMENT_CENTER))
+	cv.add_child(UiKit.label("版本 v1.0.0", 12, UiKit.PINK_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
+	c.add_child(UiKit.margin_wrap(cv, 16))
 	return c
 
 

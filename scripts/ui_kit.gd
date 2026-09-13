@@ -27,6 +27,24 @@ const YELLOW_400 := Color("facc15")
 const RED_400 := Color("f87171")
 const BLUE_500 := Color("3b82f6")
 
+# ---- 玉牌色系（青玉底 + 鎏金阵纹 + 墨色字，传讯玉牌外壳专用）----
+const JADE_50 := Color("f0fdfa")
+const JADE_100 := Color("ccfbf1")
+const JADE_200 := Color("99f6e4")
+const JADE_300 := Color("5eead4")
+const JADE_400 := Color("2dd4bf")
+const JADE_500 := Color("14b8a6")
+const JADE_600 := Color("0d9488")
+const JADE_700 := Color("0f766e")
+const JADE_800 := Color("115e59")
+const JADE_900 := Color("134e4a")
+const GOLD_200 := Color("fde68a")
+const GOLD_400 := Color("fbbf24")
+const GOLD_500 := Color("f59e0b")
+const GOLD_600 := Color("d97706")
+const GOLD_700 := Color("b45309")
+const INK := Color("1f2937")
+
 static var _font_cache := {}
 
 

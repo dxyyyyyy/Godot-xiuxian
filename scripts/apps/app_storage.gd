@@ -1,13 +1,13 @@
-extends "res://scripts/screen_base.gd"
-## 物品页：4 列背包网格。数量来自 GameState 真实背包，收获即更新。
+extends "res://scripts/apps/app_base.gd"
+## 库房：灶库＋库房（4 列背包网格）。数量来自 GameState 真实库存，收获即更新。
 
 var _count_labels := {}  # item_id -> Label
 var _tiles := {}         # item_id -> 网格单元（数量为 0 时隐藏）
 
 
-func _build(vb: VBoxContainer) -> void:
+func _build_content(vb: VBoxContainer) -> void:
 	vb.add_theme_constant_override("separation", 16)
-	vb.add_child(UiKit.label("物品背包", 24, UiKit.PINK_600, 600))
+	vb.add_child(UiKit.label("灶库 · 库房", 24, UiKit.PINK_600, 600))
 	var grid := GridContainer.new()
 	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 16)

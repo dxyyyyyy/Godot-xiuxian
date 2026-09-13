@@ -1,7 +1,7 @@
 extends "res://scripts/screen_base.gd"
-## 人物页：4 列角色关系网格
+## 名录页：人员名录＋好感列表（数据暂为静态名册；「传闻中的面孔」按文档留白）。
 
-var characters := [
+const CHARACTERS := [
 	{"name": "云梦瑶", "level": 25, "gender": "female", "friendship": 85, "love": 60},
 	{"name": "剑无痕", "level": 30, "gender": "male", "friendship": 70, "love": 45},
 	{"name": "月灵儿", "level": 22, "gender": "female", "friendship": 90, "love": 75},
@@ -15,13 +15,15 @@ var characters := [
 
 func _build(vb: VBoxContainer) -> void:
 	vb.add_theme_constant_override("separation", 16)
-	vb.add_child(UiKit.label("人物关系", 24, UiKit.PINK_600, 600))
+	vb.add_child(UiKit.label("名录", 24, UiKit.PINK_600, 600))
+	vb.add_child(UiKit.label("牌没换，人换了一茬。", 12, UiKit.PINK_400))
 	var grid := GridContainer.new()
 	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 16)
 	grid.add_theme_constant_override("v_separation", 16)
-	for c in characters:
+	for c in CHARACTERS:
 		grid.add_child(_character_tile(c))
+	grid.add_child(_unknown_tile())
 	vb.add_child(grid)
 
 
@@ -59,6 +61,19 @@ func _character_tile(c: Dictionary) -> VBoxContainer:
 	hearts.add_child(_heart_stat(UiKit.YELLOW_400, int(c.friendship)))
 	hearts.add_child(_heart_stat(UiKit.RED_400, int(c.love)))
 	tile.add_child(hearts)
+	return tile
+
+
+## 「传闻中的面孔」：未相逢者的空位留白。
+func _unknown_tile() -> VBoxContainer:
+	var tile := VBoxContainer.new()
+	tile.alignment = BoxContainer.ALIGNMENT_CENTER
+	tile.add_theme_constant_override("separation", 8)
+	tile.add_child(UiKit.circle(64, UiKit.GRAY_200, UiKit.GRAY_300, "lock", 24, UiKit.GRAY_400, true))
+	var lb := UiKit.label("传闻中的面孔", 12, UiKit.GRAY_400, 400, HORIZONTAL_ALIGNMENT_CENTER)
+	lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lb.custom_minimum_size = Vector2(80, 0)
+	tile.add_child(lb)
 	return tile
 
 

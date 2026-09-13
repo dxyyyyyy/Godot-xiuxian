@@ -5,6 +5,8 @@ extends Node
 signal inventory_changed
 signal slots_changed
 signal stats_changed
+signal chronicle_changed
+signal tablet_unread_changed
 
 const SAVE_PATH := "user://savegame.json"
 const AUTOSAVE_INTERVAL := 30.0
@@ -125,6 +127,9 @@ var spirit_pct := 75.0
 var health_pct := 90.0
 var breakthrough_pct := 45.0
 
+## 行动方案（日程页选择，机制待接入）：cultivate/farm/cook/travel/romance/explore
+var action_plan := "cultivate"
+
 # ---- 设置（音量暂存数值，接音频总线时再生效）----
 var sound_volume := 75
 var music_volume := 60
@@ -135,6 +140,16 @@ var notifications := true
 var inventory := {}
 var farmland := []   # 种植槽位
 var stoves := []     # 烹饪槽位
+
+# ---- 玉牌数据：纪事 / 图鉴发现 / 红点 / 壁讯订阅 ----
+const CHRONICLE_LIMIT := 200
+var chronicle: Array = []       # [{day: int, text: String}]，按时间顺序
+var discovered_items := {}      # item_id -> true（图鉴·物品）
+var discovered_recipes := {}    # recipe_id -> true（图鉴·菜谱）
+var tablet_unread := {}         # app_id -> 未读计数（红点）
+var chronicle_unread := 0
+var codex_unread := 0
+var gossip_subscribed := false
 
 var _slot_state_cache := ""
 var _autosave_accum := 0.0
@@ -158,6 +173,7 @@ func _process(delta: float) -> void:
 	if key != _slot_state_cache:
 		_slot_state_cache = key
 		slots_changed.emit()
+		_refresh_unread()
 
 
 # ---- 槽位逻辑（灵田/灶台通用：空 → 生产中 → 可收获 → 收获归空）----
@@ -183,9 +199,11 @@ func slot_interact(slot: Dictionary) -> String:
 		var def: Dictionary = RECIPES[slot.recipe]
 		slot.last_recipe = slot.recipe
 		add_item(String(def.item), int(def.output))
+		log_chronicle("收取「%s」×%d" % [String(def.name), int(def.output)])
 		slot.recipe = ""
 		slot.started = -1.0
 		slots_changed.emit()
+		_refresh_unread()
 		return "harvest"
 	return ""
 
@@ -216,7 +234,10 @@ func slot_start(slot: Dictionary, recipe_id: String) -> bool:
 	slot.recipe = recipe_id
 	slot.started = TimeManager.game_hours
 	slot.last_recipe = recipe_id
+	log_chronicle("%s·「%s」" % ["灵田下种" if String(def.kind) == "plot" else "灶上开火", String(def.name)])
+	_discover_recipe(recipe_id, true)
 	slots_changed.emit()
+	_refresh_unread()
 	return true
 
 
@@ -249,6 +270,7 @@ func _slots_state_key() -> String:
 
 func add_item(item_id: String, count: int) -> void:
 	inventory[item_id] = int(inventory.get(item_id, 0)) + count
+	_discover_item(item_id, true)
 	inventory_changed.emit()
 
 
@@ -274,6 +296,82 @@ func consume_items(costs: Dictionary) -> bool:
 	return true
 
 
+# ---- 玉牌：纪事 / 图鉴发现 / 红点 ----
+
+## 纪事记录：一行为一事，滚动上限 CHRONICLE_LIMIT。
+func log_chronicle(text: String) -> void:
+	chronicle.append({"day": TimeManager.day(), "text": text})
+	while chronicle.size() > CHRONICLE_LIMIT:
+		chronicle.pop_front()
+	chronicle_unread += 1
+	chronicle_changed.emit()
+	_refresh_unread()
+
+
+## 图鉴发现：notify=false 用于读档/初始化回填，不亮红点。
+func _discover_item(item_id: String, notify: bool) -> void:
+	if not ITEMS.has(item_id) or discovered_items.has(item_id):
+		return
+	discovered_items[item_id] = true
+	if notify:
+		codex_unread += 1
+		_refresh_unread()
+
+
+func _discover_recipe(recipe_id: String, notify: bool) -> void:
+	if not RECIPES.has(recipe_id) or discovered_recipes.has(recipe_id):
+		return
+	discovered_recipes[recipe_id] = true
+	if notify:
+		codex_unread += 1
+		_refresh_unread()
+
+
+## 打开 app 即消红点：纪事/图鉴清计数器，库房是状态推导无需清。
+func mark_app_opened(app_id: String) -> void:
+	match app_id:
+		"chronicle":
+			chronicle_unread = 0
+		"codex":
+			codex_unread = 0
+	_refresh_unread()
+
+
+## 各 app 未读数（红点总开关关闭时全部归零，玉牌照常可用）。
+func app_unread(app_id: String) -> int:
+	if not notifications:
+		return 0
+	return int(tablet_unread.get(app_id, 0))
+
+
+func unread_total() -> int:
+	if not notifications:
+		return 0
+	var total := 0
+	for app_id in tablet_unread:
+		total += int(tablet_unread[app_id])
+	return total
+
+
+## 库房红点由可收获槽位状态推导；纪事/图鉴走未读计数器。
+func _refresh_unread() -> void:
+	var ready_count := 0
+	for slot in farmland + stoves:
+		if slot_ready(slot):
+			ready_count += 1
+	var next := {"storage": ready_count, "chronicle": chronicle_unread, "codex": codex_unread}
+	if next != tablet_unread:
+		tablet_unread = next
+		tablet_unread_changed.emit()
+
+
+func set_notifications(v: bool) -> void:
+	if notifications == v:
+		return
+	notifications = v
+	tablet_unread_changed.emit()
+
+
 # ---- 初始化与存档 ----
 
 func _load_or_init() -> void:
@@ -295,6 +393,20 @@ func _init_fresh() -> void:
 	_seed_progress(farmland[3], 0.60)
 	_seed_progress(stoves[0], 0.60)
 	_seed_progress(stoves[2], 0.25)
+	# 玉牌：图鉴按初始家底回填（不亮红点），纪事记首笔「领牌」
+	discovered_items.clear()
+	discovered_recipes.clear()
+	chronicle.clear()
+	chronicle_unread = 0
+	codex_unread = 0
+	gossip_subscribed = false
+	tablet_unread = {}
+	for id in inventory:
+		_discover_item(String(id), false)
+	for slot in farmland + stoves:
+		_discover_recipe(String(slot.recipe), false)
+		_discover_recipe(String(slot.last_recipe), false)
+	log_chronicle("入杂役院领牌 · 传讯阵三枚可用")
 
 
 func _seed_progress(slot: Dictionary, frac: float) -> void:
@@ -331,10 +443,18 @@ func save_game() -> void:
 	var data := {
 		"time": {"hours": TimeManager.game_hours, "speed": TimeManager.speed},
 		"player": {"age": age, "spirit": spirit, "health_pct": health_pct, "breakthrough_pct": breakthrough_pct},
+		"action_plan": action_plan,
 		"settings": {"sound": sound_volume, "music": music_volume, "quality": quality, "notifications": notifications},
 		"inventory": inventory,
 		"farmland": _serialize_slots(farmland),
 		"stoves": _serialize_slots(stoves),
+		"chronicle": chronicle,
+		"tablet": {
+			"chronicle_unread": chronicle_unread,
+			"codex_unread": codex_unread,
+			"gossip_subscribed": gossip_subscribed,
+		},
+		"discovered": {"items": discovered_items.keys(), "recipes": discovered_recipes.keys()},
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -372,6 +492,7 @@ func _load_game() -> bool:
 	spirit = int(p.get("spirit", spirit))
 	health_pct = float(p.get("health_pct", health_pct))
 	breakthrough_pct = float(p.get("breakthrough_pct", breakthrough_pct))
+	action_plan = String(data.get("action_plan", action_plan))
 
 	var st: Dictionary = data.get("settings", {})
 	sound_volume = int(st.get("sound", sound_volume))
@@ -389,6 +510,38 @@ func _load_game() -> bool:
 
 	farmland = _deserialize_slots(data.get("farmland"), _default_farmland())
 	stoves = _deserialize_slots(data.get("stoves"), _default_stoves())
+
+	# 玉牌数据（旧档缺节走默认值，发现列表按当前家底兜底回填）
+	chronicle.clear()
+	var ch: Variant = data.get("chronicle", [])
+	if typeof(ch) == TYPE_ARRAY:
+		for e in ch:
+			if typeof(e) == TYPE_DICTIONARY:
+				chronicle.append({"day": int(e.get("day", 1)), "text": String(e.get("text", ""))})
+	var tb_v: Variant = data.get("tablet", {})
+	var tb: Dictionary = tb_v if typeof(tb_v) == TYPE_DICTIONARY else {}
+	chronicle_unread = int(tb.get("chronicle_unread", 0))
+	codex_unread = int(tb.get("codex_unread", 0))
+	gossip_subscribed = bool(tb.get("gossip_subscribed", false))
+	discovered_items.clear()
+	discovered_recipes.clear()
+	var dv_v: Variant = data.get("discovered", {})
+	var dv: Dictionary = dv_v if typeof(dv_v) == TYPE_DICTIONARY else {}
+	var di: Variant = dv.get("items", [])
+	if typeof(di) == TYPE_ARRAY:
+		for id in di:
+			_discover_item(String(id), false)
+	var dr: Variant = dv.get("recipes", [])
+	if typeof(dr) == TYPE_ARRAY:
+		for id in dr:
+			_discover_recipe(String(id), false)
+	for id in inventory:
+		_discover_item(String(id), false)
+	for slot in farmland + stoves:
+		_discover_recipe(String(slot.recipe), false)
+		_discover_recipe(String(slot.last_recipe), false)
+	tablet_unread = {}
+	_refresh_unread()
 	return true
 
 

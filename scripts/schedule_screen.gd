@@ -1,42 +1,17 @@
 extends "res://scripts/screen_base.gd"
-## 日程页：人物资料卡（读 GameState）+ 今日行程（状态由 TimeManager 游戏时钟驱动）。
-## 行程规则：06:00 起每项 3 小时，时间到了自动 待办 → 进行中 → 已完成。
+## 日程页：人物资料卡（读 GameState，含「行动方案」选择）+ 一世纪事（预留区块，待接入）。
+## 纪事数据层已在 GameState.chronicle 就绪（玉牌·纪事 app 同源），接入时替换预留位即可。
 
-const DAY_START := 6.0
-const ACTIVITY_HOURS := 3.0
-
-var schedules := [
-	{"time": "06:00", "activity": "晨练", "desc": "修炼基础功法"},
-	{"time": "09:00", "activity": "采集灵草", "desc": "后山采集药材"},
-	{"time": "12:00", "activity": "炼丹", "desc": "炼制回灵丹"},
-	{"time": "15:00", "activity": "闭关修炼", "desc": "冲击筑基期"},
-	{"time": "18:00", "activity": "拜访师尊", "desc": "请教修炼心得"},
-]
-
-var _list: VBoxContainer
-var _status_cache := ""
-
+var plan_group := ButtonGroup.new()
 
 func _build(vb: VBoxContainer) -> void:
 	var profile := UiKit.card()
 	profile.add_child(UiKit.margin_wrap(_profile_card(), 24))
 	vb.add_child(profile)
 
-	var sched := UiKit.card()
-	sched.add_child(UiKit.margin_wrap(_schedule_card(), 24))
-	vb.add_child(sched)
-
-	_status_cache = _status_key()
-	_rebuild_list()
-
-
-func _process(_delta: float) -> void:
-	if _list == null:
-		return
-	var key := _status_key()
-	if key != _status_cache:
-		_status_cache = key
-		_rebuild_list()
+	var chron := UiKit.card()
+	chron.add_child(UiKit.margin_wrap(_chronicle_card(), 24))
+	vb.add_child(chron)
 
 
 func _profile_card() -> VBoxContainer:
@@ -52,6 +27,8 @@ func _profile_card() -> VBoxContainer:
 	name_vb.add_child(UiKit.label(GameState.player_name, 20, UiKit.PINK_700, 600))
 	name_vb.add_child(UiKit.label(GameState.player_title, 12, UiKit.PINK_400))
 	top.add_child(name_vb)
+	top.add_child(UiKit.expander())
+	top.add_child(_plan_panel())
 	pv.add_child(top)
 
 	var grid := GridContainer.new()
@@ -95,82 +72,85 @@ func _stat_bar(caption: String, frac: float, value: String) -> PanelContainer:
 	return box
 
 
-func _schedule_card() -> VBoxContainer:
+## 行动方案：四选一（GameState.action_plan 持久化；机制待接入）。
+func _plan_panel() -> PanelContainer:
+	var panel := UiKit.padded(UiKit.pink_box(), 12)
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var pv := VBoxContainer.new()
+	pv.add_theme_constant_override("separation", 8)
+	pv.add_child(UiKit.label("行动方案", 13, UiKit.PINK_700, 600))
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	var plans := [
+		["cultivate", "认真修炼"],
+		["farm", "照顾灵田"],
+		["cook", "做饭"],
+		["travel", "出门游历"],
+		["romance", "情缘来往"],
+		["explore", "寻道探索"],
+	]
+	for p in plans:
+		var b := _plan_button(String(p[1]), String(p[0]) == GameState.action_plan)
+		var pid: String = p[0]
+		b.pressed.connect(func() -> void: GameState.action_plan = pid)
+		grid.add_child(b)
+	pv.add_child(grid)
+	panel.add_child(pv)
+	return panel
+
+
+func _plan_button(text: String, is_on: bool) -> Button:
+	var b := Button.new()
+	b.toggle_mode = true
+	b.button_group = plan_group
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(0, 30)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.add_theme_font_override("font", UiKit.font(500))
+	b.add_theme_font_size_override("font_size", 12)
+	b.add_theme_color_override("font_color", UiKit.PINK_600)
+	b.add_theme_color_override("font_hover_color", UiKit.PINK_600)
+	b.add_theme_color_override("font_focus_color", UiKit.PINK_600)
+	b.add_theme_color_override("font_pressed_color", UiKit.WHITE)
+	b.add_theme_color_override("font_hover_pressed_color", UiKit.WHITE)
+	var off := UiKit.stylebox(UiKit.PINK_100, 8)
+	var on := UiKit.stylebox(UiKit.PINK_500, 8)
+	for sb in [off, on]:
+		sb.content_margin_left = 4
+		sb.content_margin_right = 4
+		sb.content_margin_top = 2
+		sb.content_margin_bottom = 2
+	b.add_theme_stylebox_override("normal", off)
+	b.add_theme_stylebox_override("hover", off)
+	b.add_theme_stylebox_override("pressed", on)
+	b.add_theme_stylebox_override("hover_pressed", on)
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.set_pressed_no_signal(is_on)
+	return b
+
+
+## 一世纪事：内容先预留，接入前以留白占位。
+func _chronicle_card() -> VBoxContainer:
 	var sv := VBoxContainer.new()
 	sv.add_theme_constant_override("separation", 16)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 8)
 	head.add_child(UiKit.icon_rect("calendar", 20, UiKit.PINK_700))
-	head.add_child(UiKit.label("今日行程", 18, UiKit.PINK_700, 600))
+	head.add_child(UiKit.label("一世纪事", 18, UiKit.PINK_700, 600))
 	sv.add_child(head)
-	_list = VBoxContainer.new()
-	_list.add_theme_constant_override("separation", 12)
-	sv.add_child(_list)
+
+	var slot := UiKit.pink_box()
+	slot.custom_minimum_size = Vector2(0, 120)
+	slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var slot_vb := VBoxContainer.new()
+	slot_vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	slot_vb.add_theme_constant_override("separation", 6)
+	slot_vb.add_child(UiKit.label("此间留白，待日子来填。", 14, UiKit.PINK_600, 500, HORIZONTAL_ALIGNMENT_CENTER))
+	slot_vb.add_child(UiKit.label("一世纪事 · 内容待接入", 12, UiKit.PINK_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
+	slot.add_child(UiKit.margin_wrap(slot_vb, 16))
+	sv.add_child(slot)
 	return sv
-
-
-func _status_key() -> String:
-	return ",".join(_statuses())
-
-
-func _statuses() -> Array:
-	var tod := fmod(TimeManager.game_hours, 24.0)
-	var out := []
-	for i in schedules.size():
-		var start := DAY_START + i * ACTIVITY_HOURS
-		var status := "pending"
-		if tod < DAY_START or tod >= start + ACTIVITY_HOURS:
-			status = "completed"
-		elif tod >= start:
-			status = "current"
-		out.append(status)
-	return out
-
-
-func _rebuild_list() -> void:
-	for c in _list.get_children():
-		_list.remove_child(c)
-		c.queue_free()
-	var st := _statuses()
-	for i in schedules.size():
-		_list.add_child(_schedule_row(schedules[i], st[i]))
-
-
-func _schedule_row(s: Dictionary, status: String) -> PanelContainer:
-	var bg := UiKit.PINK_50
-	var border := 0
-	if status == "completed":
-		bg = Color(UiKit.PINK_50, 0.6)
-	elif status == "current":
-		border = 2
-	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UiKit.stylebox(bg, 12, false, border, UiKit.PINK_300))
-	UiKit.padded(p, 12)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-
-	var time_vb := VBoxContainer.new()
-	time_vb.custom_minimum_size = Vector2(60, 0)
-	time_vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	time_vb.add_child(UiKit.label("时间", 12, UiKit.PINK_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
-	time_vb.add_child(UiKit.label(s.time, 14, UiKit.PINK_600, 600, HORIZONTAL_ALIGNMENT_CENTER))
-	row.add_child(time_vb)
-
-	var info := VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.alignment = BoxContainer.ALIGNMENT_CENTER
-	info.add_theme_constant_override("separation", 2)
-	var title_row := HBoxContainer.new()
-	title_row.add_theme_constant_override("separation", 8)
-	title_row.add_child(UiKit.label(s.activity, 14, UiKit.PINK_700, 600))
-	if status == "completed":
-		title_row.add_child(UiKit.pill("已完成", UiKit.PINK_600, UiKit.PINK_200))
-	elif status == "current":
-		title_row.add_child(UiKit.pill("进行中", UiKit.WHITE, UiKit.PINK_400))
-	info.add_child(title_row)
-	info.add_child(UiKit.label(s.desc, 12, UiKit.PINK_400))
-	row.add_child(info)
-
-	p.add_child(row)
-	return p
