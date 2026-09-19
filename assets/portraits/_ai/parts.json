@@ -1,0 +1,18 @@
+{
+ "male": [
+  {
+   "slot": "cloth",
+   "file": "cloth/5m.png",
+   "name": "靛青交领袍",
+   "back": false
+  }
+ ],
+ "female": [
+  {
+   "slot": "cloth",
+   "file": "cloth/8f.png",
+   "name": "月白襦裙",
+   "back": false
+  }
+ ]
+}

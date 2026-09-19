@@ -1,0 +1,982 @@
+[
+ {
+  "id": "suchaochunjiu",
+  "name": "素炒春韭",
+  "tier": "low",
+  "min_realm": 0,
+  "mats": [
+   {
+    "seed": "chunjiu",
+    "n": 2
+   }
+  ],
+  "effect": "修为直接+≈0.15月聚灵",
+  "fx": {
+   "kind": "cult_flat",
+   "v": 0.15
+  },
+  "tags": [
+   "素"
+  ],
+  "acquire": "开局",
+  "note": "第一道菜, 教玩家「种→做→吃/送」闭环: 吃=修为直接入账"
+ },
+ {
+  "id": "zhenglinglushu",
+  "name": "蒸灵露薯",
+  "tier": "low",
+  "min_realm": 0,
+  "mats": [
+   {
+    "seed": "linglushu",
+    "n": 2
+   }
+  ],
+  "effect": "气血+10",
+  "fx": {
+   "kind": "heal",
+   "v": 10
+  },
+  "tags": [
+   "甘",
+   "素"
+  ],
+  "acquire": "开局",
+  "note": "最朴素的甜, 最朴素的回血"
+ },
+ {
+  "id": "baizhou",
+  "name": "白粥",
+  "tier": "low",
+  "min_realm": 0,
+  "mats": [
+   {
+    "seed": "qiudao",
+    "n": 3
+   }
+  ],
+  "effect": "气血+15",
+  "fx": {
+   "kind": "heal",
+   "v": 15
+  },
+  "tags": [
+   "饱腹",
+   "温"
+  ],
+  "acquire": "开局",
+  "note": "病中、雪夜、失恋都能送的那碗粥(受伤 Debuff 灰盒未建模, 只回气血)"
+ },
+ {
+  "id": "zhuoxueliqing",
+  "name": "灼雪里青",
+  "tier": "low",
+  "min_realm": 0,
+  "mats": [
+   {
+    "seed": "xueliqing",
+    "n": 2
+   }
+  ],
+  "effect": "下次冲关+5%",
+  "fx": {
+   "kind": "check_pct",
+   "v": 0.05,
+   "months": 1
+  },
+  "tags": [
+   "清",
+   "素"
+  ],
+  "acquire": "开局",
+  "note": "冬天的第一口绿"
+ },
+ {
+  "id": "hongshaizixiaqie",
+  "name": "红烧紫霞茄",
+  "tier": "low",
+  "min_realm": 0,
+  "mats": [
+   {
+    "seed": "zixiaqie",
+    "n": 2
+   }
+  ],
+  "effect": "下月修炼+5%",
+  "fx": {
+   "kind": "cult_pct",
+   "v": 0.05,
+   "months": 1
+  },
+  "tags": [
+   "素",
+   "温"
+  ],
+  "acquire": "开局",
+  "note": "下饭之王, 农家底色"
+ },
+ {
+  "id": "qingfengsuntang",
+  "name": "青风笋汤",
+  "tier": "low",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "qingfengsun",
+    "n": 2
+   }
+  ],
+  "effect": "气血+10",
+  "fx": {
+   "kind": "heal",
+   "v": 10
+  },
+  "tags": [
+   "鲜",
+   "温"
+  ],
+  "acquire": "坊市书卷",
+  "note": "春鲜, 探索前的例行一碗"
+ },
+ {
+  "id": "shouganjinmian",
+  "name": "手擀金面",
+  "tier": "low",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "jinlvmai",
+    "n": 2
+   }
+  ],
+  "effect": "修为直接+≈0.2月聚灵",
+  "fx": {
+   "kind": "cult_flat",
+   "v": 0.2
+  },
+  "tags": [
+   "饱腹"
+  ],
+  "acquire": "坊市书卷",
+  "note": "长寿面原型: 面到寿到, 一口实实在在"
+ },
+ {
+  "id": "furu",
+  "name": "腐乳",
+  "tier": "low",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "yinshadou",
+    "n": 2
+   }
+  ],
+  "effect": "下月修炼+5%(3月, 长效)",
+  "fx": {
+   "kind": "cult_pct",
+   "v": 0.05,
+   "months": 3
+  },
+  "tags": [
+   "辛",
+   "猎奇"
+  ],
+  "acquire": "坊市书卷",
+  "note": "发酵时间换风味: 全低阶唯一长效 buff"
+ },
+ {
+  "id": "bingxincaiban",
+  "name": "冰心菜凉拌",
+  "tier": "low",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "bingxincai",
+    "n": 2
+   }
+  ],
+  "effect": "气血自然回复+3/月(3月)",
+  "fx": {
+   "kind": "regen",
+   "v": 3,
+   "months": 3
+  },
+  "tags": [
+   "清",
+   "素"
+  ],
+  "acquire": "坊市书卷",
+  "note": "清凉续命: 慢性调养, 探索季的底牌"
+ },
+ {
+  "id": "lizigao",
+  "name": "栗子糕",
+  "tier": "low",
+  "min_realm": 2,
+  "mats": [
+   {
+    "seed": "fengqili",
+    "n": 1
+   },
+   {
+    "seed": "jinlvmai",
+    "n": 2
+   }
+  ],
+  "effect": "修为直接+≈0.3月聚灵",
+  "fx": {
+   "kind": "cult_flat",
+   "v": 0.3
+  },
+  "tags": [
+   "甘",
+   "饱腹"
+  ],
+  "acquire": "年节·秋分",
+  "note": "全低阶唯一上品料, 直接修为最值——秋分这天送最好的"
+ },
+ {
+  "id": "yanxueliqing",
+  "name": "腌雪里青",
+  "tier": "low",
+  "min_realm": 2,
+  "mats": [
+   {
+    "seed": "xueliqing",
+    "n": 3
+   }
+  ],
+  "effect": "气血+12",
+  "fx": {
+   "kind": "heal",
+   "v": 12
+  },
+  "tags": [
+   "清",
+   "猎奇"
+  ],
+  "acquire": "年节·冬至",
+  "note": "冬储便携粮, 「秋收冬藏」的落点"
+ },
+ {
+  "id": "wuxinpan",
+  "name": "五辛盘",
+  "tier": "low",
+  "min_realm": 2,
+  "mats": [
+   {
+    "seed": "xueliqing",
+    "n": 1
+   },
+   {
+    "seed": "chunjiu",
+    "n": 1
+   },
+   {
+    "seed": "chiyanjiao",
+    "n": 1
+   }
+  ],
+  "effect": "下次冲关+8%",
+  "fx": {
+   "kind": "check_pct",
+   "v": 0.08,
+   "months": 1
+  },
+  "tags": [
+   "猎奇",
+   "清"
+  ],
+  "acquire": "年节·岁朝",
+  "note": "年节古礼, 辛口冲得猛: 低阶检定顶配"
+ },
+ {
+  "id": "yunigeng",
+  "name": "芋泥羹",
+  "tier": "low",
+  "min_realm": 2,
+  "mats": [
+   {
+    "seed": "longwenyu",
+    "n": 2
+   }
+  ],
+  "effect": "修为直接+≈0.25月聚灵",
+  "fx": {
+   "kind": "cult_flat",
+   "v": 0.25
+  },
+  "tags": [
+   "甘",
+   "温"
+  ],
+  "acquire": "NPC回礼",
+  "note": "甜口社交货币, 自己吃也不亏"
+ },
+ {
+  "id": "sungubao",
+  "name": "笋菇煲",
+  "tier": "low",
+  "min_realm": 2,
+  "mats": [
+   {
+    "seed": "qingfengsun",
+    "n": 1
+   },
+   {
+    "seed": "yunmujun",
+    "n": 2
+   }
+  ],
+  "effect": "气血+18",
+  "fx": {
+   "kind": "heal",
+   "v": 18
+  },
+  "tags": [
+   "鲜",
+   "温"
+  ],
+  "acquire": "NPC回礼",
+  "note": "山珍版佛跳墙, 探索前硬菜"
+ },
+ {
+  "id": "zhihuoronggua",
+  "name": "炙火绒瓜",
+  "tier": "mid",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "huoronggua",
+    "n": 2
+   },
+   {
+    "seed": "qiudao",
+    "n": 1
+   }
+  ],
+  "effect": "下次冲关+10%",
+  "fx": {
+   "kind": "check_pct",
+   "v": 0.1,
+   "months": 1
+  },
+  "tags": [
+   "温"
+  ],
+  "acquire": "坊市书卷",
+  "note": "检定类+10%档(GDD §6.2 原文归属)"
+ },
+ {
+  "id": "huiyuantang",
+  "name": "回元汤",
+  "tier": "mid",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "huiyuancao",
+    "n": 2
+   },
+   {
+    "seed": "bingxincai",
+    "n": 1
+   }
+  ],
+  "effect": "下月修炼+10%",
+  "fx": {
+   "kind": "cult_pct",
+   "v": 0.1,
+   "months": 1
+  },
+  "tags": [
+   "温",
+   "素"
+  ],
+  "acquire": "坊市书卷",
+  "note": "回元草入膳, 药食同源; 可叠加囤爆发"
+ },
+ {
+  "id": "yanxinzhi",
+  "name": "焰心炙",
+  "tier": "mid",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "yanxinguo",
+    "n": 1
+   },
+   {
+    "seed": "fengqili",
+    "n": 1
+   }
+  ],
+  "effect": "修为直接+≈0.6月聚灵",
+  "fx": {
+   "kind": "cult_flat",
+   "v": 0.6
+  },
+  "tags": [
+   "辛",
+   "温"
+  ],
+  "acquire": "坊市书卷",
+  "note": "炙烤燥烈: 一波流进补"
+ },
+ {
+  "id": "jintangjungeng",
+  "name": "金汤菌羹",
+  "tier": "mid",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "yunmujun",
+    "n": 2
+   },
+   {
+    "seed": "yinshadou",
+    "n": 1
+   }
+  ],
+  "effect": "聚灵效率+10%(3月)",
+  "fx": {
+   "kind": "eff_pct",
+   "v": 0.1,
+   "months": 3
+  },
+  "tags": [
+   "鲜",
+   "温"
+  ],
+  "acquire": "坊市书卷",
+  "note": "全谱唯一效率层: 连吃三月, 服用灵药也跟着涨"
+ },
+ {
+  "id": "banlianghuorongguasi",
+  "name": "凉拌火绒瓜丝",
+  "tier": "mid",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "huoronggua",
+    "n": 3
+   }
+  ],
+  "effect": "下次冲关+12%",
+  "fx": {
+   "kind": "check_pct",
+   "v": 0.12,
+   "months": 1
+  },
+  "tags": [
+   "清",
+   "辛"
+  ],
+  "acquire": "坊市书卷",
+  "note": "火绒瓜的清辣面, 检定档顶配"
+ },
+ {
+  "id": "chunjiulingbing",
+  "name": "春韭灵饼",
+  "tier": "mid",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "chunjiu",
+    "n": 1
+   },
+   {
+    "seed": "jinlvmai",
+    "n": 1
+   }
+  ],
+  "effect": "下月修炼+8%(3月, 长效)",
+  "fx": {
+   "kind": "cult_pct",
+   "v": 0.08,
+   "months": 3
+  },
+  "tags": [
+   "饱腹",
+   "素"
+  ],
+  "acquire": "坊市书卷",
+  "note": "低阶老朋友的升档版: 细水长流"
+ },
+ {
+  "id": "jiaoyansuitang",
+  "name": "椒焰髓汤",
+  "tier": "mid",
+  "min_realm": 1,
+  "mats": [
+   {
+    "seed": "chiyanjiao",
+    "n": 2
+   },
+   {
+    "seed": "xisuiteng",
+    "n": 1
+   }
+  ],
+  "effect": "下月修炼+15%",
+  "fx": {
+   "kind": "cult_pct",
+   "v": 0.15,
+   "months": 1
+  },
+  "tags": [
+   "辛",
+   "温"
+  ],
+  "acquire": "坊市书卷",
+  "note": "洗髓藤入汤, 辣得通透: 冲层月的爆发"
+ },
+ {
+  "id": "xisuqinlu",
+  "name": "洗髓清露",
+  "tier": "mid",
+  "min_realm": 3,
+  "mats": [
+   {
+    "seed": "xisuiteng",
+    "n": 2
+   },
+   {
+    "seed": "bingxincai",
+    "n": 1
+   }
+  ],
+  "effect": "气血尽复",
+  "fx": {
+   "kind": "heal",
+   "v": 999
+  },
+  "tags": [
+   "清",
+   "鲜"
+  ],
+  "acquire": "秘境残页①",
+  "note": "露剂见真章: 一盏回满, 重伤后的救命水"
+ },
+ {
+  "id": "ningshencha",
+  "name": "宁神茶",
+  "tier": "mid",
+  "min_realm": 3,
+  "mats": [
+   {
+    "seed": "ningshencao",
+    "n": 2
+   }
+  ],
+  "effect": "顿悟率+2pp(3月)",
+  "fx": {
+   "kind": "wuxing",
+   "v": 0.02,
+   "months": 3
+  },
+  "tags": [
+   "清",
+   "鲜"
+  ],
+  "acquire": "秘境残页②",
+  "note": "一盏清茶开慧根"
+ },
+ {
+  "id": "kujinganlaigeng",
+  "name": "苦尽甘来羹",
+  "tier": "mid",
+  "min_realm": 3,
+  "mats": [
+   {
+    "seed": "huiyuancao",
+    "n": 2
+   },
+   {
+    "seed": "linglushu",
+    "n": 1
+   }
+  ],
+  "effect": "下月修炼+12%(2月)",
+  "fx": {
+   "kind": "cult_pct",
+   "v": 0.12,
+   "months": 2
+  },
+  "tags": [
+   "温",
+   "甘"
+  ],
+  "acquire": "秘境残页③",
+  "note": "名字就是效果说明: 先苦后甘的长劲"
+ },
+ {
+  "id": "buqitang",
+  "name": "补气汤",
+  "tier": "mid",
+  "min_realm": 3,
+  "mats": [
+   {
+    "seed": "chixueshen",
+    "n": 1
+   },
+   {
+    "seed": "qiudao",
+    "n": 2
+   }
+  ],
+  "effect": "修为直接+≈1.0月聚灵",
+  "fx": {
+   "kind": "cult_flat",
+   "v": 1.0
+  },
+  "tags": [
+   "温",
+   "饱腹"
+  ],
+  "acquire": "秘境残页④",
+  "note": "参力入膳: 中阶直接修为顶格, 一碗顶一月"
+ },
+ {
+  "id": "yanghungeng",
+  "name": "养魂羹",
+  "tier": "mid",
+  "min_realm": 3,
+  "mats": [
+   {
+    "seed": "yanghunteng",
+    "n": 2
+   },
+   {
+    "seed": "longwenyu",
+    "n": 1
+   }
+  ],
+  "effect": "顿悟率+3pp(2月)",
+  "fx": {
+   "kind": "wuxing",
+   "v": 0.03,
+   "months": 2
+  },
+  "tags": [
+   "温",
+   "甘"
+  ],
+  "acquire": "道侣赠礼①",
+  "note": "Ta熬给你的安魂甜汤(灰盒无功法研速系统, 悟性统一折算顿悟率形态)"
+ },
+ {
+  "id": "anshentang",
+  "name": "安神汤",
+  "tier": "mid",
+  "min_realm": 3,
+  "mats": [
+   {
+    "seed": "ningshencao",
+    "n": 2
+   }
+  ],
+  "effect": "心魔−2月",
+  "fx": {
+   "kind": "inner",
+   "v": 2
+  },
+  "tags": [
+   "清",
+   "温"
+  ],
+  "acquire": "道侣赠礼②",
+  "note": "宁神系炖品, 延时长"
+ },
+ {
+  "id": "zhaogugeng",
+  "name": "照骨羹(限1)",
+  "tier": "mid",
+  "min_realm": 3,
+  "mats": [
+   {
+    "seed": "millennium",
+    "n": 1
+   },
+   {
+    "seed": "flower_any",
+    "n": 1
+   }
+  ],
+  "effect": "下次冲关+5%(一次性)",
+  "fx": {
+   "kind": "break_once",
+   "v": 0.05
+  },
+  "tags": [
+   "猎奇"
+  ],
+  "acquire": "变异产物",
+  "note": "千年灵植入馔, 一锅只此一碗: 未冲关不消散, 冲关成功才消费"
+ },
+ {
+  "id": "huanyangxianyan",
+  "name": "还阳仙宴",
+  "tier": "high",
+  "min_realm": 4,
+  "mats": [
+   {
+    "seed": "jiuzhuan",
+    "n": 1
+   },
+   {
+    "seed": "fengqili",
+    "n": 1
+   }
+  ],
+  "effect": "永久资质+2%(≤2次/世) · 灵气=6个月聚灵产出",
+  "fx": {
+   "kind": "aptitude",
+   "v": 0.02
+  },
+  "tags": [
+   "温"
+  ],
+  "acquire": "不周山脊秘境残页",
+  "note": "九转还阳草的谢幕演出; 资质入聚灵公式独立乘项"
+ },
+ {
+  "id": "chixuexiangeng",
+  "name": "赤血仙羹",
+  "tier": "high",
+  "min_realm": 5,
+  "mats": [
+   {
+    "seed": "chixueshen",
+    "n": 1
+   },
+   {
+    "seed": "linglushu",
+    "n": 2
+   }
+  ],
+  "effect": "永久资质+2%(与还阳仙宴共享≤2次/世) · 灵气=6个月聚灵产出",
+  "fx": {
+   "kind": "aptitude",
+   "v": 0.02
+  },
+  "tags": [
+   "温",
+   "甘"
+  ],
+  "acquire": "道侣赠礼",
+  "note": "Ta研究半生的那道菜——送 Ta 还是吃, 同一朵花式的抉择"
+ },
+ {
+  "id": "yujingxianlu",
+  "name": "玉井仙露",
+  "tier": "high",
+  "min_realm": 5,
+  "mats": [
+   {
+    "seed": "yujingxuelian",
+    "n": 2
+   }
+  ],
+  "effect": "永久寿命+2年(≤1次/世) · 灵气=6个月聚灵产出",
+  "fx": {
+   "kind": "lifespan",
+   "v": 2
+  },
+  "tags": [
+   "清",
+   "甘"
+  ],
+  "acquire": "论道大会头名奖励",
+  "note": "雪莲化露, 与寿元对账的那笔钱"
+ },
+ {
+  "id": "bingdixiangeng",
+  "name": "并蒂仙羹",
+  "tier": "high",
+  "min_realm": 4,
+  "mats": [
+   {
+    "seed": "zhaoguhua",
+    "n": 1
+   },
+   {
+    "seed": "yanghunteng",
+    "n": 2
+   }
+  ],
+  "effect": "永久寿命+1年(与玉井仙露共享全世≤+3年) · 灵气=6个月聚灵产出",
+  "fx": {
+   "kind": "lifespan",
+   "v": 1
+  },
+  "tags": [
+   "温",
+   "猎奇"
+  ],
+  "acquire": "云梦泽深处残页",
+  "note": "并蒂花送 Ta(+5)还是延寿一年? 双轨互斥"
+ },
+ {
+  "id": "zhaoguxiangeng",
+  "name": "照骨仙羹",
+  "tier": "high",
+  "min_realm": 5,
+  "mats": [
+   {
+    "seed": "millennium",
+    "n": 1
+   },
+   {
+    "seed": "jiuzhuan",
+    "n": 1
+   }
+  ],
+  "effect": "永久气运+1档(≤1次/世) · 灵气=6个月聚灵产出",
+  "fx": {
+   "kind": "luck",
+   "v": 1
+  },
+  "tags": [
+   "猎奇"
+  ],
+  "acquire": "论道大会决赛彩头",
+  "note": "千年灵植照见骨相; 冲关+3%、机缘事件概率+10%"
+ },
+ {
+  "id": "mengdiexianzhuan",
+  "name": "梦蝶仙馔",
+  "tier": "high",
+  "min_realm": 6,
+  "mats": [
+   {
+    "seed": "mengdielan",
+    "n": 1
+   },
+   {
+    "seed": "millennium",
+    "n": 1
+   }
+  ],
+  "effect": "永久灵根·五行转易(≤1次/世) · 灵气=6个月聚灵产出",
+  "fx": {
+   "kind": "element"
+  },
+  "tags": [
+   "猎奇"
+  ],
+  "acquire": "轮回隐藏谱",
+  "note": "携魂印转世后解锁(§4.2); 梦蝶兰送 Ta 还是改易灵根?"
+ },
+ {
+  "id": "basikong",
+  "name": "拔丝虚空",
+  "tier": "dark",
+  "min_realm": -1,
+  "mats": [
+   {
+    "seed": "huoronggua",
+    "n": 1
+   },
+   {
+    "seed": "ningshencao",
+    "n": 3
+   },
+   {
+    "seed": "winter_any",
+    "n": 1
+   }
+  ],
+  "effect": "无buff · 赠礼−3+喜剧事件",
+  "tags": [],
+  "acquire": "冬天手滑把甜品做糊",
+  "note": "「甜到发苦, 苦到回甘, 回甘到虚无」"
+ },
+ {
+  "id": "jiuzhuanheidan",
+  "name": "九转黑暗丹",
+  "tier": "dark",
+  "min_realm": -1,
+  "mats": [
+   {
+    "seed": "jiuzhuan",
+    "n": 1
+   },
+   {
+    "seed": "chixueshen",
+    "n": 1
+   }
+  ],
+  "effect": "无buff · 赠礼−3+喜剧事件",
+  "tags": [],
+  "acquire": "丹房裁撤后的「炼药」执念",
+  "note": "「你是想炼丹……还是想毒杀我?」"
+ },
+ {
+  "id": "xisuwugeng",
+  "name": "洗髓乌羹",
+  "tier": "dark",
+  "min_realm": -1,
+  "mats": [
+   {
+    "seed": "xisuiteng",
+    "n": 2
+   },
+   {
+    "seed": "yanghunteng",
+    "n": 1
+   }
+  ],
+  "effect": "无buff · 赠礼−3+喜剧事件",
+  "tags": [],
+  "acquire": "两味功效相近的灵药同锅",
+  "note": "当场走火入魔(喜剧版), 次日绝口不提"
+ },
+ {
+  "id": "yanxentan",
+  "name": "焰心炭",
+  "tier": "dark",
+  "min_realm": -1,
+  "mats": [
+   {
+    "seed": "yanxinguo",
+    "n": 2
+   }
+  ],
+  "effect": "无buff · 赠礼−3+喜剧事件",
+  "tags": [],
+  "acquire": "火上加火的过度炙烤",
+  "note": "灶房着火全宗门救火, 名望+1(喜剧特例)"
+ },
+ {
+  "id": "sanweikutang",
+  "name": "三味苦汤",
+  "tier": "dark",
+  "min_realm": -1,
+  "mats": [
+   {
+    "seed": "huiyuancao",
+    "n": 3
+   }
+  ],
+  "effect": "无buff · 赠礼−3+喜剧事件",
+  "tags": [],
+  "acquire": "入门药草的过量堆叠",
+  "note": "「回元回元, 苦到回不了元」"
+ },
+ {
+  "id": "baiweiluandun",
+  "name": "百味乱炖",
+  "tier": "dark",
+  "min_realm": -1,
+  "mats": [
+   {
+    "seed": "any",
+    "n": 5
+   }
+  ],
+  "effect": "无buff · 赠礼−3+喜剧事件",
+  "tags": [],
+  "acquire": "库存塞满五样乱炖",
+  "note": "冰箱清理失败的终极形态; 台词每世随机拼装"
+ }
+]

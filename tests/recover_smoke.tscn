@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://crecover0smk1"]
+
+[ext_resource type="Script" path="res://tests/recover_smoke.gd" id="1_rsm"]
+
+[node name="RecoverSmoke" type="Node"]
+script = ExtResource("1_rsm")

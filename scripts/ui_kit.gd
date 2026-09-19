@@ -85,6 +85,20 @@ static func icon_rect(name: String, size: float, tint: Color) -> TextureRect:
 	return tr
 
 
+## 加载 res:// 图片(如 assets/sprites 的种子/菜谱 SVG 图谱)为等比缩放控件;文件缺失返回 null。
+static func sprite(path: String, px: float) -> TextureRect:
+	if not ResourceLoader.exists(path):
+		return null
+	var tr := TextureRect.new()
+	tr.texture = load(path)
+	tr.custom_minimum_size = Vector2(px, px)
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tr.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return tr
+
+
 ## 渐变纹理：mode = "v" 纵向 / "h" 横向 / "diag" 对角线（对应 to-br）
 static func gradient_texture(from: Color, to: Color, mode := "v") -> GradientTexture2D:
 	var g := Gradient.new()
@@ -260,6 +274,116 @@ static func seg_button(text: String, group: ButtonGroup, is_on: bool) -> Button:
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	b.set_pressed_no_signal(is_on)
 	return b
+
+
+## 全屏对话框层（CanvasLayer 置顶，盖住整个窗口）：遮罩 + 居中圆角卡片。
+## 返回 {layer, root, dim, card, vb}——往 vb 里加内容；关闭时对 layer queue_free。
+static func dialog_layer(host: Node, min_width := 340.0) -> Dictionary:
+	var layer := CanvasLayer.new()
+	layer.layer = 10
+	host.add_child(layer)
+	var root := Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_PASS
+	layer.add_child(root)
+	var dim := ColorRect.new()
+	dim.color = Color(0.1, 0.05, 0.1, 0.5)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.add_child(dim)
+	var cc := CenterContainer.new()
+	cc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(cc)
+	var card := card()
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
+	var sb: StyleBoxFlat = card.get_theme_stylebox("panel")
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 16
+	sb.content_margin_bottom = 16
+	cc.add_child(card)
+	var cv := VBoxContainer.new()
+	cv.custom_minimum_size = Vector2(min_width, 0)
+	cv.add_theme_constant_override("separation", 10)
+	card.add_child(cv)
+	return {"layer": layer, "root": root, "dim": dim, "card": card, "vb": cv}
+
+
+## 带两行文字的选项条（标题 + 小注，均自动换行）。事件弹窗等处使用。
+static func text_option_button(title: String, note: String, on_press: Callable, disabled := false) -> PanelContainer:
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 2)
+	var title_l := label(title, 16, GRAY_400 if disabled else PINK_700, 600)
+	title_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.add_child(title_l)
+	if note != "":
+		var sub_l := label(note, 12, GRAY_400 if disabled else PINK_400)
+		sub_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		sub_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vb.add_child(sub_l)
+	return tappable_row(vb, on_press, disabled)
+
+
+## 可点行：面板 + 调用方自建的内容控件 + 透明点击层（悬停/按下变色，禁用置灰不可点）。
+## 内容里所有控件会被统一设为鼠标穿透，由最上层的点击层负责响应。
+static func tappable_row(content: Control, on_press: Callable, disabled := false) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _opt_sb(GRAY_200 if disabled else PINK_50))
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tree_mouse_ignore(content)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_child(content)
+
+	var hit := Button.new()
+	hit.focus_mode = Control.FOCUS_NONE
+	hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if not disabled else Control.CURSOR_ARROW
+	hit.disabled = disabled
+	for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+		hit.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	hit.pressed.connect(on_press)
+	if not disabled:
+		hit.mouse_entered.connect(func() -> void:
+			panel.add_theme_stylebox_override("panel", _opt_sb(PINK_100))
+		)
+		hit.button_down.connect(func() -> void:
+			panel.add_theme_stylebox_override("panel", _opt_sb(PINK_200))
+		)
+		hit.button_up.connect(func() -> void:
+			panel.add_theme_stylebox_override("panel", _opt_sb(PINK_100))
+		)
+		hit.mouse_exited.connect(func() -> void:
+			panel.add_theme_stylebox_override("panel", _opt_sb(PINK_50))
+		)
+	panel.add_child(hit)
+	return panel
+
+
+## 递归把整棵控件子树的鼠标过滤设为 IGNORE。
+static func tree_mouse_ignore(c: Control) -> void:
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for ch in c.get_children():
+		if ch is Control:
+			tree_mouse_ignore(ch)
+
+
+static func _opt_sb(bg: Color) -> StyleBoxFlat:
+	var sb := stylebox(bg, 10)
+	sb.content_margin_left = 12
+	sb.content_margin_right = 12
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
+	return sb
+
+
+## 给控件套满矩形遮罩点击关闭（点遮罩即关）。
+static func dim_click_close(dim: ColorRect, on_close: Callable) -> void:
+	dim.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.pressed:
+			on_close.call()
+		)
 
 
 ## 给 PanelContainer 的样式加内边距（对应 p-3/p-4/p-6）

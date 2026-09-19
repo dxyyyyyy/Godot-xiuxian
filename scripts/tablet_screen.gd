@@ -8,17 +8,27 @@ const APPS := [
 	{"id": "gossip", "title": "闲话壁", "icon": "bell"},
 	{"id": "chronicle", "title": "纪事", "icon": "calendar"},
 	{"id": "lifestone", "title": "三生石", "icon": "heart"},
+	{"id": "face", "title": "捏脸", "icon": "users", "hidden": true},
+	{"id": "npcface", "title": "捏脸 · 他人", "icon": "users", "hidden": true},
 	{"id": "storage", "title": "库房", "icon": "package"},
+	{"id": "cave", "title": "洞府", "icon": "home"},
+	{"id": "market", "title": "坊市", "icon": "coins"},
 	{"id": "codex", "title": "图鉴", "icon": "eye"},
 	{"id": "settings", "title": "设置", "icon": "settings"},
+	{"id": "test", "title": "测试", "icon": "eye"},
 ]
 const APP_SCRIPTS := {
 	"gossip": preload("res://scripts/apps/app_gossip.gd"),
 	"chronicle": preload("res://scripts/apps/app_chronicle.gd"),
 	"lifestone": preload("res://scripts/apps/app_lifestone.gd"),
+	"face": preload("res://scripts/apps/app_face.gd"),
+	"npcface": preload("res://scripts/apps/app_face_npc.gd"),
 	"storage": preload("res://scripts/apps/app_storage.gd"),
+	"cave": preload("res://scripts/apps/app_cave.gd"),
+	"market": preload("res://scripts/apps/app_market.gd"),
 	"codex": preload("res://scripts/apps/app_codex.gd"),
 	"settings": preload("res://scripts/apps/app_settings.gd"),
+	"test": preload("res://scripts/apps/app_test.gd"),
 }
 
 var _desktop: Control
@@ -41,10 +51,24 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if _clock == null:
 		return
-	var txt := TimeManager.clock_text()
+	var txt := Game.calendar()
 	if txt != _clock_cache:
 		_clock_cache = txt
 		_clock.text = txt
+
+
+## 供全局层跳转（结局弹窗 → 三生石）。
+func open_app(app_id: String) -> void:
+	_open(app_id)
+
+
+## app 请求退出玉牌回游戏主界面（如捏脸应用容貌后）——收起页面并上抛给 main。
+signal leave_requested
+
+
+func _on_app_exit() -> void:
+	back_to_desktop()
+	leave_requested.emit()
 
 
 ## 主页再点一次「玉牌」即收起（回到桌面层）。
@@ -110,13 +134,13 @@ func _build_desktop() -> void:
 	var status := HBoxContainer.new()
 	status.add_child(UiKit.label("百味宗 · 杂役院", 12, UiKit.JADE_600, 500))
 	status.add_child(UiKit.expander())
-	_clock = UiKit.label(TimeManager.clock_text(), 12, UiKit.JADE_700, 600)
+	_clock = UiKit.label(Game.calendar(), 12, UiKit.JADE_700, 600)
 	status.add_child(_clock)
 	vb.add_child(status)
 
 	vb.add_child(UiKit.vspace(28))
 	vb.add_child(UiKit.label("传讯玉牌", 26, UiKit.INK, 700))
-	vb.add_child(UiKit.label("后勤堂制 · 阵纹七枚", 12, UiKit.JADE_500))
+	vb.add_child(UiKit.label("后勤堂制 · 阵纹八枚", 12, UiKit.JADE_500))
 	vb.add_child(UiKit.vspace(24))
 
 	var grid := GridContainer.new()
@@ -125,6 +149,8 @@ func _build_desktop() -> void:
 	grid.add_theme_constant_override("v_separation", 22)
 	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	for app in APPS:
+		if app.get("hidden", false):
+			continue   # 桌面不摆阵纹(如捏脸, 入口在测试页), 页面实例保留供跳转
 		grid.add_child(_app_tile(app))
 	vb.add_child(grid)
 
@@ -186,6 +212,8 @@ func _app_tile(app: Dictionary) -> Button:
 
 func _refresh_badges() -> void:
 	for app in APPS:
+		if not _badges.has(app.id):
+			continue   # 隐藏入口的 app 没有桌面阵纹
 		var n: int = GameState.app_unread(String(app.id))
 		var badge: PanelContainer = _badges[app.id].panel
 		var bl: Label = _badges[app.id].label
@@ -207,5 +235,6 @@ func _build_pages() -> void:
 		page.visible = false
 		page.back_pressed.connect(back_to_desktop)
 		page.open_app.connect(_open)
+		page.exit_app.connect(_on_app_exit)
 		add_child(page)
 		_pages[String(app.id)] = page

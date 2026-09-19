@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bnpcfacesmoke01"]
+
+[ext_resource type="Script" path="res://tests/npc_face_smoke.gd" id="1_npcface"]
+
+[node name="NpcFaceSmoke" type="Node"]
+script = ExtResource("1_npcface")

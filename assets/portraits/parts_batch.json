@@ -1,0 +1,142 @@
+[
+ {
+  "file": "face/1.png",
+  "prompt": "base front-facing bust portrait head: oval soft face, neutral calm expression, clear features, natural skin, neck and a bit of shoulder. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/1.png"
+ },
+ {
+  "file": "face/2.png",
+  "prompt": "base front-facing bust portrait head: sharp angular swordsman face, keen brows, neutral calm expression, clear features, natural skin, neck and a bit of shoulder. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/2.png"
+ },
+ {
+  "file": "face/3.png",
+  "prompt": "base front-facing bust portrait head: round friendly face, neutral calm expression, clear features, natural skin, neck and a bit of shoulder. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/3.png"
+ },
+ {
+  "file": "face/4.png",
+  "prompt": "base front-facing bust portrait head: lean long face, neutral calm expression, clear features, natural skin, neck and a bit of shoulder. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/4.png"
+ },
+ {
+  "file": "face/5.png",
+  "prompt": "base front-facing bust portrait head: full plump face, neutral calm expression, clear features, natural skin, neck and a bit of shoulder. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/5.png"
+ },
+ {
+  "file": "hair/1.png",
+  "prompt": "hair layer only: high ponytail, sitting on the SAME standard head template, face untouched, everything else transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/1.png"
+ },
+ {
+  "file": "hair/2.png",
+  "prompt": "hair layer only: loose side-locks, sitting on the SAME standard head template, face untouched, everything else transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/2.png"
+ },
+ {
+  "file": "hair/3.png",
+  "prompt": "hair layer only: tied-up topknot, sitting on the SAME standard head template, face untouched, everything else transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/3.png"
+ },
+ {
+  "file": "hair/4.png",
+  "prompt": "hair layer only: long flowing loose hair, sitting on the SAME standard head template, face untouched, everything else transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/4.png"
+ },
+ {
+  "file": "hair/5.png",
+  "prompt": "hair layer only: twin buns, sitting on the SAME standard head template, face untouched, everything else transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/5.png"
+ },
+ {
+  "file": "eyes/1.png",
+  "prompt": "eyes layer only, transparent bg: amber eyes, positioned on the fixed standard eye line. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/1.png"
+ },
+ {
+  "file": "eyes/2.png",
+  "prompt": "eyes layer only, transparent bg: ink-black eyes, positioned on the fixed standard eye line. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/2.png"
+ },
+ {
+  "file": "eyes/3.png",
+  "prompt": "eyes layer only, transparent bg: light-brown eyes, positioned on the fixed standard eye line. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/3.png"
+ },
+ {
+  "file": "eyes/4.png",
+  "prompt": "eyes layer only, transparent bg: grey-blue eyes, positioned on the fixed standard eye line. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/4.png"
+ },
+ {
+  "file": "eyes/5.png",
+  "prompt": "eyes layer only, transparent bg: crimson eyes, positioned on the fixed standard eye line. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/5.png"
+ },
+ {
+  "file": "cloth/1.png",
+  "prompt": "clothing/shoulders layer only, transparent bg: indigo coarse cloth robe, collar under the chin, rest transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/1.png"
+ },
+ {
+  "file": "cloth/2.png",
+  "prompt": "clothing/shoulders layer only, transparent bg: pale moon-white robe, collar under the chin, rest transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/2.png"
+ },
+ {
+  "file": "cloth/3.png",
+  "prompt": "clothing/shoulders layer only, transparent bg: black fitted martial garb, collar under the chin, rest transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/3.png"
+ },
+ {
+  "file": "cloth/4.png",
+  "prompt": "clothing/shoulders layer only, transparent bg: lotus-root pink ruqun dress, collar under the chin, rest transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/4.png"
+ },
+ {
+  "file": "cloth/5.png",
+  "prompt": "clothing/shoulders layer only, transparent bg: grey-brown short working jacket, collar under the chin, rest transparent. Chinese xianxia cultivation game character portrait, front-facing centered bust, soft cel-shaded illustration, clean thick outlines, gentle rim light, isolated on transparent background PNG, same head position and scale across the whole set, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d, text, watermark, blurry, extra limbs, gore, horror, different head size, off-center",
+  "size": "512x512",
+  "ref": "face/5.png"
+ }
+]

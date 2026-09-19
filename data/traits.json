@@ -1,0 +1,10 @@
+[
+ {"id": "jian",       "name": "剑骨",       "cost": 60,  "fx": {"kind": "wu",      "v": 0.12}, "note": "骨里藏着一口未出鞘的剑 —— 武力 +12%"},
+ {"id": "daoheart",   "name": "道心",       "cost": 70,  "fx": {"kind": "break",   "v": 0.03}, "note": "道心如石, 雷声不改 —— 冲关率 +3%"},
+ {"id": "lingxi",     "name": "灵息体",     "cost": 80,  "fx": {"kind": "eff",     "v": 0.08}, "note": "睡梦里都在聚灵 —— 每月修为 +8%"},
+ {"id": "changshou",  "name": "长寿相",     "cost": 60,  "fx": {"kind": "life",    "v": 8},    "note": "耳相厚, 地阁留春 —— 寿元上限 +8 年"},
+ {"id": "fuyuan",     "name": "福缘深",     "cost": 90,  "fx": {"kind": "event",   "v": 0.15}, "note": "走路都能捡到话本 —— 机缘与首遇概率 +15%"},
+ {"id": "jisou",      "name": "绿蓑",       "cost": 70,  "fx": {"kind": "farm",    "v": 1.00}, "note": "胎里带的一身泥土气 —— 灵田收成 +100%"},
+ {"id": "cuiyu",      "name": "炊玉",       "cost": 70,  "fx": {"kind": "cook",    "v": 0.60}, "note": "灶前一站, 菜自己多出一份 —— 下厨每月成菜 60% 概率翻倍"},
+ {"id": "chanyi",     "name": "避劫蝉衣",   "cost": 120, "fx": {"kind": "survive", "v": 0.15}, "note": "虚空中一件蝉衣替你挨了半记天雷 —— 渡劫失手殒落率 50%→35%"}
+]

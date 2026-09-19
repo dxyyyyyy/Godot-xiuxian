@@ -1,0 +1,224 @@
+[
+ {
+  "key": "jianshu",
+  "name": "季忘川",
+  "identity": "baimenzong",
+  "enrolled": "start",
+  "scene": "山门",
+  "persona": {
+   "biaoda": "guayan",
+   "dairen": "xinruan",
+   "xingshi": "qinkuai",
+   "dongxin": "zhiqui"
+  },
+  "moe": "记不住脸, 剑鞘却刻满痕",
+  "favorite_taste": {
+   "base": "温",
+   "final": "温·家常"
+  },
+  "appearance": {
+   "face": "挺翘鼻[美白]",
+   "cloth": "青年男和服",
+   "hair_back": "2后扎[棕]",
+   "ears": "3普通耳",
+   "eyes": "C睫毛吊梢亮半睁",
+   "brows": "2凛然",
+   "mouth": "2闭嘴",
+   "hair_front": "3蓬松[棕]",
+   "hair_hue": 0,
+   "hair_sat": 75,
+   "eye_hue": 0,
+   "eye_sat": 110,
+   "aura": "清冷"
+  },
+  "blurb": "守山门千年却记性很差 —— 山门留饭的旗, 一插九百年(开局在册)",
+  "gender": "male",
+  "realm": "渡劫后期",
+  "realm_ord": 7
+ },
+ {
+  "key": "yaoshi",
+  "name": "温半夏",
+  "identity": "fangshi",
+  "enrolled": "meet",
+  "scene": "药铺",
+  "persona": {
+   "biaoda": "zuidu",
+   "dairen": "xinruan",
+   "xingshi": "qinkuai",
+   "dongxin": "kouyan"
+  },
+  "moe": "手比嘴快, 害羞全靠咳嗽",
+  "favorite_taste": {
+   "base": "饱腹",
+   "final": "饱腹·药膳"
+  },
+  "appearance": {
+   "face": "锐利脸",
+   "cloth": "打底衫浅",
+   "hair_back": "2柔顺短发",
+   "ears": "3普通耳",
+   "eyes": "2死鱼垂眼有光",
+   "brows": "i青年男怒锐利",
+   "mouth": "2闭嘴",
+   "hair_front": "C前发旋",
+   "hair_hue": 164,
+   "hair_sat": 105,
+   "eye_hue": 0,
+   "eye_sat": 90,
+   "aura": "热络"
+  },
+  "blurb": "嘴毒心软的坊市药师 —— 只认药膳, 灵石先付(初逛坊市相遇)",
+  "gender": "male",
+  "realm": "金丹",
+  "realm_ord": 2
+ },
+ {
+  "key": "shanjun",
+  "name": "顾青嶂",
+  "identity": "shanshen",
+  "enrolled": "meet",
+  "scene": "山林",
+  "persona": {
+   "biaoda": "guayan",
+   "dairen": "manre",
+   "xingshi": "jiaozhen",
+   "dongxin": "xishui"
+  },
+  "moe": "学人间像描红, 口头禅「山, 看着呢」",
+  "favorite_taste": {
+   "base": "素",
+   "final": "素·素斋"
+  },
+  "appearance": {
+   "face": "细窄鼻[美白]",
+   "cloth": "青年男披风",
+   "hair_back": "2后扎[棕]",
+   "ears": "3普通耳",
+   "eyes": "C病娇移目",
+   "brows": "i青年男怒方形",
+   "mouth": "3微笑嘴",
+   "hair_front": "3前翘[棕]",
+   "hair_hue": 128,
+   "hair_sat": 115,
+   "eye_hue": 183,
+   "eye_sat": 110,
+   "aura": "清冷"
+  },
+  "blurb": "来历劫的下任山君 —— 火候分毫不差, 一锅素斋斋了三百年(入山相遇)",
+  "gender": "male",
+  "realm": "元婴圆满",
+  "realm_ord": 3
+ },
+ {
+  "key": "moxiu",
+  "name": "幽布衣",
+  "identity": "yoududao",
+  "enrolled": "first_month",
+  "scene": "洞府隔墙",
+  "persona": {
+   "biaoda": "zuidu",
+   "dairen": "xinruan",
+   "xingshi": "lansan",
+   "dongxin": "kouyan"
+  },
+  "moe": "念跑调自编经, 墙头递菜",
+  "favorite_taste": {
+   "base": "猎奇",
+   "final": "猎奇·家常"
+  },
+  "appearance": {
+   "face": "暗色扁平鼻",
+   "cloth": "青年男和服",
+   "hair_back": "2后扎[棕]",
+   "ears": "3普通耳",
+   "eyes": "C睫毛吊梢半睁",
+   "brows": "4狂野眉",
+   "mouth": "2青年男坏笑",
+   "hair_front": "3前翘[棕]",
+   "hair_hue": 342,
+   "hair_sat": 100,
+   "eye_hue": 0,
+   "eye_sat": 95,
+   "aura": "疏懒"
+  },
+  "blurb": "你洞府隔壁的佛系散修 —— 黑暗料理的正式买家(开局首月自动首遇)",
+  "gender": "male",
+  "realm": "元婴圆满",
+  "realm_ord": 3
+ },
+ {
+  "key": "shushu",
+  "name": "书页",
+  "identity": "wenmai",
+  "enrolled": "meet",
+  "scene": "茶摊",
+  "persona": {
+   "biaoda": "ruanruo",
+   "dairen": "zilaishu",
+   "xingshi": "jiaozhen",
+   "dongxin": "kouyan"
+  },
+  "moe": "讲到你结巴, 袖口沾墨",
+  "favorite_taste": {
+   "base": "甘",
+   "final": "甘·茶点"
+  },
+  "appearance": {
+   "face": "扁平鼻[美白]",
+   "cloth": "青年男披风",
+   "hair_back": "2后发乱糟糟",
+   "ears": "3普通耳",
+   "eyes": "C2死鱼垂眼无光修正",
+   "brows": "k青年男困扰自然",
+   "mouth": "3笑嘴",
+   "hair_front": "3小脸",
+   "hair_hue": 359,
+   "hair_sat": 0,
+   "eye_hue": 95,
+   "eye_sat": 130,
+   "aura": "热络"
+  },
+  "blurb": "话本成精的说书人 —— 茶摊头一回客席, 八卦网活体节点(茶摊相遇)",
+  "gender": "male",
+  "realm": "话本成精",
+  "realm_ord": -1
+ },
+ {
+  "key": "huzhu",
+  "name": "白屠苏",
+  "identity": "huizu",
+  "enrolled": "meet",
+  "scene": "酒坊",
+  "persona": {
+   "biaoda": "ruanruo",
+   "dairen": "xinruan",
+   "xingshi": "qinkuai",
+   "dongxin": "xishui"
+  },
+  "moe": "狐耳藏不住, 记性极好",
+  "favorite_taste": {
+   "base": "鲜",
+   "final": "鲜·配酒"
+  },
+  "appearance": {
+   "face": "扁平鼻[美白]",
+   "cloth": "青年男和服",
+   "hair_back": "4长直发",
+   "ears": "3普通耳",
+   "eyes": "C睫毛吊梢",
+   "brows": "3低眉",
+   "mouth": "3横线嘴",
+   "hair_front": "3前翘[棕]",
+   "hair_hue": 0,
+   "hair_sat": 0,
+   "eye_hue": 0,
+   "eye_sat": 100,
+   "aura": "悠然"
+  },
+  "blurb": "狐族酒坊掌柜 —— 封坛不卖的那坛, 是替谁存的?(初逛坊市相遇)",
+  "gender": "male",
+  "realm": "化神后期",
+  "realm_ord": 4
+ }
+]

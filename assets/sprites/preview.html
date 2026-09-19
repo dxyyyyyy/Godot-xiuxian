@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>菜谱矢量插画</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Microsoft YaHei UI",system-ui,sans-serif; background:#f8fafc; color:#1e293b; }
+  header { position:sticky; top:0; z-index:5; background:rgba(248,250,252,.92); backdrop-filter:blur(8px); border-bottom:1px solid #e2e8f0; padding:18px 24px 14px; }
+  h1 { font-size:20px; margin:0 0 12px; }
+  .sub { font-size:12px; color:#64748b; margin:-8px 0 12px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { border:1px solid #cbd5e1; background:#fff; color:#475569; border-radius:999px; padding:5px 14px; font-size:13px; cursor:pointer; }
+  .chip.on { background:#15803d; color:#fff; border-color:#15803d; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:18px; padding:22px 24px 40px; }
+  .card { text-decoration:none; color:inherit; background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; transition:transform .12s ease, box-shadow .12s ease; }
+  .card:hover { transform:translateY(-3px); box-shadow:0 10px 24px rgba(15,23,42,.10); }
+  .img { width:100%; aspect-ratio:1/1; background-size:contain; background-repeat:no-repeat; background-position:center; border-radius:12px; }
+  .meta { display:flex; align-items:center; justify-content:space-between; margin-top:10px; gap:8px; }
+  .name { font-size:14px; font-weight:600; }
+  .badge { font-size:11px; color:#fff; border-radius:999px; padding:2px 9px; white-space:nowrap; }
+  .id { font-size:11px; color:#94a3b8; margin-top:3px; }
+  .hide { display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>菜谱 · 矢量插画</h1>
+  <div class="sub">点击任意卡片在新标签打开原图（512×512 SVG）· 顶部按档位筛选</div>
+  <nav class="chips"><button class="chip on" data-f="all">全部 40</button>
+    <button class="chip" data-f="low">低阶 14</button>
+    <button class="chip" data-f="mid">中阶 14</button>
+    <button class="chip" data-f="high">仙膳 6</button>
+    <button class="chip" data-f="dark">暗谱 6</button></nav>
+</header>
+<main class="grid">
+    <a class="card" href="./recipes/anshentang.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/anshentang.svg')"></div>
+      <div class="meta"><span class="name">安神汤</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">anshentang</div>
+    </a>
+    <a class="card" href="./recipes/baiweiluandun.svg" target="_blank" data-tier="dark">
+      <div class="img" style="background-image:url('./recipes/baiweiluandun.svg')"></div>
+      <div class="meta"><span class="name">百味乱炖</span><span class="badge" style="background:#6b7280">暗谱</span></div>
+      <div class="id">baiweiluandun</div>
+    </a>
+    <a class="card" href="./recipes/baizhou.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/baizhou.svg')"></div>
+      <div class="meta"><span class="name">白粥</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">baizhou</div>
+    </a>
+    <a class="card" href="./recipes/banlianghuorongguasi.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/banlianghuorongguasi.svg')"></div>
+      <div class="meta"><span class="name">凉拌火绒瓜丝</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">banlianghuorongguasi</div>
+    </a>
+    <a class="card" href="./recipes/basikong.svg" target="_blank" data-tier="dark">
+      <div class="img" style="background-image:url('./recipes/basikong.svg')"></div>
+      <div class="meta"><span class="name">拔丝虚空</span><span class="badge" style="background:#6b7280">暗谱</span></div>
+      <div class="id">basikong</div>
+    </a>
+    <a class="card" href="./recipes/bingdixiangeng.svg" target="_blank" data-tier="high">
+      <div class="img" style="background-image:url('./recipes/bingdixiangeng.svg')"></div>
+      <div class="meta"><span class="name">并蒂仙羹</span><span class="badge" style="background:#f59e0b">仙膳</span></div>
+      <div class="id">bingdixiangeng</div>
+    </a>
+    <a class="card" href="./recipes/bingxincaiban.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/bingxincaiban.svg')"></div>
+      <div class="meta"><span class="name">冰心菜凉拌</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">bingxincaiban</div>
+    </a>
+    <a class="card" href="./recipes/buqitang.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/buqitang.svg')"></div>
+      <div class="meta"><span class="name">补气汤</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">buqitang</div>
+    </a>
+    <a class="card" href="./recipes/chixuexiangeng.svg" target="_blank" data-tier="high">
+      <div class="img" style="background-image:url('./recipes/chixuexiangeng.svg')"></div>
+      <div class="meta"><span class="name">赤血仙羹</span><span class="badge" style="background:#f59e0b">仙膳</span></div>
+      <div class="id">chixuexiangeng</div>
+    </a>
+    <a class="card" href="./recipes/chunjiulingbing.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/chunjiulingbing.svg')"></div>
+      <div class="meta"><span class="name">春韭灵饼</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">chunjiulingbing</div>
+    </a>
+    <a class="card" href="./recipes/furu.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/furu.svg')"></div>
+      <div class="meta"><span class="name">腐乳</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">furu</div>
+    </a>
+    <a class="card" href="./recipes/hongshaizixiaqie.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/hongshaizixiaqie.svg')"></div>
+      <div class="meta"><span class="name">红烧紫霞茄</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">hongshaizixiaqie</div>
+    </a>
+    <a class="card" href="./recipes/huanyangxianyan.svg" target="_blank" data-tier="high">
+      <div class="img" style="background-image:url('./recipes/huanyangxianyan.svg')"></div>
+      <div class="meta"><span class="name">还阳仙宴</span><span class="badge" style="background:#f59e0b">仙膳</span></div>
+      <div class="id">huanyangxianyan</div>
+    </a>
+    <a class="card" href="./recipes/huiyuantang.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/huiyuantang.svg')"></div>
+      <div class="meta"><span class="name">回元汤</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">huiyuantang</div>
+    </a>
+    <a class="card" href="./recipes/jiaoyansuitang.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/jiaoyansuitang.svg')"></div>
+      <div class="meta"><span class="name">椒焰髓汤</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">jiaoyansuitang</div>
+    </a>
+    <a class="card" href="./recipes/jintangjungeng.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/jintangjungeng.svg')"></div>
+      <div class="meta"><span class="name">金汤菌羹</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">jintangjungeng</div>
+    </a>
+    <a class="card" href="./recipes/jiuzhuanheidan.svg" target="_blank" data-tier="dark">
+      <div class="img" style="background-image:url('./recipes/jiuzhuanheidan.svg')"></div>
+      <div class="meta"><span class="name">九转黑暗丹</span><span class="badge" style="background:#6b7280">暗谱</span></div>
+      <div class="id">jiuzhuanheidan</div>
+    </a>
+    <a class="card" href="./recipes/kujinganlaigeng.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/kujinganlaigeng.svg')"></div>
+      <div class="meta"><span class="name">苦尽甘来羹</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">kujinganlaigeng</div>
+    </a>
+    <a class="card" href="./recipes/lizigao.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/lizigao.svg')"></div>
+      <div class="meta"><span class="name">栗子糕</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">lizigao</div>
+    </a>
+    <a class="card" href="./recipes/mengdiexianzhuan.svg" target="_blank" data-tier="high">
+      <div class="img" style="background-image:url('./recipes/mengdiexianzhuan.svg')"></div>
+      <div class="meta"><span class="name">梦蝶仙馔</span><span class="badge" style="background:#f59e0b">仙膳</span></div>
+      <div class="id">mengdiexianzhuan</div>
+    </a>
+    <a class="card" href="./recipes/ningshencha.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/ningshencha.svg')"></div>
+      <div class="meta"><span class="name">宁神茶</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">ningshencha</div>
+    </a>
+    <a class="card" href="./recipes/qingfengsuntang.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/qingfengsuntang.svg')"></div>
+      <div class="meta"><span class="name">青风笋汤</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">qingfengsuntang</div>
+    </a>
+    <a class="card" href="./recipes/sanweikutang.svg" target="_blank" data-tier="dark">
+      <div class="img" style="background-image:url('./recipes/sanweikutang.svg')"></div>
+      <div class="meta"><span class="name">三味苦汤</span><span class="badge" style="background:#6b7280">暗谱</span></div>
+      <div class="id">sanweikutang</div>
+    </a>
+    <a class="card" href="./recipes/shouganjinmian.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/shouganjinmian.svg')"></div>
+      <div class="meta"><span class="name">手擀金面</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">shouganjinmian</div>
+    </a>
+    <a class="card" href="./recipes/suchaochunjiu.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/suchaochunjiu.svg')"></div>
+      <div class="meta"><span class="name">素炒春韭</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">suchaochunjiu</div>
+    </a>
+    <a class="card" href="./recipes/sungubao.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/sungubao.svg')"></div>
+      <div class="meta"><span class="name">笋菇煲</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">sungubao</div>
+    </a>
+    <a class="card" href="./recipes/wuxinpan.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/wuxinpan.svg')"></div>
+      <div class="meta"><span class="name">五辛盘</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">wuxinpan</div>
+    </a>
+    <a class="card" href="./recipes/xisuqinlu.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/xisuqinlu.svg')"></div>
+      <div class="meta"><span class="name">洗髓清露</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">xisuqinlu</div>
+    </a>
+    <a class="card" href="./recipes/xisuwugeng.svg" target="_blank" data-tier="dark">
+      <div class="img" style="background-image:url('./recipes/xisuwugeng.svg')"></div>
+      <div class="meta"><span class="name">洗髓乌羹</span><span class="badge" style="background:#6b7280">暗谱</span></div>
+      <div class="id">xisuwugeng</div>
+    </a>
+    <a class="card" href="./recipes/yanghungeng.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/yanghungeng.svg')"></div>
+      <div class="meta"><span class="name">养魂羹</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">yanghungeng</div>
+    </a>
+    <a class="card" href="./recipes/yanxentan.svg" target="_blank" data-tier="dark">
+      <div class="img" style="background-image:url('./recipes/yanxentan.svg')"></div>
+      <div class="meta"><span class="name">焰心炭</span><span class="badge" style="background:#6b7280">暗谱</span></div>
+      <div class="id">yanxentan</div>
+    </a>
+    <a class="card" href="./recipes/yanxinzhi.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/yanxinzhi.svg')"></div>
+      <div class="meta"><span class="name">焰心炙</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">yanxinzhi</div>
+    </a>
+    <a class="card" href="./recipes/yanxueliqing.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/yanxueliqing.svg')"></div>
+      <div class="meta"><span class="name">腌雪里青</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">yanxueliqing</div>
+    </a>
+    <a class="card" href="./recipes/yujingxianlu.svg" target="_blank" data-tier="high">
+      <div class="img" style="background-image:url('./recipes/yujingxianlu.svg')"></div>
+      <div class="meta"><span class="name">玉井仙露</span><span class="badge" style="background:#f59e0b">仙膳</span></div>
+      <div class="id">yujingxianlu</div>
+    </a>
+    <a class="card" href="./recipes/yunigeng.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/yunigeng.svg')"></div>
+      <div class="meta"><span class="name">芋泥羹</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">yunigeng</div>
+    </a>
+    <a class="card" href="./recipes/zhaogugeng.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/zhaogugeng.svg')"></div>
+      <div class="meta"><span class="name">照骨羹</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">zhaogugeng</div>
+    </a>
+    <a class="card" href="./recipes/zhaoguxiangeng.svg" target="_blank" data-tier="high">
+      <div class="img" style="background-image:url('./recipes/zhaoguxiangeng.svg')"></div>
+      <div class="meta"><span class="name">照骨仙羹</span><span class="badge" style="background:#f59e0b">仙膳</span></div>
+      <div class="id">zhaoguxiangeng</div>
+    </a>
+    <a class="card" href="./recipes/zhenglinglushu.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/zhenglinglushu.svg')"></div>
+      <div class="meta"><span class="name">蒸灵露薯</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">zhenglinglushu</div>
+    </a>
+    <a class="card" href="./recipes/zhihuoronggua.svg" target="_blank" data-tier="mid">
+      <div class="img" style="background-image:url('./recipes/zhihuoronggua.svg')"></div>
+      <div class="meta"><span class="name">炙火绒瓜</span><span class="badge" style="background:#3b82f6">中阶</span></div>
+      <div class="id">zhihuoronggua</div>
+    </a>
+    <a class="card" href="./recipes/zhuoxueliqing.svg" target="_blank" data-tier="low">
+      <div class="img" style="background-image:url('./recipes/zhuoxueliqing.svg')"></div>
+      <div class="meta"><span class="name">灼雪里青</span><span class="badge" style="background:#22c55e">低阶</span></div>
+      <div class="id">zhuoxueliqing</div>
+    </a>
+</main>
+<script>
+  const chips = document.querySelectorAll('.chip');
+  chips.forEach(c => c.addEventListener('click', () => {
+    chips.forEach(x => x.classList.toggle('on', x === c));
+    const f = c.dataset.f;
+    document.querySelectorAll('.card').forEach(card => {
+      card.classList.toggle('hide', f !== 'all' && card.dataset.tier !== f);
+    });
+  }));
+</script>
+</body>
+</html>

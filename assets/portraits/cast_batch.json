@@ -1,0 +1,152 @@
+[
+ {
+  "file": "npc/jianshu_avatar.png",
+  "size": "1:1",
+  "prompt": "A portrait of 季忘川, a Baiwei-sect disciple in neat daoist robe, humble and diligent. The character has sharp angular swordsman face, keen brows, ink-black eyes and tied-up topknot, wearing black fitted martial garb. The calm front-facing bust carries a taciturn, warm-hearted, diligent, forthright temperament, conveying the air of '记不住脸, 剑鞘却刻满痕'.. Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/jianshu_full.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration of 季忘川, a Baiwei-sect disciple in neat daoist robe, humble and diligent. The character has sharp angular swordsman face, keen brows, ink-black eyes and tied-up topknot, wearing black fitted martial garb, with a taciturn, warm-hearted, diligent, forthright temperament, holding props that reflect the cultivation realm of '渡劫后期'; the entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/yaoshi_avatar.png",
+  "size": "1:1",
+  "prompt": "A portrait of 温半夏, a common market cultivator in a short work-jacket, worldly and friendly. The character has lean long face, light-brown eyes and loose side-locks, wearing grey-brown short working jacket. The calm front-facing bust carries a sharp-tongued, warm-hearted, diligent, tsundere temperament, conveying the air of '手比嘴快, 害羞全靠咳嗽'.. Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/yaoshi_full.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration of 温半夏, a common market cultivator in a short work-jacket, worldly and friendly. The character has lean long face, light-brown eyes and loose side-locks, wearing grey-brown short working jacket, with a sharp-tongued, warm-hearted, diligent, tsundere temperament, holding props that reflect the cultivation realm of '金丹'; the entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/shanjun_avatar.png",
+  "size": "1:1",
+  "prompt": "A portrait of 顾青嶂, a mountain-god priest in ritual robe, serene with faint divine aura. The character has oval soft face, grey-blue eyes and tied-up topknot, wearing pale moon-white robe. The calm front-facing bust carries a taciturn, slow-to-warm, meticulous, steady and long-lasting temperament, conveying the air of '学人间像描红, 口头禅「山, 看着呢」'.. Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/shanjun_full.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration of 顾青嶂, a mountain-god priest in ritual robe, serene with faint divine aura. The character has oval soft face, grey-blue eyes and tied-up topknot, wearing pale moon-white robe, with a taciturn, slow-to-warm, meticulous, steady and long-lasting temperament, holding props that reflect the cultivation realm of '元婴圆满'; the entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/moxiu_avatar.png",
+  "size": "1:1",
+  "prompt": "A portrait of 幽布衣, a mysterious rogue cultivator of Youdu path, dark loose garb. The character has lean long face, ink-black eyes and long flowing loose hair, wearing indigo coarse cloth robe. The calm front-facing bust carries a sharp-tongued, warm-hearted, laid-back, tsundere temperament, conveying the air of '念跑调自编经, 墙头递菜'.. Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/moxiu_full.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration of 幽布衣, a mysterious rogue cultivator of Youdu path, dark loose garb. The character has lean long face, ink-black eyes and long flowing loose hair, wearing indigo coarse cloth robe, with a sharp-tongued, warm-hearted, laid-back, tsundere temperament, holding props that reflect the cultivation realm of '元婴圆满'; the entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/shushu_avatar.png",
+  "size": "1:1",
+  "prompt": "A portrait of 书页, a storyteller scholar with a folding fan, ink-stained sleeve. The character has full plump face, amber eyes and loose side-locks, wearing pale moon-white robe. The calm front-facing bust carries a soft-spoken, quick to warm up, meticulous, tsundere temperament, conveying the air of '讲到你结巴, 袖口沾墨'.. Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/shushu_full.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration of 书页, a storyteller scholar with a folding fan, ink-stained sleeve. The character has full plump face, amber eyes and loose side-locks, wearing pale moon-white robe, with a soft-spoken, quick to warm up, meticulous, tsundere temperament, holding props that reflect the cultivation realm of '话本成精'; the entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/huzhu_avatar.png",
+  "size": "1:1",
+  "prompt": "A portrait of 白屠苏, a fox-eared demon-folk merchant, sly warm smile, silken robes. The character has oval soft face, crimson eyes and high ponytail, wearing lotus-root pink ruqun dress. The calm front-facing bust carries a soft-spoken, warm-hearted, diligent, steady and long-lasting temperament, conveying the air of '狐耳藏不住, 记性极好'.. Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "npc/huzhu_full.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration of 白屠苏, a fox-eared demon-folk merchant, sly warm smile, silken robes. The character has oval soft face, crimson eyes and high ponytail, wearing lotus-root pink ruqun dress, with a soft-spoken, warm-hearted, diligent, steady and long-lasting temperament, holding props that reflect the cultivation realm of '化神后期'; the entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "role/baimenzong_avatar.png",
+  "size": "1:1",
+  "prompt": "A front-facing bust portrait of a generic interchangeable NPC character. This a Baiwei-sect disciple in neat daoist robe, humble and diligent has a calm, neutral expression suitable for reuse. . Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "role/tongming_avatar.png",
+  "size": "1:1",
+  "prompt": "A front-facing bust portrait of a generic interchangeable NPC character. This an elegant Tongming immortal-sect cultivator in white-and-blue robes has a calm, neutral expression suitable for reuse. . Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "role/jianpai_avatar.png",
+  "size": "1:1",
+  "prompt": "A front-facing bust portrait of a generic interchangeable NPC character. This a cold sword immortal, steel blade on back, sharp gaze has a calm, neutral expression suitable for reuse. . Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "role/yoududao_avatar.png",
+  "size": "1:1",
+  "prompt": "A front-facing bust portrait of a generic interchangeable NPC character. This a mysterious rogue cultivator of Youdu path, dark loose garb has a calm, neutral expression suitable for reuse. . Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "role/shanshen_avatar.png",
+  "size": "1:1",
+  "prompt": "A front-facing bust portrait of a generic interchangeable NPC character. This a mountain-god priest in ritual robe, serene with faint divine aura has a calm, neutral expression suitable for reuse. . Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "role/huizu_avatar.png",
+  "size": "1:1",
+  "prompt": "A front-facing bust portrait of a generic interchangeable NPC character. This a fox-eared demon-folk merchant, sly warm smile, silken robes has a calm, neutral expression suitable for reuse. . Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "role/wenmai_avatar.png",
+  "size": "1:1",
+  "prompt": "A front-facing bust portrait of a generic interchangeable NPC character. This a storyteller scholar with a folding fan, ink-stained sleeve has a calm, neutral expression suitable for reuse. . Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "role/fangshi_avatar.png",
+  "size": "1:1",
+  "prompt": "A front-facing bust portrait of a generic interchangeable NPC character. This a common market cultivator in a short work-jacket, worldly and friendly has a calm, neutral expression suitable for reuse. . Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "protagonist/avatar.png",
+  "size": "1:1",
+  "prompt": "a gentle female cultivator in plain daoist robes, wooden hairpin, holding a bamboo basket, warm composed half-smile, otome-style not showing full face, shown as a front-facing bust. Chinese xianxia cultivation game character portrait, front-facing head, soft cel-shaded illustration, clean thick outlines, gentle rim light, plain pastel background, otome art style, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "origin/灵田农家子_avatar.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration depicting a character of the '灵田农家子' origin, a farm-born youth with a hoe, rolled sleeves, soil-stained hands, fresh fields behind. The entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "origin/药商世家女_avatar.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration depicting a character of the '药商世家女' origin, an apothecary-heir girl with medicine pouches, faint herb-mist around her. The entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "origin/世族送修子_avatar.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration depicting a character of the '世族送修子' origin, a noble youth holding a half family cultivation scroll and a clan jade. The entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ },
+ {
+  "file": "origin/灶下无名儿_avatar.png",
+  "size": "3:4",
+  "prompt": "A full-body standing illustration depicting a character of the '灶下无名儿' origin, a kitchen child with flour-smudged face and easy smile, apron by the hearth. The entire figure is centered and fully visible in frame.. Chinese xianxia cultivation game full-body character standing sprite illustration, soft cel-shaded, clean thick outlines, gentle rim light, plain pastel background, otome art style, full figure, high detail, no text, no watermark",
+  "negative": "photorealistic, 3d render, text, watermark, logo, extra limbs, deformed hands, gore, horror, nsfw, busy background, different head size, off-center"
+ }
+]

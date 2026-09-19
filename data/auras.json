@@ -1,0 +1,7 @@
+[
+  {"id": "shulan",  "name": "疏懒", "color": "f59e0b", "self": {"cult": -0.03, "event": 0.15}, "npc": {},             "note": "懒得用功（月修为 −3%），却常有闲缘（机缘 +15%）"},
+  {"id": "qingleng","name": "清冷", "color": "38bdf8", "self": {"insight": 0.02},                  "npc": {"aff": -0.10}, "note": "心静易悟（顿悟 +2pp），却难亲近（追 Ta 的好感 −10%）"},
+  {"id": "relu",    "name": "热络", "color": "f472b6", "self": {"aff": 0.10},                      "npc": {"aff": 0.10},  "note": "人缘自来（好感增速 +10%）"},
+  {"id": "jujin",   "name": "拘谨", "color": "9ca3af", "self": {"break": 0.02},                   "npc": {},             "note": "步步为营（冲关率 +2%）"},
+  {"id": "youran",  "name": "悠然", "color": "2dd4bf", "self": {"cult": 0.03},                    "npc": {},             "note": "不疾不徐（月修为 +3%）"}
+]

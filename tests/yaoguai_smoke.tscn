@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cyaoguismk1"]
+
+[ext_resource type="Script" path="res://tests/yaoguai_smoke.gd" id="1_ysm"]
+
+[node name="YaoguaiSmoke" type="Node"]
+script = ExtResource("1_ysm")

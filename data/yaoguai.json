@@ -1,0 +1,10 @@
+[
+ {"id": "shiben",   "name": "石奔猪魈", "power": 0.90, "weight": 18, "scene": "拱开蕨菜丛寻松露的莽货"},
+ {"id": "qingwen",  "name": "青纹蛇獾", "power": 0.95, "weight": 16, "scene": "盘在灵泉井口的花纹背"},
+ {"id": "huoli",    "name": "火狸奴",   "power": 1.00, "weight": 14, "scene": "尾尖火星子, 专掀药圃晒架"},
+ {"id": "chanyue",  "name": "馋月玉蟾", "power": 1.05, "weight": 10, "scene": "吞了月影不吐, 鼓腹如蛙鼓"},
+ {"id": "yanjia",   "name": "岩甲夔牛", "power": 1.10, "weight": 12, "scene": "独足踩着碎石拦了山道"},
+ {"id": "xuying",   "name": "墟岭夜枭", "power": 1.15, "weight": 10, "scene": "笑一声, 乱葬岗的磷火连着起"},
+ {"id": "moyuan",   "name": "墨渊蛟虺", "power": 1.30, "weight": 6,  "scene": "抬起头, 半潭水跟着立正"},
+ {"id": "taotie",   "name": "饕餮残躯", "power": 1.50, "weight": 3,  "scene": "烂了三百年的一角还在磨牙"}
+]

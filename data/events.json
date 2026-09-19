@@ -1,0 +1,24 @@
+[
+  {"id": "wutong",    "text": "檐前老梧桐一夜白头, 你盯着霜纹忽有所悟", "level": "report",    "weight": 3, "effect": {"cult_pct_layer": 0.30}},
+  {"id": "oilfire",   "text": "灶上灵米糊了锅, 你骂骂咧咧重淘了一升",   "level": "report",    "weight": 3, "effect": {"cult_pct_layer": 0.10}},
+  {"id": "zuohuo",    "text": "行功岔了气, 经脉如蚁噬, 你闭眼稳住心猿", "level": "report",    "weight": 2, "effect": {"cult_pct": -0.15, "inner_years": 2}},
+  {"id": "seed",      "text": "山涧石缝里捡到一枚不知名的灵种",           "level": "report",    "weight": 2, "effect": {"cult_pct_layer": 0.20}},
+  {"id": "stone",     "text": "三生石方向隐隐一颤, 大概是错觉(暗线碎片占位, P3)", "level": "report", "weight": 1, "effect": {}},
+  {"id": "insight",   "text": "【特殊事件】故纸堆里半页残缺功法, 似有顿悟之机", "level": "interrupt", "weight": 3, "auto": true, "options": [
+	{"t": "参悟", "need": "静心参读半宿", "result": "顿悟之机: 修为 ≈ 该层需求 60%"},
+	{"t": "放下", "need": "无", "result": "机缘作废 · 零损失"}
+  ], "effect": {"cult_pct_layer": 0.60}},
+  {"id": "relic",     "text": "【特殊事件】坊市地摊上有张发黄的秘境残页",       "level": "interrupt", "weight": 2, "options": [
+	{"t": "买下", "need": "当场议价购下", "result": "机缘入账: 修为 ≈ 该层需求 35%"},
+	{"t": "错过", "need": "无", "result": "零损失 · 残页归他人"}
+  ], "effect": {"cult_pct_layer": 0.35}},
+  {"id": "chill",     "text": "【特殊事件】冬夜寒邪入体, 气机有些滞了",         "level": "interrupt", "weight": 2, "options": [
+	{"t": "硬扛", "need": "咬牙硬受", "result": "修为 −18% · 心魔 1 年"},
+	{"t": "运功逼散", "need": "耗神运功一夜", "result": "寒邪尽散 · 气血 −30 · 三个月聚灵 −15%",
+	 "opt_effect": {"label": "运功逼散: 寒邪尽散", "qi": -30, "buff": {"kind": "eff_pct", "pct": -0.15, "months": 3, "name": "寒邪余韵"}}}
+  ], "effect": {"cult_pct": -0.18, "inner_years": 1}},
+  {"id": "chk_wutong","text": "【保底打断·退役】六十岁月无波, 忽而顿悟如潮(保底取消后留存数据)", "level": "interrupt", "weight": 3, "effect": {"cult_pct_layer": 0.60}},
+  {"id": "chk_xinmo", "text": "【保底打断·退役】心魔趁虚而入, 旧事在识海翻腾(保底取消后留存数据)",       "level": "interrupt", "weight": 2, "effect": {"cult_pct": -0.20, "inner_years": 3}},
+  {"id": "chk_friend","text": "【保底打断·退役】旧友提酒上门, 你出关半日叙旧(保底取消后留存数据)",       "level": "interrupt", "weight": 2, "effect": {"cult_pct_layer": 0.15}},
+  {"id": "chk_luck",  "text": "【保底打断·退役】机缘撞怀: 一株百年灵药无人认领(保底取消后留存数据)",     "level": "interrupt", "weight": 2, "effect": {"cult_pct_layer": 0.35}}
+]

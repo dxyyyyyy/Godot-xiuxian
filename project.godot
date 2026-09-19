@@ -11,13 +11,15 @@ config_version=5
 [application]
 
 config/name="修仙模拟器 UI"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/start.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
-TimeManager="*res://scripts/time_manager.gd"
+DataManager="*res://autoload/DataManager.gd"
+SaveSystem="*res://autoload/SaveSystem.gd"
+Game="*res://autoload/Game.gd"
 GameState="*res://scripts/game_state.gd"
 
 [display]

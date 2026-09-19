@@ -1,0 +1,697 @@
+[
+ {
+  "id": "wall_001",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "tongming"
+  },
+  "title": "【日经】通明宫的又破戒了",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "论道会的流水席我也在, 通明宫那位长老第一筷是豆腐, 第二筷就没停过。辟谷三百年, 就等这一桌吧。"
+  },
+  "replies": [
+   {
+	"poster_id": "通明宫外门（自称）",
+	"text": "胡说, 我们长老那是「考察民间疾苦」。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "考察到第三碗了。"
+   }
+  ],
+  "op_extra": "本帖已被巡山司揭走, 理由: 损害仙门形象。笑死, 明天还有人贴。",
+  "report_line": "壁上有人帖: 通明宫的又破戒了"
+ },
+ {
+  "id": "wall_002",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "jianpai"
+  },
+  "title": "【求助】剑修赊账算不算抢劫",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "一位背剑的客官吃了三十串, 说「剑修的钱在鞘里, 你先记账」。记了两年了, 人路过八百回。"
+  },
+  "replies": [
+   {
+	"poster_id": "不周山看门的",
+	"text": "剑修欠账必还, 就是还的时候你别在旁边。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "楼主安心, 他砍的不是你, 是他自己的面子。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 剑修赊账算不算抢劫"
+ },
+ {
+  "id": "wall_003",
+  "family": "npc",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【吃瓜】宗门隔壁那位邻居又翻墙了",
+  "op": {
+   "poster_id": "巡山司查水表的",
+   "text": "青梧城西那位黑衣邻居, 半夜翻墙进自家院子, 翻了七年。有病就得治, 有墙就该走门。"
+  },
+  "replies": [
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "人家走门才吓人好吗, 你没发现他门从来不开?"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "看破不说破, 邻里和睦。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 那位邻居又翻墙了"
+ },
+ {
+  "id": "wall_004",
+  "family": "npc",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【日经】守山那位师兄今天又问我是谁",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "在山门口住了九年, 守山师兄天天问我「仙友面生得很」。今天他给我递了串山楂, 说初次见面交个朋友。"
+  },
+  "replies": [
+   {
+	"poster_id": "不周山看门的",
+	"text": "师兄记人只记三天, 山楂是第九年攒的诚意。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "至少他天天都在, 比谁都可靠。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 守山师兄又问我是谁"
+ },
+ {
+  "id": "wall_005",
+  "family": "npc",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【闲聊】白掌柜今年又封坛了",
+  "op": {
+   "poster_id": "不周山看门的",
+   "text": "狐族酒坊今年新封十坛, 老规矩: 非卖品。掌柜的说「替人存的」。替谁存的一问就摆手, 一摆手就添酒。"
+  },
+  "replies": [
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "存了快一百年了吧, 那坛泥都包浆了。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "好酒不问出处, 好事不问归期。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 白掌柜今年又封坛了"
+ },
+ {
+  "id": "wall_006",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "breakthrough"
+  },
+  "title": "【直播】不周山脊那边打雷, 在线等",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "不周山脊雷云压了三个时辰, 是哪位道友在渡劫? 围观的不许起哄啊。"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "在线等, 挺急的。"
+   },
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "雷停了, 走了走了, 又是一位前辈。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 不周山那边打雷, 在线等"
+ },
+ {
+  "id": "wall_007",
+  "family": "strange",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【怪谈】说书先生又讲雾里的客",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "茶摊那段新词: 雾里来客不问路, 只问「今年收成如何」。老人们都说不许接话。我偏接了, 他冲我点了点头, 怪客气的一位的。"
+  },
+  "replies": [
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "编的, 雾天我上过山, 只有我。"
+   },
+   {
+	"poster_id": "不周山看门的",
+	"text": "楼上你脚印只有一串吗?"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 说书先生又讲雾里的客"
+ },
+ {
+  "id": "wall_008",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "xunshansi"
+  },
+  "title": "【吐槽】青梧城城规最后一条是谁写的",
+  "op": {
+   "poster_id": "某不愿透露籍贯的金丹",
+   "text": "城规第十一条「夜间禁飞, 白日禁跑」, 那御剑的怎么办? 巡山司回函: 走路。好一个走路。"
+  },
+  "replies": [
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "回函全文两条: 第一, 走路。第二, 不许再问。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "官字两张口, 服了。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 城规最后一条是谁写的"
+ },
+ {
+  "id": "wall_010",
+  "family": "npc",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【求证】山神庙那位先生到底是做什么的",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "山神庙那位先生, 白天喂鱼晚上看账, 谁家有难他都先知道。求证: 他到底挂的什么职?"
+  },
+  "replies": [
+   {
+	"poster_id": "不周山看门的",
+	"text": "挂的「街坊」职。"
+   },
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "别打听, 打听就是缘分, 缘分要还的。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 山神庙先生是做什么的"
+ },
+ {
+  "id": "wall_011",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "xianmeng"
+  },
+  "title": "【闲聊】仙盟公文引火确实好烧",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "实测: 仙盟公文纸比柴耐烧, 火苗发青。就是烧完得把抬头那半页留好, 巡山司查。"
+  },
+  "replies": [
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "楼主你完了, 抄壁的来了。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "本文已被收录进《公文二次利用指南》。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 仙盟公文引火确实好烧"
+ },
+ {
+  "id": "wall_012",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "daolv"
+  },
+  "title": "【贺】百味宗那位, 结道侣了",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "听说了吗, 百味宗做桂花糕的那位结道侣了。贺仪都排到坊市口了, 全城的喜饼被他家包圆。"
+  },
+  "replies": [
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "做桂花糕的手, 系的红绳都香。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "随礼随礼, 谁还没个道友。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 百味宗那位结道侣了"
+ },
+ {
+  "id": "wall_013",
+  "family": "npc",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【吃瓜】昨夜坊市堵人现场",
+  "op": {
+   "poster_id": "炼气三层不敢说话",
+   "text": "昨夜坊市两个道友堵人对峙半宿, 最后各自掏出一封信, 对完就都哭了, 拥抱, 散场。全网没人看懂, 全场都在嗑。"
+  },
+  "replies": [
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "嗑到了, 这比话本带劲。"
+   },
+   {
+	"poster_id": "不周山看门的",
+	"text": "信我瞄了一眼, 是账单。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 昨夜坊市堵人现场"
+ },
+ {
+  "id": "wall_014",
+  "family": "npc",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【闲聊】温大夫今日语录",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "温大夫今日语录: 「这病能治, 就是贵」「你这脉象像没睡醒」「药苦, 命更苦, 选一个」。嘴毒, 药到病除。"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "被他骂过三次, 伤全好了。"
+   },
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "语录后面还有半句: 灵石先付。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 温大夫今日语录"
+ },
+ {
+  "id": "wall_015",
+  "family": "strange",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【怪谈】那把火真是初代留的?",
+  "op": {
+   "poster_id": "不周山看门的",
+   "text": "百味宗灶房那把火, 据说从开山烧到今天没熄过。风雪天自己旺, 没人添柴。"
+  },
+  "replies": [
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "地火, 地脉, 散了散了。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "可我闻着有饭香, 地火是咸口的?"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 灶房那把火真是初代留的"
+ },
+ {
+  "id": "wall_016",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "yoududao"
+  },
+  "title": "【吐槽】论道会当晚城外那个集是谁开的",
+  "op": {
+   "poster_id": "某不愿透露籍贯的金丹",
+   "text": "大比当晚城外冒出个夜集, 摊主全蒙面, 卖的全是白天坊市缺货的东西。问价不答, 只说「随缘」。"
+  },
+  "replies": [
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "查了, 查无此集。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "查无此集, 但人人有货。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 城外那个集是谁开的"
+ },
+ {
+  "id": "wall_017",
+  "family": "mortal",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【闲聊】灶房招帮工吗",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "问一句, 百味宗灶房还招帮工吗? 不求灵石, 管饭就行, 涨辈分那种饭。"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "先排队, 你前面还有仨金丹。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "帮工没那么香, 但饭确实香。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 灶房招帮工吗"
+ },
+ {
+  "id": "wall_018",
+  "family": "npc",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【求证】狐族真的不显老吗",
+  "op": {
+   "poster_id": "炼气三层不敢说话",
+   "text": "狐族酒坊那位掌柜, 五十年前就这样, 五十年后还这样。求证: 是保养还是血脉?"
+  },
+  "replies": [
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "问就是血脉, 问就是天生的。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "你五十年前问过一模一样的, 帖子还在存档里。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 狐族真的不显老吗"
+ },
+ {
+  "id": "wall_019",
+  "family": "mortal",
+  "trigger": {
+   "type": "yearly",
+   "window": [
+	1
+   ]
+  },
+  "title": "【闲聊】今岁屠苏第一杯敬了谁",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "岁首屠苏酒从幼及长, 城西那位小乞儿今年又第一个喝。有人说看见掌柜多摆了一只碗, 谁的?"
+  },
+  "replies": [
+   {
+	"poster_id": "不周山看门的",
+	"text": "两只碗的规矩, 问了五十年了。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "敬的就是不在的那位, 喝的就是都在的我们。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 今岁屠苏第一杯敬了谁"
+ },
+ {
+  "id": "wall_020",
+  "family": "mortal",
+  "trigger": {
+   "type": "random"
+  },
+  "title": "【吃瓜】那位女修的话本上新了",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "茶摊话本上新,《照壁奇闻录》第七卷, 把咱们照壁上的帖子全编进去了。楼下那位道友你上榜了, 第 41 页。"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "买了, 我在 53 页, 编得比本人体面。"
+   },
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "揭走的帖子也写了, 管理员认证实录。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 那位女修的话本上新了"
+ },
+ {
+  "id": "wall_021",
+  "family": "mortal",
+  "trigger": {
+   "type": "yearly",
+   "window": [
+	2
+   ]
+  },
+  "title": "【直播】上元灯会现场, 人比灯多",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "上元灯会开市, 河灯从桥头排到城尾。修士不许飞, 全挤在桥上走, 今年最亮的是百味宗那盏「能吃」的花灯。"
+  },
+  "replies": [
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "那盏灯是真点心, 后来被抢了。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "灯会限飞第一年, 走路走出了道心。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 上元灯会人比灯多"
+ },
+ {
+  "id": "wall_022",
+  "family": "mortal",
+  "trigger": {
+   "type": "yearly",
+   "window": [
+	12
+   ]
+  },
+  "title": "【闲聊】腊月祭灶, 供的是糖还是方子",
+  "op": {
+   "poster_id": "不周山看门的",
+   "text": "腊月二十三祭灶, 别家供糖瓜, 百味宗供的是一张新写的菜方, 说灶王爷吃腻甜的了。"
+  },
+  "replies": [
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "灶王爷: 早该换口味了。"
+   },
+   {
+	"poster_id": "青梧城城西烤串的",
+	"text": "明年供我的烤串配方, 求上天言好事。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 祭灶供的是糖还是方子"
+ },
+ {
+  "id": "wall_023",
+  "family": "mortal",
+  "trigger": {
+   "type": "event",
+   "event": "xiuluo"
+  },
+  "title": "【连载】茶摊连夜加更: 那场雨里的三角账",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "说书先生连夜加更: 一位道侣、一位故人、一场没下完的雨。三人一个没露名, 一个没露脸, 一个没露面。听客都嗑疯了, 就问后续!"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "后续就是没有后续, 巡山司把说书先生请去喝茶了。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "当事人不回应, 就是最大方的回应。"
+   }
+  ],
+  "op_extra": "本帖已被揭走存档 —— 越揭越火, 加更三回。",
+  "report_line": "壁上有人帖: 那场雨里的三角账加更了"
+ },
+ {
+  "id": "wall_024",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "xindong"
+  },
+  "title": "【吃瓜】听说{npc}夜里笑醒",
+  "op": {
+   "poster_id": "茶摊隔壁裁缝",
+   "text": "百味宗那位前日托人捎了盒桂花糕给{npc}, 说是「顺手做的」。顺手做的能连做三日? 我裁衣三十年, 这针脚我认得 —— 是心动。"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "「顺手」二字, 坊市稗官最懂。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "回头率百分之三百, 我在河边都看见了。"
+   }
+  ],
+  "op_extra": "本帖已被百味宗弟子盖楼盖到三百层, 楼主笑而不语。",
+  "report_line": "壁上有人帖: {npc}心动了(疑似)"
+ },
+ {
+  "id": "wall_025",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "xianglian"
+  },
+  "title": "【实锤】{npc}与百味宗那位, 好事将近?",
+  "op": {
+   "poster_id": "坊市瓜贩",
+   "text": "两人在清溪村同游, 一人拎食盒一人撑伞, 十里地的乡亲都看见了。问就是「道友」。呵, 道友。"
+  },
+  "replies": [
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "我赌三包灵米, 一年内有喜宴。"
+   },
+   {
+	"poster_id": "巡山司小吏",
+	"text": "别赌了, 红帖格式我们司都拟好了。"
+   }
+  ],
+  "op_extra": "楼主: 已存证, 坐等打脸, 或坐等喜饼。",
+  "report_line": "壁上有人帖: {npc}与主角相恋了(满城皆知)"
+ },
+ {
+  "id": "wall_026",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "jieqi"
+  },
+  "title": "【唏嘘】百味宗那位与{npc}, 缘尽了",
+  "op": {
+   "poster_id": "百话楼说书人",
+   "text": "喜宴的红绸还没撤, 城门口的解契文书就贴了出来。一个修道去了, 一个守灶台, 谁也没说谁的错。茶客叹了三声, 茶钱都忘了收。"
+  },
+  "replies": [
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "缘起缘灭, 锅还热着呢。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "下一位道侣位空出来了(小声)。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {npc}与主角解契了"
+ },
+ {
+  "id": "wall_027",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "huozangchang"
+  },
+  "title": "【连载】火葬场文学开更: {npc}把定情信物退回来了",
+  "op": {
+   "poster_id": "百话楼说书人",
+   "text": "上回书说到{npc}撞破了同游的灯会。这一更: {npc}连夜把帕子玉佩原样退回, 附信一行 —— 「糕是甜的, 人是假的」。百味宗那位在灶前坐了一宿, 灶火都没敢灭。"
+  },
+  "replies": [
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "追妻火葬场, 这回直接追到火葬场了属于是。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "点心我照买, 剧情我不评(狗头)。"
+   }
+  ],
+  "op_extra": "说书人: 下回加更《灵米粥凉了》, 坐等回暖篇。",
+  "report_line": "壁上有人帖: {npc}退了定情信物 —— 火葬场了"
+ },
+ {
+  "id": "wall_028",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "relation"
+  },
+  "title": "【吃瓜】{a}与{b}这段「{tag}」，我嗑定了",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "茶摊听来一段：{a}与{b}原来是{tag}。难怪提起来总说「那是外人」—— 说得太快的人，从来都不是外人。"
+  },
+  "replies": [
+   {
+    "poster_id": "炼气三层不敢说话",
+    "text": "这段比话本真，因为话本不敢这么写。"
+   },
+   {
+    "poster_id": "青梧城城西烤串的",
+    "text": "嗑到了。两位当事人异口同声：只是{tag}而已。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}与{b}的「{tag}」被扒出来了"
+ },
+ {
+  "id": "wall_029",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "relation_bad"
+  },
+  "title": "【吃瓜】{a}与{b}又杠上了，说是桩「{tag}」的旧账",
+  "op": {
+   "poster_id": "巡山司查水表的",
+   "text": "昨夜坊市口，{a}与{b}当街互呛半个时辰，围观的说听着像旧账翻篇。没动手，没见血，话本标题我都替他们想好了。"
+  },
+  "replies": [
+   {
+    "poster_id": "东海卖鱼的",
+    "text": "嘴上{tag}，手上的东西倒年年不断 —— 这俩我能再看十年。"
+   },
+   {
+    "poster_id": "炼气三层不敢说话",
+    "text": "别吵了别吵了，再吵明天的菜价又要涨。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}与{b}又起了争执"
+ }
+]

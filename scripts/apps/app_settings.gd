@@ -1,37 +1,26 @@
 extends "res://scripts/apps/app_base.gd"
-## 设置：音量/画质/红点总开关/时间调速，全部接入 GameState / TimeManager 随存档持久化。
+## 设置：音量/画质/红点总开关 + 时速档（灰盒月时钟，暂停~100×）。
 ## 音量目前只存数值，接入音频系统后应用到 AudioServer 总线即可。
 
 var quality_group := ButtonGroup.new()
 var speed_group := ButtonGroup.new()
 var speed_caption: Label
-var clock_caption: Label
-var _clock_cache := ""
 
 
 func _build_content(vb: VBoxContainer) -> void:
-	vb.add_theme_constant_override("separation", 16)
-	vb.add_child(UiKit.label("设置", 24, UiKit.PINK_600, 600))
+	vb.add_child(bleed_head("设置", "音量、画质、红点与时间流速。"))
 	vb.add_child(_volume_card("volume-2", "音效", "sound"))
 	vb.add_child(_volume_card("music", "音乐", "music"))
 	vb.add_child(_quality_card())
 	vb.add_child(_red_dot_card())
 	vb.add_child(_speed_card())
 	vb.add_child(_about_card())
-
-
-func _process(_delta: float) -> void:
-	if clock_caption == null:
-		return
-	var txt := TimeManager.clock_text()
-	if txt != _clock_cache:
-		_clock_cache = txt
-		clock_caption.text = "游戏内时间：" + txt
+	Game.changed.connect(_update_speed_caption)
 
 
 func _volume_card(icon_name: String, title: String, which: String) -> PanelContainer:
 	var initial: int = GameState.sound_volume if which == "sound" else GameState.music_volume
-	var c := UiKit.card()
+	var c := bleed_section()
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 12)
 	var ch := HBoxContainer.new()
@@ -61,7 +50,7 @@ func _volume_card(icon_name: String, title: String, which: String) -> PanelConta
 
 
 func _quality_card() -> PanelContainer:
-	var c := UiKit.card()
+	var c := bleed_section()
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 12)
 	var ch := HBoxContainer.new()
@@ -85,7 +74,7 @@ func _quality_card() -> PanelContainer:
 
 ## 红点总开关（眼不见为净）：关闭后玉牌照常可用，只是没有提醒。
 func _red_dot_card() -> PanelContainer:
-	var c := UiKit.card()
+	var c := bleed_section()
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 10)
 	var row := HBoxContainer.new()
@@ -103,56 +92,61 @@ func _red_dot_card() -> PanelContainer:
 	return c
 
 
+## 时速档（灰盒月时钟）：0=暂停；1×≈2秒/月，最快 100×。
 func _speed_card() -> PanelContainer:
-	var c := UiKit.card()
+	var c := bleed_section()
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 12)
 	var ch := HBoxContainer.new()
 	ch.add_theme_constant_override("separation", 12)
 	ch.add_child(UiKit.icon_rect("clock", 20, UiKit.PINK_500))
-	ch.add_child(UiKit.label("时间调速", 16, UiKit.PINK_700, 600))
+	ch.add_child(UiKit.label("时间流速（月历）", 16, UiKit.PINK_700, 600))
 	cv.add_child(ch)
 
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	var speeds := [[0.5, "0.5x"], [1.0, "1x"], [2.0, "2x"], [5.0, "5x"], [100.0, "100x"]]
-	for opt in speeds:
-		var v: float = opt[0]
-		var b := UiKit.seg_button(opt[1], speed_group, is_equal_approx(v, TimeManager.speed))
-		b.pressed.connect(_on_speed_pressed.bind(v))
-		row.add_child(b)
-	cv.add_child(row)
+	var gears: Array = Game.tune("speed_gears", [1, 2, 5, 10, 25, 50, 100])
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	var pause := UiKit.seg_button("暂停", speed_group, Game.speed == 0)
+	pause.pressed.connect(func() -> void: Game.set_speed(0))
+	grid.add_child(pause)
+	for g in gears:
+		var v := int(g)
+		var b := UiKit.seg_button("%d×" % v, speed_group, Game.speed == v)
+		b.pressed.connect(func() -> void: Game.set_speed(v))
+		grid.add_child(b)
+	cv.add_child(grid)
 
 	speed_caption = UiKit.label("", 12, UiKit.PINK_400)
 	cv.add_child(speed_caption)
-	clock_caption = UiKit.label("游戏内时间：", 12, UiKit.PINK_400)
-	cv.add_child(clock_caption)
 	_update_speed_caption()
 	c.add_child(UiKit.margin_wrap(cv, 16))
 	return c
-
-
-## 「关于本牌」（文档 §7 原文风味）
-func _about_card() -> PanelContainer:
-	var c := UiKit.card()
-	var cv := VBoxContainer.new()
-	cv.alignment = BoxContainer.ALIGNMENT_CENTER
-	cv.add_theme_constant_override("separation", 4)
-	cv.add_child(UiKit.label("百味宗后勤堂制 · 传讯阵三枚 · 续航：靠晾。", 13, UiKit.PINK_600, 400, HORIZONTAL_ALIGNMENT_CENTER))
-	cv.add_child(UiKit.label("版本 v1.0.0", 12, UiKit.PINK_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
-	c.add_child(UiKit.margin_wrap(cv, 16))
-	return c
-
-
-func _on_speed_pressed(v: float) -> void:
-	TimeManager.set_speed(v)
-	_update_speed_caption()
 
 
 func _update_speed_caption() -> void:
-	var sp := TimeManager.speed
-	var shown := "0.5" if is_equal_approx(sp, 0.5) else str(int(sp))
-	speed_caption.text = "当前游戏时间流速: %s倍" % shown
+	if speed_caption == null:
+		return
+	if Game.is_ended():
+		speed_caption.text = "当前时间流速: 停（此世已了结）"
+	elif not Game.pending.is_empty():
+		speed_caption.text = "当前时间流速: 停（事件待拍板）"
+	else:
+		speed_caption.text = "当前时间流速: %s · %s" % [str(Game.speed) + "×" if Game.speed > 0 else "暂停", Game.calendar()]
+
+
+## 「关于本牌」
+func _about_card() -> PanelContainer:
+	var c := bleed_section()
+	var cv := VBoxContainer.new()
+	cv.alignment = BoxContainer.ALIGNMENT_CENTER
+	cv.add_theme_constant_override("separation", 4)
+	cv.add_child(UiKit.label("百味长生 · 月历常流 · 一切结算只走 tick_month 唯一入口。", 13, UiKit.PINK_600, 400, HORIZONTAL_ALIGNMENT_CENTER))
+	cv.add_child(UiKit.label("版本 v2.0.0", 12, UiKit.PINK_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
+	c.add_child(UiKit.margin_wrap(cv, 16))
+	return c
 
 
 ## iOS 风格开关（48x24 滑块）

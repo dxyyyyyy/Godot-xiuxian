@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c1porsmk001"]
+
+[ext_resource type="Script" path="res://tests/portrait_smoke.gd" id="1_psm"]
+
+[node name="PortraitSmoke" type="Node"]
+script = ExtResource("1_psm")

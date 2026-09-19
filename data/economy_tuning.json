@@ -1,0 +1,73 @@
+{
+ "note": "经营系统概率与倍率集中表(详解卷 6.6.1)—— 四季/虫害/变异/品质/开垦/服用/赠礼, M0 灰盒调参入口",
+ "season_mult": {
+  "春": 1.2,
+  "夏": 1.1,
+  "秋": 1.3,
+  "冬": 0.6
+ },
+ "grow_time_mult": 3.0,
+ "pest_rate": 0.1,
+ "pest_rate_summer": 0.18,
+ "pest_rate_winter": 0.03,
+ "pest_penalty": 0.3,
+ "mutate_rate": 0.02,
+ "millennium_rate": 0.002,
+ "grade_up_chance": 0.1,
+ "grade_names": [
+  "凡",
+  "灵",
+  "上"
+ ],
+ "grade_price_mult": {
+  "凡": 1.0,
+  "灵": 1.8,
+  "上": 3.5
+ },
+ "plot_costs": [
+  80,
+  140,
+  240,
+  400,
+  640,
+  960,
+  1400
+ ],
+ "plot_soft_cap": 9,
+ "tonic_factor": 0.5,
+ "millennium_price": 500,
+ "eat_gain_months": {
+  "low": 0.05,
+  "mid": 0.25,
+  "high": 6.0
+ },
+ "gift_dish": {
+  "low": 1,
+  "mid": 3,
+  "high": 5
+ },
+ "qi_regen": 5,
+ "seek_qi_cost": 20,
+ "seek_stones_lo": 5,
+ "seek_stones_hi": 15,
+ "yaoguai_stones_lo": 15,
+ "yaoguai_stones_hi": 40,
+ "yaodan_price": 120,
+ "gift_yaodan": 60,
+ "wound_qi_loss": 30,
+ "qi_max_base": 100,
+ "qi_max_per_realm": 50,
+ "low_qi_pct": 0.3,
+ "wall_random_rate": 0.02,
+ "wall_rotate_cd": 3,
+ "gift_flower": 50,
+ "gift_millennium": 80,
+ "seed_cost_mult": 0.5,
+ "seed_buy_mult": 8,
+ "npc_fail_keep": 0.7,
+ "cook_months": {
+  "low": 2,
+  "mid": 4,
+  "high": 6
+ }
+}

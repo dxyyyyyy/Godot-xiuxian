@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bqt6gu0baoaed"
+
+[deps]
+
+files=["res://assets/portraits/parts_manifest.slot.translation", "res://assets/portraits/parts_manifest.index.translation", "res://assets/portraits/parts_manifest.value.translation", "res://assets/portraits/parts_manifest.gender.translation"]
+
+source_file="res://assets/portraits/parts_manifest.csv"
+dest_files=["res://assets/portraits/parts_manifest.slot.translation", "res://assets/portraits/parts_manifest.index.translation", "res://assets/portraits/parts_manifest.value.translation", "res://assets/portraits/parts_manifest.gender.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

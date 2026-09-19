@@ -1,0 +1,10 @@
+[
+  {"key": "lianqi",   "name": "炼气", "ordinal": 1, "layers": 9, "lifespan_cap": 80,   "gain_base": 10,  "max_ap": 12, "busy_ratio": 0.85, "break_prob": 0.90},
+  {"key": "zhuji",    "name": "筑基", "ordinal": 2, "layers": 3, "lifespan_cap": 150,  "gain_base": 14,  "max_ap": 14, "busy_ratio": 0.75, "break_prob": 0.75},
+  {"key": "jindan",   "name": "金丹", "ordinal": 3, "layers": 3, "lifespan_cap": 300,  "gain_base": 19,  "max_ap": 16, "busy_ratio": 0.60, "break_prob": 0.60},
+  {"key": "yuanying", "name": "元婴", "ordinal": 4, "layers": 3, "lifespan_cap": 600,  "gain_base": 31,  "max_ap": 18, "busy_ratio": 0.45, "break_prob": 0.45},
+  {"key": "huashen",  "name": "化神", "ordinal": 5, "layers": 3, "lifespan_cap": 800,  "gain_base": 50,  "max_ap": 20, "busy_ratio": 0.25, "break_prob": 0.35},
+  {"key": "lianxu",   "name": "炼虚", "ordinal": 6, "layers": 3, "lifespan_cap": 1000, "gain_base": 98,  "max_ap": 20, "busy_ratio": 0.18, "break_prob": 0.25},
+  {"key": "heti",     "name": "合体", "ordinal": 7, "layers": 3, "lifespan_cap": 1200, "gain_base": 193, "max_ap": 20, "busy_ratio": 0.12, "break_prob": 0.15},
+  {"key": "dujie",    "name": "渡劫", "ordinal": 8, "layers": 3, "lifespan_cap": 1800, "gain_base": 396, "max_ap": 20, "busy_ratio": 0.10, "break_prob": 0.08}
+]
