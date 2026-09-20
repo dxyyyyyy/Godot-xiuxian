@@ -153,10 +153,12 @@ func _ghost_button(text: String, cb: Callable) -> Button:
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.add_theme_font_override("font", UiKit.font(500))
 	b.add_theme_font_size_override("font_size", 13)
-	b.add_theme_color_override("font_color", UiKit.PINK_600)
-	b.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.WHITE, 10))
-	b.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_100, 10))
-	b.add_theme_stylebox_override("pressed", UiKit.stylebox(UiKit.PINK_100, 10))
+	b.add_theme_color_override("font_color", UiKit.PINK_500)
+	b.add_theme_color_override("font_hover_color", UiKit.PINK_700)
+	b.add_theme_color_override("font_pressed_color", UiKit.PINK_700)
+	b.add_theme_stylebox_override("normal", UiKit.stylebox(Color(0, 0, 0, 0), 10, false, 1, UiKit.PINK_300))
+	b.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_50, 10, false, 1, UiKit.PINK_400))
+	b.add_theme_stylebox_override("pressed", UiKit.stylebox(UiKit.PINK_100, 10, false, 1, UiKit.PINK_500))
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	b.pressed.connect(cb)
 	return b

@@ -67,12 +67,24 @@ signal leave_requested
 
 
 func _on_app_exit() -> void:
+	if GameState.face_returning:
+		GameState.face_returning = false
+		_open("lifestone")   # 新开一世捏脸毕 → 回三生石
+		return
 	back_to_desktop()
 	leave_requested.emit()
 
 
 ## 主页再点一次「玉牌」即收起（回到桌面层）。
 func back_to_desktop() -> void:
+	if GameState.face_returning:
+		GameState.face_returning = false
+		_open("lifestone")   # 捏脸返回 → 回三生石(未应用容貌)
+		return
+	if GameState.fresh_start:
+		GameState.fresh_start = false
+		leave_requested.emit()   # 三生石返回即入世
+		return
 	_current = ""
 	for k in _pages:
 		_pages[k].visible = false

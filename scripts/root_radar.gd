@@ -23,7 +23,6 @@ func setup(els: PackedStringArray, owns: PackedStringArray, text: String) -> voi
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(244, 236)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 

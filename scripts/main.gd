@@ -20,6 +20,7 @@ const NAV_ITEMS := [
 
 var _screens := {}
 var _nav_refs := {}
+var _nav_bar: Control
 var _active := "schedule"   # 开始界面进入游戏 → 落在日程页
 
 # ---- 全局弹窗层 ----
@@ -54,9 +55,9 @@ func _ready() -> void:
 	_switch_to(_active)
 	_refresh_tablet_badge()
 	if GameState.fresh_start:
-		GameState.fresh_start = false
-		_switch_to("tablet")   # 新开一世 → 先定容再入世
-		_screens["tablet"].open_app("face")
+		_nav_bar.visible = false   # 入世流程不显底栏
+		_switch_to("tablet")   # 新开一世 → 三生石选属性 + 捏脸
+		_screens["tablet"].open_app("lifestone")
 
 
 func _build_background() -> void:
@@ -107,6 +108,7 @@ func _build_nav_bar() -> void:
 	for item in NAV_ITEMS:
 		hb.add_child(_make_nav_button(item))
 	add_child(bar)
+	_nav_bar = bar
 
 
 func _make_nav_button(item: Dictionary) -> Button:
@@ -369,6 +371,7 @@ func _build_end_layer() -> void:
 
 
 func _on_tablet_leave() -> void:
+	_nav_bar.visible = true   # 恢复底栏
 	_switch_to("schedule")   # 玉牌 app 退出（如捏脸应用容貌）→ 回游戏主界面
 
 

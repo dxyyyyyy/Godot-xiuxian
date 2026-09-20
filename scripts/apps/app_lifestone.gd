@@ -3,6 +3,7 @@ extends "res://scripts/apps/app_base.gd"
 ## 五行持有改五围图(root_radar)交互选择: 顶点=一行, 点击切换。
 
 const RootRadar := preload("res://scripts/root_radar.gd")
+const Portrait := preload("res://scripts/portrait.gd")
 ## 出身设定已废(一律宗门弟子), 只剩风味文本; 灵根 = 行数(道韵) + 自择五行(免费)。
 
 var _content: VBoxContainer
@@ -13,7 +14,6 @@ var _traits_sel: Array[String] = []   # 已订先天特质 id(一世, 多选)
 
 
 func _build_content(vb: VBoxContainer) -> void:
-	vb.add_child(bleed_head("三生石", "宗门后山那块石头，拓的是「自家的那一份」。"))
 	_content = VBoxContainer.new()
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_content.add_theme_constant_override("separation", 0)
@@ -38,42 +38,33 @@ func _rebuild() -> void:
 	if meta.is_empty():
 		return
 
-	# —— 道韵总账(紧凑单行) ——
-	var total := bleed_section()
-	var tv := VBoxContainer.new()
-	tv.add_theme_constant_override("separation", 4)
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 6)
-	head.add_child(UiKit.icon_rect("heart", 14, UiKit.PINK_500))
-	head.add_child(UiKit.label("道韵总账", 13, UiKit.PINK_700, 600))
-	head.add_child(UiKit.expander())
-	head.add_child(UiKit.label("累计 %d 韵 · %d 世 · 最佳 %s · 魂印 %d" % [int(meta.get("dao", 0)), int(meta.get("lives", 0)), String(meta.get("best_name", "无")), int(meta.get("bonds", 0))], 12, UiKit.PINK_600, 600))
-	tv.add_child(head)
-	var endings: Dictionary = meta.get("endings", {})
-	if not endings.is_empty():
-		var parts := PackedStringArray()
-		for k in endings:
-			parts.append("%s×%d" % [String(k), int(endings[k])])
-		var el := UiKit.label("结局史：%s" % " · ".join(parts), 11, UiKit.PINK_400)
-		el.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		tv.add_child(el)
-	total.add_child(UiKit.margin_wrap(tv, 10))
-	_content.add_child(total)
+	# —— 标题 + 道韵总账(合并紧凑) ——
+	var hdr := bleed_head("三生石")
+	hdr.add_theme_constant_override("margin_top", 6)
+	hdr.add_theme_constant_override("margin_bottom", 4)
+	var hdr_vb := hdr.get_child(0)   # 内部 VBox
+	var stats := HBoxContainer.new()
+	stats.add_theme_constant_override("separation", 4)
+	stats.add_child(UiKit.label("%d 韵 · %d 世 · 最佳 %s · 魂印 %d" % [int(meta.get("dao", 0)), int(meta.get("lives", 0)), String(meta.get("best_name", "无")), int(meta.get("bonds", 0))], 11, UiKit.PINK_500))
+	hdr_vb.add_child(stats)
 
 	# —— 此世状态 / 转世操作 ——
+	if GameState.fresh_start:
+		_content.add_child(_rebirth_card(meta))
+		return
 	if Game.run.is_empty():
 		return
 	if not bool(Game.run.get("ended", false)):
 		var live := bleed_section()
 		var lv := VBoxContainer.new()
-		lv.add_theme_constant_override("separation", 6)
-		lv.add_child(UiKit.label("此世未了", 16, UiKit.PINK_700, 600))
-		var lb := UiKit.label("第 %d 世（%s · %s）仍在途上 —— 寿尽、飞升、陨落或隐退后，三生石自会亮起转世之途。" % [int(Game.run.get("life", 1)), String(Game.run.get("origin", "?")), String(Game.run.get("end_kind", "进行中"))], 13, UiKit.PINK_600)
+		lv.add_theme_constant_override("separation", 4)
+		lv.add_child(UiKit.label("此世未了", 14, UiKit.PINK_700, 600))
+		var lb := UiKit.label("第 %d 世（%s · %s）仍在途上 —— 寿尽、飞升、陨落或隐退后，三生石自会亮起转世之途。" % [int(Game.run.get("life", 1)), String(Game.run.get("origin", "?")), String(Game.run.get("end_kind", "进行中"))], 12, UiKit.PINK_600)
 		lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lv.add_child(lb)
 		if float(meta.get("bless_pct", 0.0)) > 0.0:
-			lv.add_child(UiKit.label("天道眷顾：冲关率永久 +%.0f%%" % (float(meta.bless_pct) * 100.0), 12, UiKit.GOLD_600))
-		live.add_child(UiKit.margin_wrap(lv, 16))
+			lv.add_child(UiKit.label("天道眷顾：冲关率永久 +%.0f%%" % (float(meta.bless_pct) * 100.0), 11, UiKit.GOLD_600))
+		live.add_child(UiKit.margin_wrap(lv, 10))
 		_content.add_child(live)
 		return
 
@@ -85,81 +76,107 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 	var dao := int(meta.get("dao", 0))
 	var c := bleed_section()
 	var cv := VBoxContainer.new()
-	cv.add_theme_constant_override("separation", 12)
+	cv.add_theme_constant_override("separation", 6)
 
-	# —— 炼灵根: 默认五行俱全(五灵根)免费, 每炼去一行更贵(30/80/150/240 累计); 持有哪几行免费自择 ——
-	cv.add_child(UiKit.label("转世 · 炼灵根", 16, UiKit.PINK_700, 600))
-	var n_group := ButtonGroup.new()
+	# —— 容貌 + 五维图(同行) ——
+	var top_row := HBoxContainer.new()
+	top_row.add_theme_constant_override("separation", 6)
+	top_row.custom_minimum_size = Vector2(0, 190)
+	top_row.add_child(_face_portrait())
+	var radar := RootRadar.new()
+	radar.custom_minimum_size = Vector2(48, 54)
+	radar.setup(PackedStringArray(Game.ELEMENTS), PackedStringArray(_root_els), "")
+	radar.toggled.connect(_toggle_root_el)
+	var radar_center := CenterContainer.new()
+	radar_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	radar_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	radar_center.add_child(radar)
+	top_row.add_child(radar_center)
+	cv.add_child(top_row)
+
+	# —— 炼灵根(下拉) ——
 	var n_cns := {5: "五", 4: "四", 3: "三", 2: "二", 1: "单"}
-	# 档位按钮竖排在左, 五围图占右侧
-	var pick_row := HBoxContainer.new()
-	pick_row.add_theme_constant_override("separation", 12)
-	var ncol := VBoxContainer.new()
-	ncol.custom_minimum_size = Vector2(92, 0)
-	ncol.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	ncol.add_theme_constant_override("separation", 4)
+	var root_drop := OptionButton.new()
 	for i in Game.ROOT_COUNTS.size():
 		var cnt := int(Game.ROOT_COUNTS[i])
 		var price := int(Game.ROOT_TRIM_COST.get(cnt, 0))
-		var nb := UiKit.seg_button("%s灵根%s" % [String(n_cns.get(cnt, "?")), ("%d韵" % price) if price > 0 else "免费"], n_group, cnt == _root_n)
-		nb.add_theme_font_size_override("font_size", 11)
-		nb.pressed.connect(_set_root_n.bind(cnt))
-		ncol.add_child(nb)
-	pick_row.add_child(ncol)
-	var radar := RootRadar.new()
-	radar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	radar.setup(PackedStringArray(Game.ELEMENTS), PackedStringArray(_root_els), "")
-	radar.toggled.connect(_toggle_root_el)
-	pick_row.add_child(radar)
-	cv.add_child(pick_row)
+		root_drop.add_item("%s灵根 · %s" % [String(n_cns.get(cnt, "?")), ("%d韵" % price) if price > 0 else "免费"], i)
+	root_drop.select(Game.ROOT_COUNTS.find(_root_n))
+	root_drop.item_selected.connect(func(idx: int) -> void: _set_root_n(int(Game.ROOT_COUNTS[idx])))
+	root_drop.add_theme_font_override("font", UiKit.font(600))
+	root_drop.add_theme_font_size_override("font_size", 13)
+	root_drop.add_theme_color_override("font_color", UiKit.PINK_700)
+	root_drop.add_theme_color_override("font_hover_color", UiKit.PINK_700)
+	root_drop.add_theme_color_override("font_pressed_color", UiKit.PINK_700)
+	root_drop.add_theme_color_override("font_disabled_color", UiKit.GRAY_400)
+	root_drop.custom_minimum_size = Vector2(0, 36)
+	root_drop.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root_drop.focus_mode = Control.FOCUS_NONE
+	var drop_normal := UiKit.stylebox(UiKit.PINK_50, 8, false, 1, UiKit.PINK_300)
+	drop_normal.content_margin_left = 10
+	drop_normal.content_margin_right = 28
+	var drop_hover := UiKit.stylebox(UiKit.PINK_100, 8, false, 1, UiKit.PINK_400)
+	drop_hover.content_margin_left = 10
+	drop_hover.content_margin_right = 28
+	var drop_pressed := UiKit.stylebox(UiKit.PINK_200, 8, false, 2, UiKit.PINK_500)
+	drop_pressed.content_margin_left = 10
+	drop_pressed.content_margin_right = 28
+	var drop_focus := UiKit.stylebox(UiKit.PINK_50, 8, false, 2, UiKit.PINK_400)
+	drop_focus.content_margin_left = 10
+	drop_focus.content_margin_right = 28
+	root_drop.add_theme_stylebox_override("normal", drop_normal)
+	root_drop.add_theme_stylebox_override("hover", drop_hover)
+	root_drop.add_theme_stylebox_override("pressed", drop_pressed)
+	root_drop.add_theme_stylebox_override("focus", drop_focus)
+	root_drop.add_theme_stylebox_override("disabled", UiKit.stylebox(Color(UiKit.GRAY_200, 0.4), 8, false, 1, UiKit.GRAY_300))
+	cv.add_child(root_drop)
 	var cn := String(n_cns.get(_root_n, "?"))
-	var rnote_txt := "五行俱全（杂灵根）免费：亲和覆盖全五行，聚灵系数垫底（×%.2f）；出身一律宗门弟子。" % Game.root_coef_preview(_root_n, 0)
+	var rnote_txt := "五行俱全免费 · 聚灵 ×%.2f" % Game.root_coef_preview(_root_n, 0)
 	if _root_n < 5:
-		rnote_txt = "炼至 %s灵根：聚灵系数 ×%.2f，亲和覆盖面换强度 —— 缺的那行灵植不吃 −1 月/升品 ×2，水火不同身则无「上品封锁」。" % [cn, Game.root_coef_preview(_root_n, 0)]
-	var rnote := UiKit.label(rnote_txt, 12, UiKit.PINK_400)
+		rnote_txt = "%s灵根 · 聚灵 ×%.2f · 缺行灵植 −1 月/升品" % [cn, Game.root_coef_preview(_root_n, 0)]
+	var rnote := UiKit.label(rnote_txt, 11, UiKit.PINK_400)
 	rnote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cv.add_child(rnote)
-	var owned: String = "·".join(PackedStringArray(_root_els))
-	var plabel := UiKit.label("下世灵根 ≈ ×%.2f · %s灵根·%s（%d/%d 行）" % [Game.root_coef_preview(_root_n, 0), cn, owned, _root_els.size(), _root_n], 12, UiKit.GOLD_600, 600)
-	plabel.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	cv.add_child(plabel)
 
-	# —— 先天特质(一世): 转世时道韵买断的胎里禀赋, 每世重购、不带到下下世; 一行两格 ——
-	cv.add_child(UiKit.label("先天特质（一世）", 16, UiKit.PINK_700, 600))
+	# —— 先天特质(一世) ——
+	cv.add_child(UiKit.label("先天特质", 14, UiKit.PINK_700, 600))
 	var tgrid := GridContainer.new()
 	tgrid.columns = 2
 	tgrid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tgrid.add_theme_constant_override("h_separation", 8)
-	tgrid.add_theme_constant_override("v_separation", 6)
+	tgrid.add_theme_constant_override("v_separation", 4)
 	for t in DataManager.traits:
 		var id := String(t.get("id", ""))
 		var sel: bool = id in _traits_sel
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 6)
+		row.add_theme_constant_override("separation", 4)
 		var nvb := VBoxContainer.new()
 		nvb.add_theme_constant_override("separation", 1)
 		nvb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		nvb.add_child(UiKit.label("%s%s" % [String(t.get("name", id)), " ✓" if sel else ""], 13, UiKit.PINK_600 if sel else UiKit.PINK_400, 600))
-		var nl := UiKit.label(String(t.get("note", "")), 11, UiKit.PINK_400)
+		nvb.add_child(UiKit.label("%s%s" % [String(t.get("name", id)), " ✓" if sel else ""], 12, UiKit.PINK_600 if sel else UiKit.PINK_400, 600))
+		var nl := UiKit.label(String(t.get("note", "")), 10, UiKit.PINK_400)
 		nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		nvb.add_child(nl)
 		row.add_child(nvb)
-		row.add_child(UiKit.pill("%d 韵" % int(t.get("cost", 0)), UiKit.WHITE, UiKit.GOLD_500 if not sel else UiKit.PINK_500, 11, 600))
+		row.add_child(UiKit.pill("%d韵" % int(t.get("cost", 0)), UiKit.WHITE, UiKit.GOLD_500 if not sel else UiKit.PINK_500, 10, 600))
 		tgrid.add_child(UiKit.tappable_row(row, _toggle_trait.bind(id)))
 	cv.add_child(tgrid)
 
 	var spend := _root_cost() + _traits_cost()
-	var budget := UiKit.label("合计 %d / %d 道韵%s" % [spend, dao, "（超支，减一减）" if spend > dao else ""])
+	var budget := UiKit.label("合计 %d / %d 道韵%s" % [spend, dao, "（超支）" if spend > dao else ""])
 	budget.add_theme_color_override("font_color", UiKit.RED_400 if spend > dao else UiKit.PINK_400)
 	cv.add_child(budget)
 
 	var go := Button.new()
-	go.text = "转世 · 入第 %d 世" % (int(meta.get("lives", 0)) + 1)
+	if GameState.fresh_start:
+		go.text = "入世 · 第 1 世"
+	else:
+		go.text = "转世 · 入第 %d 世" % (int(meta.get("lives", 0)) + 1)
 	go.focus_mode = Control.FOCUS_NONE
-	go.custom_minimum_size = Vector2(0, 44)
+	go.custom_minimum_size = Vector2(0, 38)
 	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	go.add_theme_font_override("font", UiKit.font(600))
-	go.add_theme_font_size_override("font_size", 15)
+	go.add_theme_font_size_override("font_size", 14)
 	go.add_theme_color_override("font_color", UiKit.WHITE)
 	go.add_theme_color_override("font_disabled_color", UiKit.WHITE)
 	go.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_500, 10))
@@ -169,12 +186,15 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 	go.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	go.disabled = spend > dao
 	go.pressed.connect(func() -> void:
-		Game.rebirth({}, 0, 0, {"n": _root_n, "els": _root_els}, _traits_sel.duplicate())   # 出身传空: 取默认宗门弟子
+		if GameState.fresh_start:
+			Game.new_game()
+		Game.rebirth({}, 0, 0, {"n": _root_n, "els": _root_els}, _traits_sel.duplicate())
 		_traits_sel.clear()
-		open_app.emit("face")   # 新世落地 → 先进捏脸工坊定容
+		GameState.fresh_start = false
+		exit_app.emit()
 	)
 	cv.add_child(go)
-	c.add_child(UiKit.margin_wrap(cv, 16))
+	c.add_child(UiKit.margin_wrap(cv, 10))
 	return c
 
 
@@ -222,3 +242,94 @@ func _toggle_trait(id: String) -> void:
 	else:
 		_traits_sel.append(id)
 	_rebuild()
+
+
+## 容貌预览：大圆形玉底 + portrait，点击进入捏脸工坊。
+func _face_portrait() -> Control:
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 6)
+	vb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+	var btn := Button.new()
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.custom_minimum_size = Vector2(180, 180)
+	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+		btn.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+
+	# 外层容器：同心装饰环 + 头像
+	var frame := Control.new()
+	frame.custom_minimum_size = Vector2(180, 180)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# 最外圈：淡金光晕（柔和辐射感）
+	var glow := PanelContainer.new()
+	var glow_sb := UiKit.stylebox(Color(UiKit.GOLD_400, 0.12), 999)
+	glow_sb.set_border_width_all(1)
+	glow_sb.border_color = Color(UiKit.GOLD_400, 0.25)
+	glow.add_theme_stylebox_override("panel", glow_sb)
+	glow.custom_minimum_size = Vector2(180, 180)
+	glow.position = Vector2.ZERO
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(glow)
+
+	# 中环：鎏金阵纹边（实色金边 + 白玉底）
+	var ring := PanelContainer.new()
+	var ring_sb := UiKit.stylebox(UiKit.PINK_50, 999)
+	ring_sb.set_border_width_all(3)
+	ring_sb.border_color = UiKit.GOLD_400
+	ring.add_theme_stylebox_override("panel", ring_sb)
+	ring.custom_minimum_size = Vector2(158, 158)
+	ring.position = Vector2(11, 11)
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(ring)
+
+	# 内圈：渐变底色（青玉 → 粉雾，贴合玉牌气质）
+	var inner := PanelContainer.new()
+	var inner_sb := UiKit.stylebox(Color(UiKit.JADE_100, 0.6), 999)
+	inner_sb.set_border_width_all(1)
+	inner_sb.border_color = Color(UiKit.GOLD_200, 0.5)
+	inner.add_theme_stylebox_override("panel", inner_sb)
+	inner.custom_minimum_size = Vector2(144, 144)
+	inner.position = Vector2(18, 18)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(inner)
+
+	# 头像本体
+	var male := String(Game.player_look().get("gender", "female")) == "male"
+	var portrait_wrap := CenterContainer.new()
+	portrait_wrap.custom_minimum_size = Vector2(144, 144)
+	portrait_wrap.position = Vector2(18, 18)
+	portrait_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait_wrap.add_child(Portrait.build_from(Game.player_look(), 132, male))
+	frame.add_child(portrait_wrap)
+
+	# 四角小点装饰（阵纹节点感）
+	for angle in [0, 90, 180, 270]:
+		var rad := deg_to_rad(angle + 45)
+		var dot := PanelContainer.new()
+		var dot_sb := UiKit.stylebox(Color(UiKit.GOLD_400, 0.6), 999)
+		dot.add_theme_stylebox_override("panel", dot_sb)
+		dot.custom_minimum_size = Vector2(5, 5)
+		var cx := 90.0 + cos(rad) * 82.0 - 2.5
+		var cy := 90.0 + sin(rad) * 82.0 - 2.5
+		dot.position = Vector2(cx, cy)
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.add_child(dot)
+
+	btn.add_child(frame)
+
+	btn.pressed.connect(func() -> void:
+		GameState.face_returning = true
+		open_app.emit("face")
+	)
+	vb.add_child(btn)
+
+	var hint := UiKit.pill("✦ 点击调整容貌", UiKit.PINK_600, Color(UiKit.PINK_200, 0.6), 10, 500)
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vb.add_child(hint)
+
+	var wrap := CenterContainer.new()
+	wrap.custom_minimum_size = Vector2(180, 190)
+	wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	wrap.add_child(vb)
+	return wrap

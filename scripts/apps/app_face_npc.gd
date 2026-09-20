@@ -18,11 +18,12 @@ const COLOR_KEYS := ["hair_hue", "hair_sat", "eye_hue", "eye_sat"]
 const COLOR_ROWS := [["发色", "hair_hue", "hair_sat"], ["瞳色", "eye_hue", "eye_sat"]]
 
 var _content: VBoxContainer
-var _preview_box: PanelContainer
+var _preview_box: CenterContainer
 var _note: Label = null            # 应用/复原结果提示
 var _aura_note: Label = null
 var _val_labels := {}
 var _color_labels := {}
+var _color_swatches := {}
 var _rebuild_pending := false
 var _stage := "pick"          # pick=选人页 / edit=捏脸页（两级界面，不挤在一起）
 var _key: String = FIXED_KEYS[0]
@@ -32,13 +33,23 @@ var _rng := RandomNumberGenerator.new()
 
 
 func _build_content(vb: VBoxContainer) -> void:
-	vb.add_child(bleed_head("捏脸 · 他人", "六位固定 NPC —— 选人，再捏一张脸。"))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	head.add_child(UiKit.label("捏脸 · 他人", 18, UiKit.PINK_600, 600))
+	head.add_child(UiKit.label("六位固定 NPC", 11, UiKit.PINK_400))
+	var hw := UiKit.margin_wrap(head, 16)
+	hw.add_theme_constant_override("margin_top", 8)
+	hw.add_theme_constant_override("margin_bottom", 4)
+	vb.add_child(hw)
 	_rng.randomize()
 	_load_work()
 	_content = VBoxContainer.new()
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_content.add_theme_constant_override("separation", 12)
-	vb.add_child(_content)
+	_content.add_theme_constant_override("separation", 4)
+	var cw := UiKit.margin_wrap(_content, 16)
+	cw.add_theme_constant_override("margin_top", 0)
+	cw.add_theme_constant_override("margin_bottom", 12)
+	vb.add_child(cw)
 	Game.changed.connect(_schedule_rebuild)
 	_rebuild()
 
@@ -65,46 +76,49 @@ func _rebuild() -> void:
 
 	_content.add_child(_edit_header())
 
-	# 实时预览
-	_preview_box = UiKit.padded(UiKit.pink_box(UiKit.JADE_50), 16)
-	var pc := CenterContainer.new()
-	pc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pc.add_child(Portrait.build_from(_work, 128, _male()))
-	_preview_box.add_child(pc)
-	_content.add_child(_preview_box)
+	# 预览（紧凑渐变圆框）
+	var preview_section := CenterContainer.new()
+	preview_section.custom_minimum_size = Vector2(0, 140)
+	_preview_box = CenterContainer.new()
+	_preview_box.custom_minimum_size = Vector2(128, 128)
+	var bg_circle := UiKit.circle(120, UiKit.JADE_100, UiKit.PINK_100)
+	bg_circle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_preview_box.add_child(bg_circle)
+	var portrait_center := CenterContainer.new()
+	portrait_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait_center.add_child(Portrait.build_from(_work, 100, _male()))
+	_preview_box.add_child(portrait_center)
+	_content.add_child(preview_section)
+	preview_section.add_child(_preview_box)
 
-	# 调色：发色/瞳色 色相·彩度
-	var colors := VBoxContainer.new()
-	colors.add_theme_constant_override("separation", 6)
+	# 调色
 	for r in COLOR_ROWS:
-		colors.add_child(_color_row(String(r[0]), String(r[1]), String(r[2])))
-	_content.add_child(colors)
+		_content.add_child(_color_row(String(r[0]), String(r[1]), String(r[2])))
 
-	# 部件逐件切换
-	var rows := VBoxContainer.new()
-	rows.add_theme_constant_override("separation", 8)
+	# 容貌
 	for f in FIELDS:
-		rows.add_child(_row(String(f[0]), String(f[1])))
-	_content.add_child(rows)
+		_content.add_child(_row(String(f[0]), String(f[1])))
 
-	_aura_note = UiKit.label(_aura_note_text(), 11, UiKit.PINK_400)
+	# 气质
+	_aura_note = UiKit.label(_aura_note_text(), 10, UiKit.PINK_400)
 	_aura_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_content.add_child(_aura_note)
 
-	# 操作：复原 / 随机 / 应用
+	# 操作
 	var act := HBoxContainer.new()
 	act.add_theme_constant_override("separation", 6)
-	act.add_child(_big_button("复原", _reset_look))
-	act.add_child(_big_button("随机", _randomize_look))
+	act.add_child(_sec_button("复原", _reset_look))
+	act.add_child(_sec_button("随机", _randomize_look))
 	var apply := _big_button("应用容貌", _apply)
 	apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	act.add_child(apply)
 	_content.add_child(act)
 
-	_note = UiKit.label(_msg, 11, UiKit.JADE_700)
-	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_content.add_child(_note)
-	_content.add_child(UiKit.label("应用即改写 data/npcs.json（跨世生效）；性别锁档案值，不可改。", 11, UiKit.PINK_400))
+	# 提示（紧凑单行）
+	if _msg != "":
+		_note = UiKit.label(_msg, 10, UiKit.JADE_700)
+		_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_content.add_child(_note)
 
 
 # ---- 选人页（第一级）----
@@ -117,7 +131,7 @@ func _build_pick() -> void:
 	vb.add_child(hint)
 	for key in FIXED_KEYS:
 		vb.add_child(_npc_row(String(key)))
-	_content.add_child(UiKit.margin_wrap(vb, 16))
+		_content.add_child(vb)
 
 
 ## 选人行：头像 + 姓名/身份·境界 + 「已改」角标 + 右箭头
@@ -179,37 +193,40 @@ func _back_to_pick() -> void:
 
 ## 顶部条：‹ 换人 + 当前对象头像/姓名，明确「在给谁捏」
 func _edit_header() -> Control:
-	var c := bleed_section()
 	var hb := HBoxContainer.new()
-	hb.add_theme_constant_override("separation", 10)
+	hb.add_theme_constant_override("separation", 8)
 	var back := Button.new()
 	back.text = "‹ 换人"
 	back.focus_mode = Control.FOCUS_NONE
 	back.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	back.custom_minimum_size = Vector2(76, 40)
+	back.custom_minimum_size = Vector2(60, 30)
 	back.add_theme_font_override("font", UiKit.font(600))
-	back.add_theme_font_size_override("font_size", 13)
+	back.add_theme_font_size_override("font_size", 12)
 	back.add_theme_color_override("font_color", UiKit.PINK_600)
-	back.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_50, 8))
-	back.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_100, 8))
-	back.add_theme_stylebox_override("pressed", UiKit.stylebox(UiKit.PINK_500, 8))
+	back.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_50, 6))
+	back.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_100, 6))
+	back.add_theme_stylebox_override("pressed", UiKit.stylebox(UiKit.PINK_500, 6))
 	back.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	back.pressed.connect(_back_to_pick)
 	hb.add_child(back)
 
-	var av := Portrait.build_for(_key, 44)
+	var av := Portrait.build_for(_key, 32)
 	av.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hb.add_child(av)
 	var vb := VBoxContainer.new()
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vb.add_theme_constant_override("separation", 2)
+	vb.add_theme_constant_override("separation", 0)
 	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vb.add_child(UiKit.label(Game.npc_name(_key), 15, UiKit.PINK_700, 600))
-	vb.add_child(UiKit.label("性别锁档案值 · 应用后写入 data/npcs.json", 10, UiKit.JADE_600, 400))
+	vb.add_child(UiKit.label(Game.npc_name(_key), 13, UiKit.PINK_700, 600))
 	hb.add_child(vb)
-	c.add_child(UiKit.margin_wrap(hb, 16))
-	return c
+	var m := MarginContainer.new()
+	m.add_theme_constant_override("margin_top", 4)
+	m.add_theme_constant_override("margin_bottom", 2)
+	m.add_theme_constant_override("margin_left", 0)
+	m.add_theme_constant_override("margin_right", 0)
+	m.add_child(hb)
+	return m
 
 
 ## 胶囊副题：身份/境界（档案里有就显示）
@@ -228,7 +245,7 @@ func _row(field: String, title: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	var t := UiKit.label(title, 13, UiKit.PINK_700, 600)
-	t.custom_minimum_size = Vector2(56, 0)
+	t.custom_minimum_size = Vector2(72, 0)
 	row.add_child(t)
 	row.add_child(_step_btn("‹", func() -> void: _cycle(field, -1)))
 	var val := UiKit.label(_disp(field, String(_work.get(field, ""))), 13, UiKit.PINK_600, 600, HORIZONTAL_ALIGNMENT_CENTER)
@@ -240,29 +257,52 @@ func _row(field: String, title: String) -> Control:
 	return row
 
 
+## 调色行：标题 + 色块预览 + 当前值 + 色相滑杆(彩虹轨) + 彩度滑杆(渐变轨)。
 func _color_row(title: String, hue_key: String, sat_key: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	var t := UiKit.label(title, 13, UiKit.PINK_700, 600)
-	t.custom_minimum_size = Vector2(56, 0)
+	t.custom_minimum_size = Vector2(72, 0)
 	row.add_child(t)
+	var swatch := _make_swatch(_cur_color(hue_key, sat_key))
+	_color_swatches[hue_key] = swatch
+	row.add_child(swatch)
 	var val := UiKit.label(_color_text(hue_key, sat_key), 11, UiKit.PINK_500, 500)
-	val.custom_minimum_size = Vector2(104, 0)
+	val.custom_minimum_size = Vector2(80, 0)
 	_color_labels[hue_key] = val
 	row.add_child(val)
-	row.add_child(_slider(0, 359, 1, float(int(_work.get(hue_key, 0))), func(v: float) -> void:
+	var update := func() -> void:
+		val.text = _color_text(hue_key, sat_key)
+		_set_swatch_color(swatch, _cur_color(hue_key, sat_key))
+		_refresh_preview()
+	row.add_child(_gradient_slider(0, 359, 1, float(int(_work.get(hue_key, 0))), _hue_gradient(), func(v: float) -> void:
 		_work[hue_key] = int(v)
-		val.text = _color_text(hue_key, sat_key)
-		_refresh_preview()))
-	row.add_child(_slider(0, 200, 5, float(int(_work.get(sat_key, 100))), func(v: float) -> void:
+		update.call()))
+	var base_color := Color.from_hsv(float(int(_work.get(hue_key, 0))) / 360.0, 1.0, 0.9)
+	row.add_child(_gradient_slider(0, 200, 5, float(int(_work.get(sat_key, 100))), _sat_gradient(base_color), func(v: float) -> void:
 		_work[sat_key] = int(v)
-		val.text = _color_text(hue_key, sat_key)
-		_refresh_preview()))
+		update.call()))
 	return row
 
 
 func _color_text(hue_key: String, sat_key: String) -> String:
 	return "%d° · %d%%" % [int(_work.get(hue_key, 0)), int(_work.get(sat_key, 100))]
+
+
+func _cur_color(hue_key: String, sat_key: String) -> Color:
+	return Color.from_hsv(float(int(_work.get(hue_key, 0))) / 360.0, min(float(int(_work.get(sat_key, 100))) / 100.0, 1.0), 0.9)
+
+
+static func _make_swatch(color: Color) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.custom_minimum_size = Vector2(24, 24)
+	p.add_theme_stylebox_override("panel", UiKit.stylebox(color, 6))
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return p
+
+
+static func _set_swatch_color(swatch: PanelContainer, color: Color) -> void:
+	swatch.add_theme_stylebox_override("panel", UiKit.stylebox(color, 6))
 
 
 func _cycle(field: String, dir: int) -> void:
@@ -288,11 +328,13 @@ func _refresh_preview() -> void:
 	if _preview_box == null or not is_instance_valid(_preview_box):
 		return
 	for c in _preview_box.get_children():
-		_preview_box.remove_child(c)
+		if c is PanelContainer:
+			continue
 		c.queue_free()
+		_preview_box.remove_child(c)
 	var pc := CenterContainer.new()
 	pc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pc.add_child(Portrait.build_from(_work, 128, _male()))
+	pc.add_child(Portrait.build_from(_work, 100, _male()))
 	_preview_box.add_child(pc)
 
 
@@ -374,23 +416,98 @@ func _arr(field: String) -> Array:
 	return ids
 
 
-func _slider(vmin: float, vmax: float, vstep: float, val: float, cb: Callable) -> HSlider:
+## 给滑杆套一层 1px 粉边框，轨道边界清晰可见。
+static func _bordered_wrap(s: Control) -> PanelContainer:
+	var w := PanelContainer.new()
+	w.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.border_width_left = 1
+	sb.border_width_right = 1
+	sb.border_width_top = 1
+	sb.border_width_bottom = 1
+	sb.border_color = UiKit.PINK_200
+	sb.corner_radius_top_left = 4
+	sb.corner_radius_top_right = 4
+	sb.corner_radius_bottom_left = 4
+	sb.corner_radius_bottom_right = 4
+	sb.content_margin_left = 2
+	sb.content_margin_right = 2
+	sb.content_margin_top = 2
+	sb.content_margin_bottom = 2
+	w.add_theme_stylebox_override("panel", sb)
+	w.add_child(s)
+	return w
+
+
+func _slider(vmin: float, vmax: float, vstep: float, val: float, cb: Callable) -> Control:
 	var s := HSlider.new()
 	s.min_value = vmin
 	s.max_value = vmax
 	s.step = vstep
 	s.value = val
 	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	s.custom_minimum_size = Vector2(0, 24)
+	s.custom_minimum_size = Vector2(0, 20)
 	s.focus_mode = Control.FOCUS_NONE
-	s.add_theme_stylebox_override("slider", UiKit.stylebox(UiKit.PINK_100, 3))
+	s.add_theme_stylebox_override("slider", UiKit.stylebox(Color(0, 0, 0, 0), 3))
 	s.add_theme_stylebox_override("grabber_area", UiKit.stylebox(UiKit.PINK_400, 3))
 	s.add_theme_stylebox_override("grabber_area_highlight", UiKit.stylebox(UiKit.PINK_500, 3))
 	s.add_theme_icon_override("grabber", app_face_dot(14, UiKit.PINK_600))
 	s.add_theme_icon_override("grabber_highlight", app_face_dot(14, UiKit.PINK_500))
 	s.add_theme_icon_override("grabber_pressed", app_face_dot(14, UiKit.PINK_700))
 	s.value_changed.connect(cb)
-	return s
+	return _bordered_wrap(s)
+
+
+## 渐变轨道滑杆：自定义 track 背景为传入的渐变贴图，外套 1px 粉边框。
+func _gradient_slider(vmin: float, vmax: float, vstep: float, val: float, gradient: Gradient, cb: Callable) -> Control:
+	var s := HSlider.new()
+	s.min_value = vmin
+	s.max_value = vmax
+	s.step = vstep
+	s.value = val
+	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	s.custom_minimum_size = Vector2(0, 20)
+	s.focus_mode = Control.FOCUS_NONE
+	var gt := GradientTexture1D.new()
+	gt.gradient = gradient
+	gt.width = 256
+	var track := StyleBoxTexture.new()
+	track.texture = gt
+	track.content_margin_left = 3
+	track.content_margin_right = 3
+	track.content_margin_top = 0
+	track.content_margin_bottom = 0
+	s.add_theme_stylebox_override("slider", track)
+	s.add_theme_stylebox_override("grabber_area", UiKit.stylebox(Color(0, 0, 0, 0), 3))
+	s.add_theme_stylebox_override("grabber_area_highlight", UiKit.stylebox(Color(0, 0, 0, 0), 3))
+	s.add_theme_icon_override("grabber", app_face_dot(14, UiKit.WHITE))
+	s.add_theme_icon_override("grabber_highlight", app_face_dot(14, UiKit.PINK_100))
+	s.add_theme_icon_override("grabber_pressed", app_face_dot(14, UiKit.PINK_200))
+	s.value_changed.connect(cb)
+	return _bordered_wrap(s)
+
+
+## 色相渐变：0°→360° 彩虹。
+static func _hue_gradient() -> Gradient:
+	var g := Gradient.new()
+	g.set_color(0, Color.from_hsv(0.0, 1.0, 0.9))
+	g.add_point(0.167, Color.from_hsv(0.167, 1.0, 0.9))
+	g.add_point(0.333, Color.from_hsv(0.333, 1.0, 0.9))
+	g.add_point(0.5, Color.from_hsv(0.5, 1.0, 0.9))
+	g.add_point(0.667, Color.from_hsv(0.667, 1.0, 0.9))
+	g.add_point(0.833, Color.from_hsv(0.833, 1.0, 0.9))
+	g.set_color(6, Color.from_hsv(1.0, 1.0, 0.9))
+	return g
+
+
+## 彩度渐变：灰 → 满彩。
+static func _sat_gradient(base: Color) -> Gradient:
+	var g := Gradient.new()
+	var gray := Color(base.v, base.v, base.v)
+	g.set_color(0, gray)
+	g.set_color(1, base)
+	return g
 
 
 ## 圆形滑块贴图（4x 超采样抗锯齿）
@@ -410,9 +527,9 @@ func _step_btn(glyph: String, cb: Callable) -> Button:
 	b.text = glyph
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	b.custom_minimum_size = Vector2(40, 36)
+	b.custom_minimum_size = Vector2(32, 28)
 	b.add_theme_font_override("font", UiKit.font(600))
-	b.add_theme_font_size_override("font_size", 18)
+	b.add_theme_font_size_override("font_size", 14)
 	b.add_theme_color_override("font_color", UiKit.PINK_600)
 	b.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_50, 8))
 	b.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_100, 8))
@@ -426,13 +543,50 @@ func _big_button(text: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.focus_mode = Control.FOCUS_NONE
-	b.custom_minimum_size = Vector2(0, 40)
+	b.custom_minimum_size = Vector2(0, 34)
 	b.add_theme_font_override("font", UiKit.font(600))
 	b.add_theme_font_size_override("font_size", 14)
 	b.add_theme_color_override("font_color", UiKit.WHITE)
 	b.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_500, 10))
 	b.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_600, 10))
 	b.add_theme_stylebox_override("pressed", UiKit.stylebox(UiKit.PINK_600, 10))
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.pressed.connect(cb)
+	return b
+
+
+## 次要按钮：透明底 + 粉色描边，悬停/按下填色。
+func _sec_button(text: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(0, 34)
+	b.add_theme_font_override("font", UiKit.font(600))
+	b.add_theme_font_size_override("font_size", 14)
+	b.add_theme_color_override("font_color", UiKit.PINK_500)
+	b.add_theme_color_override("font_hover_color", UiKit.WHITE)
+	b.add_theme_color_override("font_pressed_color", UiKit.WHITE)
+	var normal := UiKit.stylebox(UiKit.WHITE, 10)
+	normal.border_width_left = 2
+	normal.border_width_right = 2
+	normal.border_width_top = 2
+	normal.border_width_bottom = 2
+	normal.border_color = UiKit.PINK_300
+	b.add_theme_stylebox_override("normal", normal)
+	var hover := UiKit.stylebox(UiKit.PINK_100, 10)
+	hover.border_width_left = 2
+	hover.border_width_right = 2
+	hover.border_width_top = 2
+	hover.border_width_bottom = 2
+	hover.border_color = UiKit.PINK_400
+	b.add_theme_stylebox_override("hover", hover)
+	var pressed := UiKit.stylebox(UiKit.PINK_500, 10)
+	pressed.border_width_left = 2
+	pressed.border_width_right = 2
+	pressed.border_width_top = 2
+	pressed.border_width_bottom = 2
+	pressed.border_color = UiKit.PINK_500
+	b.add_theme_stylebox_override("pressed", pressed)
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	b.pressed.connect(cb)
 	return b

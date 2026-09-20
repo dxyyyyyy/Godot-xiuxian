@@ -27,8 +27,10 @@ var gossip_subscribed := false
 
 var _autosave_accum := 0.0
 
-## 开始界面「新开一世」置 true → 主界面据此先落玉牌捏脸页(一次性, 读用即清)。
+## 开始界面「新开一世」置 true → 主界面据此先落三生石(一次性, 读用即清)。
 var fresh_start := false
+## 捏脸工坊「应用容貌」后回三生石(而非退出玉牌); 三生石 back 时再退出。
+var face_returning := false
 
 
 func _ready() -> void:
