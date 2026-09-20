@@ -1,0 +1,156 @@
+[
+ {
+  "stem": "cloth_m1",
+  "name": "靛青交领袍",
+  "file": "cloth/1m.png",
+  "ratio": 0.1053,
+  "ok": true
+ },
+ {
+  "stem": "cloth_m2",
+  "name": "玄色劲装",
+  "file": "cloth/2m.png",
+  "ratio": 0.1115,
+  "ok": true
+ },
+ {
+  "stem": "cloth_m3",
+  "name": "月白鹤氅",
+  "file": "cloth/3m.png",
+  "ratio": 0.1076,
+  "ok": true
+ },
+ {
+  "stem": "cloth_m4",
+  "name": "赭石道袍",
+  "file": "cloth/4m.png",
+  "ratio": 0.0764,
+  "ok": true
+ },
+ {
+  "stem": "cloth_m5",
+  "name": "墨绿长衫",
+  "file": "cloth/5m.png",
+  "ratio": 0.0982,
+  "ok": true
+ },
+ {
+  "stem": "hair_m1",
+  "name": "高马尾",
+  "file": "hair_front/1m.png",
+  "ratio": 0.2336,
+  "ok": true
+ },
+ {
+  "stem": "hair_m1",
+  "name": "高马尾",
+  "file": "hair_back/1m.png",
+  "ratio": 0.106,
+  "ok": true
+ },
+ {
+  "stem": "hair_m2",
+  "name": "束发道髻",
+  "file": "hair_front/2m.png",
+  "ratio": 0.1564,
+  "ok": true
+ },
+ {
+  "stem": "hair_m2",
+  "name": "束发道髻",
+  "file": "hair_back/2m.png",
+  "ratio": 0.0297,
+  "ok": true
+ },
+ {
+  "stem": "hair_m3",
+  "name": "垂鬓散发",
+  "file": "hair_front/3m.png",
+  "ratio": 0.2272,
+  "ok": true
+ },
+ {
+  "stem": "hair_m3",
+  "name": "垂鬓散发",
+  "file": "hair_back/3m.png",
+  "ratio": 0.1127,
+  "ok": true
+ },
+ {
+  "stem": "cloth_f1",
+  "name": "月白襦裙",
+  "file": "cloth/1f.png",
+  "ratio": 0.0823,
+  "ok": true
+ },
+ {
+  "stem": "cloth_f2",
+  "name": "藕荷襦裙",
+  "file": "cloth/2f.png",
+  "ratio": 0.0799,
+  "ok": true
+ },
+ {
+  "stem": "cloth_f3",
+  "name": "水蓝广袖裙",
+  "file": "cloth/3f.png",
+  "ratio": 0.0963,
+  "ok": true
+ },
+ {
+  "stem": "cloth_f4",
+  "name": "玄紫劲装",
+  "file": "cloth/4f.png",
+  "ratio": 0.1478,
+  "ok": true
+ },
+ {
+  "stem": "cloth_f5",
+  "name": "素白道袍",
+  "file": "cloth/5f.png",
+  "ratio": 0.0861,
+  "ok": true
+ },
+ {
+  "stem": "hair_f1",
+  "name": "双环髻",
+  "file": "hair_front/1f.png",
+  "ratio": 0.2122,
+  "ok": true
+ },
+ {
+  "stem": "hair_f1",
+  "name": "双环髻",
+  "file": "hair_back/1f.png",
+  "ratio": 0.0843,
+  "ok": true
+ },
+ {
+  "stem": "hair_f2",
+  "name": "长发垂鬓",
+  "file": "hair_front/2f.png",
+  "ratio": 0.2108,
+  "ok": true
+ },
+ {
+  "stem": "hair_f2",
+  "name": "长发垂鬓",
+  "file": "hair_back/2f.png",
+  "ratio": 0.1061,
+  "ok": true
+ },
+ {
+  "stem": "hair_f3",
+  "name": "垂肩长辫",
+  "file": "hair_front/3f.png",
+  "ratio": 0.1746,
+  "ok": true
+ },
+ {
+  "stem": "hair_f3",
+  "name": "垂肩长辫",
+  "file": "hair_back/3f.png",
+  "ratio": 0.071,
+  "ok": true
+ }
+]

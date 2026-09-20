@@ -164,7 +164,7 @@ def load_ai_parts() -> dict:
             entries.append({
                 "id": f"AI_{item['name']}", "name": item["name"], "n": n,
                 "back": item.get("back", False), "back_only": False,
-                "color": "", "skin": "white",
+                "color": item.get("color", ""), "skin": "white",
                 "src": f"_ai/parts/{item['file']}",   # DST 相对路径(文件名自带序号)
             })
     return out
@@ -271,8 +271,12 @@ def main():
                 catalog[g][slot] = catalog[g].get(slot, []) + entries
         for slot in list(SLOT_MAP.values()) + ["decor", "acc"]:   # 废弃槽一并清残留
             p = os.path.join(DST, slot)
-            if os.path.isdir(p):
-                shutil.rmtree(p)          # 全量重导, 部件目录由本脚本独占
+            if not os.path.isdir(p):
+                continue
+            # 只删 .png / .godot 缓存清单, 保留 *.import 侧车(否则 Godot 需整库重导, 运行期纹理全空)
+            for fn in os.listdir(p):
+                if fn.lower().endswith((".png", ".tmp")):
+                    os.remove(os.path.join(p, fn))
         write_parts(catalog)
         with open(os.path.join(DST, "catalog.json"), "w", encoding="utf-8") as f:
             json.dump(catalog, f, ensure_ascii=False, indent=1)

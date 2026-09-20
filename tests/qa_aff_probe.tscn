@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://qaaffprobe01"]
+
+[ext_resource type="Script" path="res://tests/qa_aff_probe.gd" id="1_qap"]
+
+[node name="QAAffProbe" type="Node"]
+script = ExtResource("1_qap")

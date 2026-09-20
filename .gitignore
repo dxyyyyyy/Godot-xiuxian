@@ -7,6 +7,12 @@
 # Android 导出构建目录（点击导出时自动生成）
 /android/
 
+# AI 部件中间产物（生成图/调试图不入库；_ai/parts 与 parts.json 是持久源，须入库）
+assets/portraits/_ai/raw/
+assets/portraits/_ai/out/
+assets/portraits/_ai/parts_black/
+assets/portraits/_candidates/
+
 # 系统垃圾文件
 .DS_Store
 Thumbs.db

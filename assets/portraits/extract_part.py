@@ -18,6 +18,8 @@ MOUTH = (38, 110, 100, 150) # 192 空间: 脸中部保护区 (x0,y0,x1,y1), 防�
 BROWS = (26, 46, 108, 92)
 EYES = (26, 66, 108, 106)
 MOUTH2 = (44, 110, 98, 152)
+HAIRBACK_TOP = 35        # 192 空间: 这条线以上后发强制填实(头顶/后脑勺整片是头发)
+CORE_ERODE = int(os.environ.get("CORE_ERODE", "6"))   # 脸颊核心腐蚀迭代数(1024 空间, 核 31): 越小挖得越狠
 WM_BOX = (830, 900, 1024, 1024)  # 水印角区(1024 空间)
 
 
@@ -103,7 +105,7 @@ def main():
     fgm_full = fg_mask(gen, mode)
 
     wimg, fgm = register(gen, ref1024, ref_a1024)
-    fgm = cv2.erode(fgm, np.ones((5, 5), np.uint8))  # 去背景边缘色边(洋红/白晕)
+    fgm = cv2.erode(fgm, np.ones((9, 9), np.uint8))  # 去背景边缘色边(洋红/白晕)
 
     # --- 差分 + 几何分区 ---
     diff = np.abs(wimg.astype(int) - ref1024.astype(int)).sum(axis=2)
@@ -111,30 +113,59 @@ def main():
     ys, xs = np.mgrid[0:H, 0:W]
     y192, x192 = ys / S, xs / S
     if kind == "hair_back":
-        # 后发: 只取露出轮廓外的部分(被脸挡住的部分游戏里本来就在脸后)
-        sil = cv2.dilate((ref_a1024 > 128).astype(np.uint8), np.ones((11, 11), np.uint8))
-        zone = (sil == 0) & (y192 <= 176)
+        # 后发 = 完整后脑勺。原版后发实测剖面(脸不透明区的覆盖率):
+        #   y≤35 ≈1.00(头顶全头发) → y=36~47 0.55 → y=48~60 0.37/0.32(只剩两侧)
+        #   → y=84 0.22 → y=120 0.02
+        # 所以: 头顶填实、脸中部只留两侧发、挖嘴/下巴。
+        # 眼/眉/嘴深度 9/10 画在 hair_back(深度 6) 之上, 无需为它们设保护区。
+        mx0, my0, mx1, my1 = MOUTH
+        head = (ref_a1024 > 128).astype(np.uint8)
+        # 脸颊核心: head 向内缩(erode), 该区在后发里必须挖空。
+        # 注意 erode 迭代越多核心越小、挖得越少 —— 想让脸颊更空要**减小** iterations。
+        core = cv2.erode(head, np.ones((31, 31), np.uint8), iterations=CORE_ERODE)
+        zone = (y192 <= 176)
+        zone &= ~((x192 >= mx0) & (x192 <= mx1) & (y192 >= my0) & (y192 <= my1))
+        zone &= ~((y192 > HAIRBACK_TOP) & (core > 0))
+        mask = ((diff > 70) & (fgm > 0) & zone).astype(np.uint8)
+        # 头顶强制填实: 差分在头发内部会有高光/发丝间隙的洞, 头顶必须是整片
+        mask |= (head & (y192 <= HAIRBACK_TOP).astype(np.uint8))
     elif kind == "hair_front":
+        # 不设保护区: 生成图脸部高保真, 眼区 diff≈0; 刘海可整片取
         zone = (y192 <= 152)
-        for a, b, c, d in (BROWS, EYES, MOUTH2):
-            zone &= ~((x192 >= a) & (x192 <= c) & (y192 >= b) & (y192 <= d))
+        mask = ((diff > 70) & (fgm > 0) & zone).astype(np.uint8)
     else:
         mx0, my0, mx1, my1 = MOUTH
         zone = (y192 >= y_min)
         zone &= ~((x192 >= mx0) & (x192 <= mx1) & (y192 >= my0) & (y192 <= my1))
-    mask = ((diff > 70) & (fgm > 0) & zone).astype(np.uint8)
+        mask = ((diff > 70) & (fgm > 0) & zone).astype(np.uint8)
 
     # --- 清理: 闭→开→保留所有面积足够的块(部件可能被保护区切成多块)→填洞 ---
+    # 填洞核: 服装是大片实心用 15×3; 头发用 7×2, 否则会把两侧头发桥接成满面糊住脸颊。
+    fill_k, fill_n = (7, 2) if kind.startswith("hair") else (15, 3)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((7, 7), np.uint8))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((5 if kind.startswith("hair") else 7,) * 2, np.uint8))
     n, lab, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
     keep = np.zeros_like(mask)
     for i in range(1, n):
         if stats[i, cv2.CC_STAT_AREA] > 400:
             keep[lab == i] = 1
     mask = keep
-    for _ in range(3):  # 填洞
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((15, 15), np.uint8))
+    for _ in range(fill_n):  # 填洞
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((fill_k, fill_k), np.uint8))
+    if kind == "hair_front":
+        # 在眼框矩形内用大核闭运算补桥, 让盖过眼线的刘海成整片
+        a, b, c, d = EYES
+        pad = 10
+        box = np.zeros_like(mask)
+        box[int((b - pad) * S):int((d + pad) * S), int((a - pad) * S):int((c + pad) * S)] = 1
+        filled = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((41, 41), np.uint8))
+        mask |= (filled & box)
+    # 洋红去溢: 边缘残留的品红像素压向中性
+    r, g, b = wimg[..., 0].astype(int), wimg[..., 1].astype(int), wimg[..., 2].astype(int)
+    spill = (r > g + 60) & (b > g + 60)
+    wimg = wimg.copy()
+    wimg[spill, 0] = np.minimum(wimg[spill, 0], wimg[spill, 1] + 50)
+    wimg[spill, 2] = np.minimum(wimg[spill, 2], wimg[spill, 1] + 50)
     # 羽化 1px
     alpha = cv2.GaussianBlur(mask * 255, (3, 3), 0)
 

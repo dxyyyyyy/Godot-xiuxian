@@ -1428,6 +1428,46 @@
     "color": "",
     "skin": "white",
     "src": "_ai/parts/cloth/5m.png"
+   },
+   {
+    "id": "AI_玄色劲装",
+    "name": "玄色劲装",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "_ai/parts/cloth/6m.png"
+   },
+   {
+    "id": "AI_月白鹤氅",
+    "name": "月白鹤氅",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "_ai/parts/cloth/7m.png"
+   },
+   {
+    "id": "AI_赭石道袍",
+    "name": "赭石道袍",
+    "n": 8,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "_ai/parts/cloth/8m.png"
+   },
+   {
+    "id": "AI_墨绿长衫",
+    "name": "墨绿长衫",
+    "n": 9,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "_ai/parts/cloth/9m.png"
    }
   ]
  },
@@ -2879,6 +2919,46 @@
     "color": "",
     "skin": "white",
     "src": "_ai/parts/cloth/8f.png"
+   },
+   {
+    "id": "AI_藕荷襦裙",
+    "name": "藕荷襦裙",
+    "n": 9,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "_ai/parts/cloth/9f.png"
+   },
+   {
+    "id": "AI_水蓝广袖裙",
+    "name": "水蓝广袖裙",
+    "n": 10,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "_ai/parts/cloth/10f.png"
+   },
+   {
+    "id": "AI_玄紫劲装",
+    "name": "玄紫劲装",
+    "n": 11,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "_ai/parts/cloth/11f.png"
+   },
+   {
+    "id": "AI_素白道袍",
+    "name": "素白道袍",
+    "n": 12,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "_ai/parts/cloth/12f.png"
    }
   ]
  }

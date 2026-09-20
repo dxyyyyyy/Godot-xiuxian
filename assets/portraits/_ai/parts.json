@@ -3,16 +3,54 @@
   {
    "slot": "cloth",
    "file": "cloth/5m.png",
-   "name": "靛青交领袍",
-   "back": false
+   "name": "靛青交领袍"
+  },
+  {
+   "slot": "cloth",
+   "file": "cloth/6m.png",
+   "name": "玄色劲装"
+  },
+  {
+   "slot": "cloth",
+   "file": "cloth/7m.png",
+   "name": "月白鹤氅"
+  },
+  {
+   "slot": "cloth",
+   "file": "cloth/8m.png",
+   "name": "赭石道袍"
+  },
+  {
+   "slot": "cloth",
+   "file": "cloth/9m.png",
+   "name": "墨绿长衫"
   }
  ],
  "female": [
   {
    "slot": "cloth",
    "file": "cloth/8f.png",
-   "name": "月白襦裙",
-   "back": false
+   "name": "月白襦裙"
+  },
+  {
+   "slot": "cloth",
+   "file": "cloth/9f.png",
+   "name": "藕荷襦裙"
+  },
+  {
+   "slot": "cloth",
+   "file": "cloth/10f.png",
+   "name": "水蓝广袖裙"
+  },
+  {
+   "slot": "cloth",
+   "file": "cloth/11f.png",
+   "name": "玄紫劲装"
+  },
+  {
+   "slot": "cloth",
+   "file": "cloth/12f.png",
+   "name": "素白道袍"
   }
  ]
 }

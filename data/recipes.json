@@ -6,8 +6,8 @@
   "min_realm": 0,
   "mats": [
    {
-    "seed": "chunjiu",
-    "n": 2
+	"seed": "chunjiu",
+	"n": 2
    }
   ],
   "effect": "修为直接+≈0.15月聚灵",
@@ -28,8 +28,8 @@
   "min_realm": 0,
   "mats": [
    {
-    "seed": "linglushu",
-    "n": 2
+	"seed": "linglushu",
+	"n": 2
    }
   ],
   "effect": "气血+10",
@@ -51,8 +51,8 @@
   "min_realm": 0,
   "mats": [
    {
-    "seed": "qiudao",
-    "n": 3
+	"seed": "qiudao",
+	"n": 3
    }
   ],
   "effect": "气血+15",
@@ -74,8 +74,8 @@
   "min_realm": 0,
   "mats": [
    {
-    "seed": "xueliqing",
-    "n": 2
+	"seed": "xueliqing",
+	"n": 2
    }
   ],
   "effect": "下次冲关+5%",
@@ -98,8 +98,8 @@
   "min_realm": 0,
   "mats": [
    {
-    "seed": "zixiaqie",
-    "n": 2
+	"seed": "zixiaqie",
+	"n": 2
    }
   ],
   "effect": "下月修炼+5%",
@@ -122,8 +122,8 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "qingfengsun",
-    "n": 2
+	"seed": "qingfengsun",
+	"n": 2
    }
   ],
   "effect": "气血+10",
@@ -145,8 +145,8 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "jinlvmai",
-    "n": 2
+	"seed": "jinlvmai",
+	"n": 2
    }
   ],
   "effect": "修为直接+≈0.2月聚灵",
@@ -167,8 +167,8 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "yinshadou",
-    "n": 2
+	"seed": "yinshadou",
+	"n": 2
    }
   ],
   "effect": "下月修炼+5%(3月, 长效)",
@@ -191,8 +191,8 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "bingxincai",
-    "n": 2
+	"seed": "bingxincai",
+	"n": 2
    }
   ],
   "effect": "气血自然回复+3/月(3月)",
@@ -215,12 +215,12 @@
   "min_realm": 2,
   "mats": [
    {
-    "seed": "fengqili",
-    "n": 1
+	"seed": "fengqili",
+	"n": 1
    },
    {
-    "seed": "jinlvmai",
-    "n": 2
+	"seed": "jinlvmai",
+	"n": 2
    }
   ],
   "effect": "修为直接+≈0.3月聚灵",
@@ -242,8 +242,8 @@
   "min_realm": 2,
   "mats": [
    {
-    "seed": "xueliqing",
-    "n": 3
+	"seed": "xueliqing",
+	"n": 3
    }
   ],
   "effect": "气血+12",
@@ -265,16 +265,16 @@
   "min_realm": 2,
   "mats": [
    {
-    "seed": "xueliqing",
-    "n": 1
+	"seed": "xueliqing",
+	"n": 1
    },
    {
-    "seed": "chunjiu",
-    "n": 1
+	"seed": "chunjiu",
+	"n": 1
    },
    {
-    "seed": "chiyanjiao",
-    "n": 1
+	"seed": "chiyanjiao",
+	"n": 1
    }
   ],
   "effect": "下次冲关+8%",
@@ -297,8 +297,8 @@
   "min_realm": 2,
   "mats": [
    {
-    "seed": "longwenyu",
-    "n": 2
+	"seed": "longwenyu",
+	"n": 2
    }
   ],
   "effect": "修为直接+≈0.25月聚灵",
@@ -320,12 +320,12 @@
   "min_realm": 2,
   "mats": [
    {
-    "seed": "qingfengsun",
-    "n": 1
+	"seed": "qingfengsun",
+	"n": 1
    },
    {
-    "seed": "yunmujun",
-    "n": 2
+	"seed": "yunmujun",
+	"n": 2
    }
   ],
   "effect": "气血+18",
@@ -347,12 +347,12 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "huoronggua",
-    "n": 2
+	"seed": "huoronggua",
+	"n": 2
    },
    {
-    "seed": "qiudao",
-    "n": 1
+	"seed": "qiudao",
+	"n": 1
    }
   ],
   "effect": "下次冲关+10%",
@@ -374,12 +374,12 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "huiyuancao",
-    "n": 2
+	"seed": "huiyuancao",
+	"n": 2
    },
    {
-    "seed": "bingxincai",
-    "n": 1
+	"seed": "bingxincai",
+	"n": 1
    }
   ],
   "effect": "下月修炼+10%",
@@ -402,12 +402,12 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "yanxinguo",
-    "n": 1
+	"seed": "yanxinguo",
+	"n": 1
    },
    {
-    "seed": "fengqili",
-    "n": 1
+	"seed": "fengqili",
+	"n": 1
    }
   ],
   "effect": "修为直接+≈0.6月聚灵",
@@ -429,12 +429,12 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "yunmujun",
-    "n": 2
+	"seed": "yunmujun",
+	"n": 2
    },
    {
-    "seed": "yinshadou",
-    "n": 1
+	"seed": "yinshadou",
+	"n": 1
    }
   ],
   "effect": "聚灵效率+10%(3月)",
@@ -457,8 +457,8 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "huoronggua",
-    "n": 3
+	"seed": "huoronggua",
+	"n": 3
    }
   ],
   "effect": "下次冲关+12%",
@@ -481,12 +481,12 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "chunjiu",
-    "n": 1
+	"seed": "chunjiu",
+	"n": 1
    },
    {
-    "seed": "jinlvmai",
-    "n": 1
+	"seed": "jinlvmai",
+	"n": 1
    }
   ],
   "effect": "下月修炼+8%(3月, 长效)",
@@ -509,12 +509,12 @@
   "min_realm": 1,
   "mats": [
    {
-    "seed": "chiyanjiao",
-    "n": 2
+	"seed": "chiyanjiao",
+	"n": 2
    },
    {
-    "seed": "xisuiteng",
-    "n": 1
+	"seed": "xisuiteng",
+	"n": 1
    }
   ],
   "effect": "下月修炼+15%",
@@ -537,12 +537,12 @@
   "min_realm": 3,
   "mats": [
    {
-    "seed": "xisuiteng",
-    "n": 2
+	"seed": "xisuiteng",
+	"n": 2
    },
    {
-    "seed": "bingxincai",
-    "n": 1
+	"seed": "bingxincai",
+	"n": 1
    }
   ],
   "effect": "气血尽复",
@@ -564,8 +564,8 @@
   "min_realm": 3,
   "mats": [
    {
-    "seed": "ningshencao",
-    "n": 2
+	"seed": "ningshencao",
+	"n": 2
    }
   ],
   "effect": "顿悟率+2pp(3月)",
@@ -588,12 +588,12 @@
   "min_realm": 3,
   "mats": [
    {
-    "seed": "huiyuancao",
-    "n": 2
+	"seed": "huiyuancao",
+	"n": 2
    },
    {
-    "seed": "linglushu",
-    "n": 1
+	"seed": "linglushu",
+	"n": 1
    }
   ],
   "effect": "下月修炼+12%(2月)",
@@ -616,12 +616,12 @@
   "min_realm": 3,
   "mats": [
    {
-    "seed": "chixueshen",
-    "n": 1
+	"seed": "chixueshen",
+	"n": 1
    },
    {
-    "seed": "qiudao",
-    "n": 2
+	"seed": "qiudao",
+	"n": 2
    }
   ],
   "effect": "修为直接+≈1.0月聚灵",
@@ -643,12 +643,12 @@
   "min_realm": 3,
   "mats": [
    {
-    "seed": "yanghunteng",
-    "n": 2
+	"seed": "yanghunteng",
+	"n": 2
    },
    {
-    "seed": "longwenyu",
-    "n": 1
+	"seed": "longwenyu",
+	"n": 1
    }
   ],
   "effect": "顿悟率+3pp(2月)",
@@ -671,8 +671,8 @@
   "min_realm": 3,
   "mats": [
    {
-    "seed": "ningshencao",
-    "n": 2
+	"seed": "ningshencao",
+	"n": 2
    }
   ],
   "effect": "心魔−2月",
@@ -694,12 +694,12 @@
   "min_realm": 3,
   "mats": [
    {
-    "seed": "millennium",
-    "n": 1
+	"seed": "millennium",
+	"n": 1
    },
    {
-    "seed": "flower_any",
-    "n": 1
+	"seed": "flower_any",
+	"n": 1
    }
   ],
   "effect": "下次冲关+5%(一次性)",
@@ -720,12 +720,12 @@
   "min_realm": 4,
   "mats": [
    {
-    "seed": "jiuzhuan",
-    "n": 1
+	"seed": "jiuzhuan",
+	"n": 1
    },
    {
-    "seed": "fengqili",
-    "n": 1
+	"seed": "fengqili",
+	"n": 1
    }
   ],
   "effect": "永久资质+2%(≤2次/世) · 灵气=6个月聚灵产出",
@@ -746,12 +746,12 @@
   "min_realm": 5,
   "mats": [
    {
-    "seed": "chixueshen",
-    "n": 1
+	"seed": "chixueshen",
+	"n": 1
    },
    {
-    "seed": "linglushu",
-    "n": 2
+	"seed": "linglushu",
+	"n": 2
    }
   ],
   "effect": "永久资质+2%(与还阳仙宴共享≤2次/世) · 灵气=6个月聚灵产出",
@@ -773,8 +773,8 @@
   "min_realm": 5,
   "mats": [
    {
-    "seed": "yujingxuelian",
-    "n": 2
+	"seed": "yujingxuelian",
+	"n": 2
    }
   ],
   "effect": "永久寿命+2年(≤1次/世) · 灵气=6个月聚灵产出",
@@ -796,12 +796,12 @@
   "min_realm": 4,
   "mats": [
    {
-    "seed": "zhaoguhua",
-    "n": 1
+	"seed": "zhaoguhua",
+	"n": 1
    },
    {
-    "seed": "yanghunteng",
-    "n": 2
+	"seed": "yanghunteng",
+	"n": 2
    }
   ],
   "effect": "永久寿命+1年(与玉井仙露共享全世≤+3年) · 灵气=6个月聚灵产出",
@@ -823,12 +823,12 @@
   "min_realm": 5,
   "mats": [
    {
-    "seed": "millennium",
-    "n": 1
+	"seed": "millennium",
+	"n": 1
    },
    {
-    "seed": "jiuzhuan",
-    "n": 1
+	"seed": "jiuzhuan",
+	"n": 1
    }
   ],
   "effect": "永久气运+1档(≤1次/世) · 灵气=6个月聚灵产出",
@@ -849,12 +849,12 @@
   "min_realm": 6,
   "mats": [
    {
-    "seed": "mengdielan",
-    "n": 1
+	"seed": "mengdielan",
+	"n": 1
    },
    {
-    "seed": "millennium",
-    "n": 1
+	"seed": "millennium",
+	"n": 1
    }
   ],
   "effect": "永久灵根·五行转易(≤1次/世) · 灵气=6个月聚灵产出",
@@ -874,16 +874,16 @@
   "min_realm": -1,
   "mats": [
    {
-    "seed": "huoronggua",
-    "n": 1
+	"seed": "huoronggua",
+	"n": 1
    },
    {
-    "seed": "ningshencao",
-    "n": 3
+	"seed": "ningshencao",
+	"n": 3
    },
    {
-    "seed": "winter_any",
-    "n": 1
+	"seed": "winter_any",
+	"n": 1
    }
   ],
   "effect": "无buff · 赠礼−3+喜剧事件",
@@ -898,12 +898,12 @@
   "min_realm": -1,
   "mats": [
    {
-    "seed": "jiuzhuan",
-    "n": 1
+	"seed": "jiuzhuan",
+	"n": 1
    },
    {
-    "seed": "chixueshen",
-    "n": 1
+	"seed": "chixueshen",
+	"n": 1
    }
   ],
   "effect": "无buff · 赠礼−3+喜剧事件",
@@ -918,12 +918,12 @@
   "min_realm": -1,
   "mats": [
    {
-    "seed": "xisuiteng",
-    "n": 2
+	"seed": "xisuiteng",
+	"n": 2
    },
    {
-    "seed": "yanghunteng",
-    "n": 1
+	"seed": "yanghunteng",
+	"n": 1
    }
   ],
   "effect": "无buff · 赠礼−3+喜剧事件",
@@ -938,8 +938,8 @@
   "min_realm": -1,
   "mats": [
    {
-    "seed": "yanxinguo",
-    "n": 2
+	"seed": "yanxinguo",
+	"n": 2
    }
   ],
   "effect": "无buff · 赠礼−3+喜剧事件",
@@ -954,8 +954,8 @@
   "min_realm": -1,
   "mats": [
    {
-    "seed": "huiyuancao",
-    "n": 3
+	"seed": "huiyuancao",
+	"n": 3
    }
   ],
   "effect": "无buff · 赠礼−3+喜剧事件",
@@ -970,8 +970,8 @@
   "min_realm": -1,
   "mats": [
    {
-    "seed": "any",
-    "n": 5
+	"seed": "any",
+	"n": 5
    }
   ],
   "effect": "无buff · 赠礼−3+喜剧事件",
