@@ -215,3 +215,104 @@ func generate(rng, existing: Dictionary, filter_ids: Array = []) -> Dictionary:
 		"scene": "坊市",
 		"blurb": "%s(%s) —— 游历与市井之间入世的新面孔" % [npc_name, String(ID_NAMES[identity])],
 	}
+
+
+## ---- 遗传造娃(婚配子嗣用) ----
+
+## 槽位遗传: 50/50 取双亲之一(须存在于子女性别目录), 双亲皆不合法则随机; 10% 变异重抽。
+func _inherit_slot(rng, child_male: bool, slot: String, id_a: String, id_b: String) -> String:
+	var first := id_a if rng.randf() < 0.5 else id_b
+	var second := id_b if first == id_a else id_a
+	if rng.randf() < 0.10:
+		return _random_option(rng, child_male, slot)
+	for cand in [first, second]:
+		if not entry(child_male, slot, cand).is_empty():
+			return cand
+	return _random_option(rng, child_male, slot)
+
+
+func _random_option(rng, child_male: bool, slot: String) -> String:
+	var opts: Array = options(child_male, slot)
+	if opts.is_empty():
+		return ""
+	return String((opts[rng.randi_range(0, opts.size() - 1)] as Dictionary).get("id", ""))
+
+
+## 色相遗传: 0 是「原色」哨兵非真色 —— 双 0 则 0; 否则取一非零亲值, 10% 随机色相。
+func _inherit_hue(rng, h_a: int, h_b: int) -> int:
+	if h_a == 0 and h_b == 0:
+		return 0
+	if rng.randf() < 0.10:
+		return rng.randi_range(0, 359)
+	return h_a if (h_a != 0 and rng.randf() < 0.5) else h_b
+
+
+## 彩度遗传: 取一亲值 ±5, 钳 85~115(与 random_look 同带)。
+func _inherit_sat(rng, s_a: int, s_b: int) -> int:
+	var s: int = s_a if rng.randf() < 0.5 else s_b
+	return clampi(s + rng.randi_range(-5, 5), 85, 115)
+
+
+## 孩子快照: 双亲(pa=父姓来源)混出 —— 槽位/色/气质/性格逐位遗传, 收尾 resolve_look 修三约束。
+## 姓名=父姓+随机名(在册去重); identity 随父母之一; 口味双层先验照 generate 旧规。
+func breed_child(rng, pa: Dictionary, pb: Dictionary, existing: Dictionary) -> Dictionary:
+	var child_male: bool = rng.randf() < 0.5
+	var a: Dictionary = pa.get("appearance", {})
+	var b: Dictionary = pb.get("appearance", {})
+	var ap := {}
+	for slot in SLOTS:
+		ap[slot] = _inherit_slot(rng, child_male, String(slot), String(a.get(slot, "")), String(b.get(slot, "")))
+	ap["hair_hue"] = _inherit_hue(rng, int(a.get("hair_hue", 0)), int(b.get("hair_hue", 0)))
+	ap["hair_sat"] = _inherit_sat(rng, int(a.get("hair_sat", 100)), int(b.get("hair_sat", 100)))
+	ap["eye_hue"] = _inherit_hue(rng, int(a.get("eye_hue", 0)), int(b.get("eye_hue", 0)))
+	ap["eye_sat"] = _inherit_sat(rng, int(a.get("eye_sat", 100)), int(b.get("eye_sat", 100)))
+	ap = resolve_look(ap, child_male)   # 性别目录校验 + 耳肤耦合 + 前后发色标(不碰 aura)
+	var aura := ""
+	if rng.randf() < 0.5:
+		aura = String(a.get("aura", "")) if rng.randf() < 0.5 else String(b.get("aura", ""))
+	if aura == "":
+		aura = String(AURAS[rng.randi_range(0, AURAS.size() - 1)])
+	ap["aura"] = aura
+	var pa_p: Dictionary = pa.get("persona", {})
+	var pb_p: Dictionary = pb.get("persona", {})
+	var persona := {}
+	for g in ["biaoda", "dairen", "xingshi", "dongxin"]:
+		persona[g] = String(pa_p.get(g, "")) if rng.randf() < 0.5 else String(pb_p.get(g, ""))
+	var identity := String(pa.get("identity", ""))
+	if rng.randf() < 0.5:
+		identity = String(pb.get("identity", identity))
+	if identity == "" or not ID_NAMES.has(identity):
+		identity = "fangshi"
+	var base := String(TASTE_BY_ID.get(identity, "温"))
+	var final := base
+	if String(persona.get("xingshi", "")) == "lansan":
+		final = "饱腹"
+	elif String(persona.get("dongxin", "")) == "xishui":
+		final = "温"
+	var used := {}
+	for k in existing:
+		used[String(existing[k].get("name", ""))] = true
+	var surname := String(String(pa.get("name", "林")).left(1))
+	var kid_name := surname + String(GIVEN[rng.randi_range(0, GIVEN.size() - 1)])
+	if used.has(kid_name):
+		kid_name = generate_name(rng, used)
+	var idx := 1
+	for k in existing:
+		if String(k).begins_with("rand_"):
+			idx = maxi(idx, int(String(k).trim_prefix("rand_")) + 1)
+	return {
+		"key": "rand_%d" % idx,
+		"name": kid_name,
+		"gender": "male" if child_male else "female",
+		"realm_ord": 0,
+		"identity": identity,
+		"id_name": String(ID_NAMES[identity]),
+		"persona": persona,
+		"moe": "各家有各忙的娃",
+		"appearance": ap,
+		"alias": generate_epithet(rng),
+		"taste_base": base,
+		"taste_final": final,
+		"scene": "坊市",
+		"blurb": "%s(%s) —— 某家新添的小辈" % [kid_name, String(ID_NAMES[identity])],
+	}

@@ -65,18 +65,11 @@ func _rebuild() -> void:
 		c.queue_free()
 	_val_labels.clear()
 
-	# 预览（紧凑渐变圆框）
+	# 预览（三生石同款玉阵头像框）
 	var preview_section := CenterContainer.new()
-	preview_section.custom_minimum_size = Vector2(0, 140)
+	preview_section.custom_minimum_size = Vector2(0, 190)
 	_preview_box = CenterContainer.new()
-	_preview_box.custom_minimum_size = Vector2(128, 128)
-	var bg_circle := UiKit.circle(120, UiKit.JADE_100, UiKit.PINK_100)
-	bg_circle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_preview_box.add_child(bg_circle)
-	var portrait_center := CenterContainer.new()
-	portrait_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait_center.add_child(Portrait.build_from(_work, 100, _male()))
-	_preview_box.add_child(portrait_center)
+	_preview_box.add_child(_preview_frame())
 	_content.add_child(preview_section)
 	preview_section.add_child(_preview_box)
 
@@ -313,18 +306,18 @@ func _aura_note_text() -> String:
 	return "气质 · %s：%s" % [aura_name, note] if note != "" else "气质 · %s" % aura_name
 
 
+## 预览框：三生石同款玉阵头像框(随气质染色) + 当前工作台容貌（换件/调色后整体重建，代价可忽略）。
+func _preview_frame() -> Control:
+	return UiKit.jade_frame(Portrait.build_from(_work, 132, _male()), UiKit.aura_tint(String(_work.get("aura", ""))))
+
+
 func _refresh_preview() -> void:
 	if _preview_box == null or not is_instance_valid(_preview_box):
 		return
 	for c in _preview_box.get_children():
-		if c is PanelContainer:
-			continue
-		c.queue_free()
 		_preview_box.remove_child(c)
-	var portrait_center := CenterContainer.new()
-	portrait_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait_center.add_child(Portrait.build_from(_work, 100, _male()))
-	_preview_box.add_child(portrait_center)
+		c.queue_free()
+	_preview_box.add_child(_preview_frame())
 
 
 func _male() -> bool:

@@ -14,6 +14,7 @@ signal interrupted(event: Dictionary)   # {title,text,options:Array,kind,data}
 const SCHEMA := 4
 const START_AGE_M := 192                 # 16 岁测灵根入道(月)
 const ENDING_MULT := {"飞升": 2.0, "圆满隐退": 1.2, "渡劫陨落": 0.5, "寿尽坐化": 0.3}  # §4.2 未改
+const START_DAO := 100                   # 新档起始道韵(入世即可购灵根/特质的预算)
 const FORGE_COST := 20                   # 铸体: 20 道韵 → 灵根+0.1(一世)
 const FORGE_STEP := 0.1
 const BLESS_COST := 50                   # 天道眷顾: 50 道韵 → 冲关率+2%(永久, §11)
@@ -60,7 +61,7 @@ func _ready() -> void:
 	duijie_cap = int(tune("duijie_cap_years", 1800))
 	meta = SaveSystem.load_meta()
 	if meta.is_empty() or int(meta.get("schema", 0)) != SCHEMA:
-		meta = {"schema": SCHEMA, "dao": 0, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
+		meta = {"schema": SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
 	var loaded := SaveSystem.load_open_run()
 	if not loaded.is_empty() and int(loaded.get("schema", 0)) == SCHEMA:
 		run = loaded
@@ -102,6 +103,12 @@ func _ensure_run() -> void:
 		_wall_seed_opening()   # 照壁不是空壁: 新世/旧空档(含被旧版本补过空 wall 的档)一律预置旧帖
 	if not run.has("travel_dest"):
 		run.travel_dest = "auto"
+	if not run.has("world_npcs"):
+		run.world_npcs = {}
+		run.world_rels = []
+		_seed_world()   # 老档补一次世界池(只补这一次; 后加的固定 NPC 不追溯, 新世自然生效)
+	if not run.has("npc_romance"):
+		run.npc_romance = {}
 	if not run.farm.has("yaodan"):
 		run.farm.yaodan = 0   # 妖丹计数(伏妖战功, 老档补 0, 不 bump SCHEMA)
 	for key in run.get("npcs", {}):   # NPC 档迁移: 旧 5 态 0-100 量程 → 新 6 态 0-1000(陌生态插入), 全员视作已入册
@@ -209,33 +216,67 @@ func aura_npc_aff(npc_key: String) -> float:
 	return float((a.get("npc", {}) as Dictionary).get("aff", 0.0))
 
 
-## —— NPC 关系网(relations.json): 六位固定 NPC 之间手写预设的无向边, 为数据层, 不随存档变化。
-## 每条边 {a,b,tag,val,note,r_note}: val 亲疏值 −100~+100; tag/note 是「从 a 看 b」的口径,
-## 反向看用时取 r_note(r_tag), 没写就照搬 —— 双向可各自一句, 但亲疏值两边同值。
+## —— NPC 关系网: 两层边 —— ① relations.json 手写静态边(固定 NPC 之间, 数据层不随存档变化);
+## ② run.world_rels 动态边(世界池生成, 随存档)。每条边 {a,b,tag,val,note[,r_note]}:
+## val 亲疏值 −100~+100; tag/note 是「从 a 看 b」的口径, 反向看取 r_note(r_tag), 没写就照搬。
+## 查表先静态后动态 —— 手写设定永远压过程序生成。
 
-## 取两人关系(无向): {peer,tag,val,note}; 没有预设关系返回空字典。
+## 取两人关系(无向): {peer,tag,val,note[,aff,stage,married]}; 没有预设关系返回空字典。
+## 恋爱态(run.npc_romance)覆盖展示 tag: 已婚→夫妻, 否则按好感段(相识/相熟/心动/相恋)。
 func relation_between(a: String, b: String) -> Dictionary:
 	if a == "" or b == "" or a == b:
 		return {}
+	var base := {}
 	for e in DataManager.relations:
 		var ea := String(e.get("a", ""))
 		var eb := String(e.get("b", ""))
 		if ea == a and eb == b:
-			return {"peer": b, "tag": String(e.get("tag", "旧识")), "val": float(e.get("val", 0.0)), "note": String(e.get("note", ""))}
+			base = {"peer": b, "tag": String(e.get("tag", "旧识")), "val": float(e.get("val", 0.0)), "note": String(e.get("note", ""))}
+			break
 		if ea == b and eb == a:
-			return {"peer": a, "tag": String(e.get("r_tag", e.get("tag", "旧识"))), "val": float(e.get("val", 0.0)), "note": String(e.get("r_note", e.get("note", "")))}
-	return {}
+			base = {"peer": b, "tag": String(e.get("r_tag", e.get("tag", "旧识"))), "val": float(e.get("val", 0.0)), "note": String(e.get("r_note", e.get("note", "")))}
+			break
+	if base.is_empty():
+		for e in run.get("world_rels", []):
+			var ea2 := String(e.get("a", ""))
+			var eb2 := String(e.get("b", ""))
+			if (ea2 == a and eb2 == b) or (ea2 == b and eb2 == a):
+				base = {"peer": b, "tag": String(e.get("tag", "新识")), "val": float(e.get("val", 0.0)), "note": String(e.get("note", ""))}
+				break
+	var r: Dictionary = run.get("npc_romance", {}).get(_pair_key(a, b), {})
+	if not r.is_empty():
+		if base.is_empty():
+			base = {"peer": b, "tag": "新识", "val": 0.0, "note": ""}
+		var names: Array = tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])
+		base.tag = "夫妻" if bool(r.get("married", false)) else String(names[clampi(int(r.get("stage", 0)), 1, 4)])
+		base.aff = float(r.get("aff", 0.0))
+		base.stage = int(r.get("stage", 0))
+		base.married = bool(r.get("married", false))
+	return base
 
 
-## 某人对外的人际关系全表, 按亲疏从亲到疏排序(名录/详情/传言共用)。
+## 某人对外的人际关系全表, 按亲疏从亲到疏排序(名录/详情/传言共用)。静态边优先, 按 peer 去重。
 func npc_relations(key: String) -> Array:
 	var out: Array = []
+	var seen := {}
 	for e in DataManager.relations:
 		var ea := String(e.get("a", ""))
 		var eb := String(e.get("b", ""))
 		if ea != key and eb != key:
 			continue
-		out.append(relation_between(key, eb if ea == key else ea))
+		var peer := eb if ea == key else ea
+		out.append(relation_between(key, peer))
+		seen[peer] = true
+	for e in run.get("world_rels", []):
+		var ea2 := String(e.get("a", ""))
+		var eb2 := String(e.get("b", ""))
+		if ea2 != key and eb2 != key:
+			continue
+		var peer2 := eb2 if ea2 == key else ea2
+		if seen.has(peer2):
+			continue
+		seen[peer2] = true
+		out.append(relation_between(key, peer2))
 	out.sort_custom(func(x, y): return float(x.val) > float(y.val))
 	return out
 
@@ -298,6 +339,353 @@ func relation_halo_hint(npc_key: String) -> String:
 	if m < 0.001:
 		return ""
 	return "（故人情面 好感 +%.0f%%）" % (m * 100.0)
+
+
+# ---------------------------------------------------------------- 世界 NPC 池(未识亦在世)
+
+## 开局即在世的随机 NPC: run.world_npcs(生成器快照, 不进名录) + run.world_rels(动态边)。
+## 主角未遇见不入册; 但池内彼此、池与固定 NPC(含后续新增的掌门等档案)之间预有关系 ——
+## 八卦有来由、初见有情面、拒绝过的脸日后可再遇。边模板放本侧, NpcGenerator 只管造人。
+
+const WORLD_REL_TAGS := [
+	["新识", 15, 30, ["%s与%s近日才认识, 见面还客客气气。", "一个是%s, 一个是%s, 坊市里刚处上点头之交。"]],
+	["街坊", 20, 45, ["%s和%s是街坊, 抬头不见低头见。", "%s家的灶台挨着%s家的, 烟都往一处飘。"]],
+	["同门", 30, 60, ["%s与%s同出一门, 师兄弟相称。", "听%s说, 当年与%s一起挑过水。"]],
+	["酒友", 20, 50, ["%s与%s顿顿对饮, 酒钱轮流掏。", "%s不醉, 因为酒都让%s喝了。"]],
+	["棋友", 15, 40, ["%s与%s在茶摊摆棋, 输了付茶钱。", "%s的棋, 只有%s肯连输三局还笑。"]],
+	["点头交", 10, 25, ["%s与%s点头之交, 多年没说过整句。", "路上遇见, %s朝%s拱拱手, 就算打过照面。"]],
+	["旧怨", -40, -15, ["%s与%s为地契拌过嘴, 至今不同席。", "%s欠%s一句道歉, 拖了十年。"]],
+]
+
+
+func _npc_is_met(key: String) -> bool:
+	return run.has("npcs") and run.npcs.has(key) and bool(run.npcs[key].get("met", false))
+
+
+## 造人/连边时给生成器看的「已占用」集: 已入册 + 已在池(姓名去重与 rand_ 序号都靠它)。
+func _world_existing() -> Dictionary:
+	var m: Dictionary = run.npcs.duplicate()
+	if run.has("world_npcs"):
+		m.merge(run.world_npcs, true)
+	return m
+
+
+func _make_world_edge(a: String, b: String) -> Dictionary:
+	var neg := rng.randf() < 0.15
+	var pool: Array = []
+	for t in WORLD_REL_TAGS:
+		if (neg and int(t[1]) < 0) or (not neg and int(t[1]) >= 0):
+			pool.append(t)
+	var t: Array = pool[rng.randi_range(0, pool.size() - 1)]
+	var note := String(t[3][rng.randi_range(0, (t[3] as Array).size() - 1)]) % [npc_name(a), npc_name(b)]
+	return {"a": a, "b": b, "tag": String(t[0]), "val": float(rng.randi_range(int(t[1]), int(t[2]))), "note": note}
+
+
+## 开世造世界: 一批池内 NPC + 彼此/与固定 NPC 的关系边。循环一律遍历 DataManager.npcs,
+## 后续新增固定档案(掌门等)自动进网; 已有边(静态或动态)不重复连。
+func _seed_world() -> void:
+	var count := int(tune("world_npc_count", 50))
+	for _i in count:
+		var npc := npc_generator.generate(rng, _world_existing())
+		if npc.is_empty():
+			break
+		run.world_npcs[String(npc.key)] = npc
+	var world_keys: Array = (run.world_npcs as Dictionary).keys()
+	var all_keys := world_keys.duplicate()
+	for nd in DataManager.npcs:
+		all_keys.append(String(nd.key))
+	var pairs := {}
+	for a in world_keys:
+		var want := 1 + (1 if rng.randf() < maxf(0.0, float(tune("world_rel_per_npc", 1.5)) - 1.0) else 0)
+		for _w in want:
+			_try_world_edge(String(a), String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), pairs)
+	for _h in int(count * 0.3):   # 枢纽边: 让少数人认识很多人, 网才有「世故」味
+		_try_world_edge(String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), pairs)
+
+
+func _try_world_edge(a: String, b: String, pairs: Dictionary) -> void:
+	if a == "" or b == "" or a == b:
+		return
+	var pair := a + "|" + b if a < b else b + "|" + a
+	if pairs.has(pair) or not relation_between(a, b).is_empty():
+		return
+	pairs[pair] = true
+	run.world_rels.append(_make_world_edge(a, b))
+
+
+## 从世界池抽一位未识者: 多数偏向「与已入册者有边」的 —— 情面/八卦有来由。
+func _pick_pool_npc() -> String:
+	if not run.has("world_npcs") or (run.world_npcs as Dictionary).is_empty():
+		return ""
+	var keys: Array = (run.world_npcs as Dictionary).keys()
+	if rng.randf() < float(tune("world_pool_prefer_met", 0.6)):
+		var connected: Array = []
+		for k in keys:
+			for e in run.world_rels:
+				var ea := String(e.get("a", ""))
+				var eb := String(e.get("b", ""))
+				var peer := eb if ea == String(k) else (ea if eb == String(k) else "")
+				if peer != "" and _npc_is_met(peer):
+					connected.append(String(k))
+					break
+		if not connected.is_empty():
+			return String(connected[rng.randi_range(0, connected.size() - 1)])
+	return String(keys[rng.randi_range(0, keys.size() - 1)])
+
+
+## 从池入册: 快照并入状态基底, 移出池; 初见情面由 _gift_note 统一处理(查表已含动态边)。
+func _enroll_pool_npc(key: String) -> void:
+	if not run.has("world_npcs") or not (run.world_npcs as Dictionary).has(key):
+		return
+	var base := _npc_init()
+	base.merge((run.world_npcs as Dictionary)[key] as Dictionary, true)
+	base.met = true
+	run.npcs[key] = base
+	run.world_npcs.erase(key)
+	_gift_note(key)
+	changed.emit()
+
+
+## 世界脉动: 偶尔补一位新客入池, 顺手牵一条边 —— 市井本该有人搬来, 有人攀上交情。
+func _world_churn() -> void:
+	if not run.has("world_npcs") or (run.world_npcs as Dictionary).size() >= int(tune("world_npc_count", 50)):
+		return
+	var npc := npc_generator.generate(rng, _world_existing())
+	if npc.is_empty():
+		return
+	run.world_npcs[String(npc.key)] = npc
+	var all_keys: Array = (run.world_npcs as Dictionary).keys()
+	for nd in DataManager.npcs:
+		all_keys.append(String(nd.key))
+	_try_world_edge(String(npc.key), String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), {})
+
+
+# ---------------------------------------------------------------- NPC 恋爱·婚配·子嗣(好感度驱动)
+
+## NPC 之间的感情与玩家恋爱同规格: 恋爱边存 run.npc_romance{"a|b"→{aff,stage,married}},
+## 逐月涨好、按 aff_thresholds 六段升段(相识→相熟→心动→相恋), 满段成婚写 spouse;
+## 争风扣好可降段退婚; 婚后按率添丁, 孩子遗传双亲容貌、满 npc_adult_years 成年入修炼。
+## 玩家道侣位/玩家好感线与此完全隔离(红线: 只动 NPC 互好)。
+
+func _pair_key(a: String, b: String) -> String:
+	return a + "|" + b if a < b else b + "|" + a
+
+
+## NPC 生效字典(名录或世界池, 均为存档内引用, 可直接改)。
+func _npc_entry(key: String) -> Dictionary:
+	if run.npcs.has(key):
+		return run.npcs[key]
+	if run.has("world_npcs") and (run.world_npcs as Dictionary).has(key):
+		return (run.world_npcs as Dictionary)[key]
+	return {}
+
+
+func _npc_age_years(key: String) -> int:
+	var e := _npc_entry(key)
+	if e.is_empty() or not e.has("born_m"):
+		return 999   # 无出生月=开局老世辈, 一律成年
+	return int((int(run.age_m) - int(e.get("born_m", 0))) / 12.0)
+
+
+func _npc_is_minor(key: String) -> bool:
+	var e := _npc_entry(key)
+	return e.has("born_m") and _npc_age_years(key) < int(tune("npc_adult_years", 12))
+
+
+func _rom_stage(aff: float) -> int:
+	var s := 0
+	for th in tune("aff_thresholds", [200, 400, 600, 800, 1000]):
+		if aff >= float(th):
+			s += 1
+	return s
+
+
+## 恋爱推进: 已有边涨好升段/成婚; 按率把亲密对物化成恋爱边; 争风降段退婚。
+## 一夫一妻守卫: 播种排除已在恋爱中者; 推进时若已被他人娶/嫁则边作废; _marry 再兜底。
+func _npc_romance_tick() -> void:
+	var rom: Dictionary = run.get("npc_romance", {})
+	var names: Array = tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])
+	# 1) 已有恋爱: 涨好升段
+	for pk in rom.keys().duplicate():
+		var r: Dictionary = rom[pk]
+		var parts: PackedStringArray = String(pk).split("|")
+		var a := String(parts[0]); var b := String(parts[1])
+		if bool(r.get("married", false)):
+			continue
+		var ea := _npc_entry(a); var eb := _npc_entry(b)
+		if ea.is_empty() or eb.is_empty() or String(ea.get("spouse", "")) != "" or String(eb.get("spouse", "")) != "":
+			rom.erase(pk)   # 一方已嫁娶(被抢婚/旧档残留) —— 此缘作废
+			continue
+		r.aff = float(r.get("aff", 0.0)) + float(rng.randi_range(int(tune("npc_court_gain_min", 4)), int(tune("npc_court_gain_max", 12))))
+		var old_stage := int(r.get("stage", 0))
+		r.stage = _rom_stage(float(r.aff))
+		if int(r.stage) > old_stage:
+			if int(r.stage) >= 5:
+				_marry(a, b, r)
+			else:
+				_report("坊市都道: 【%s】与【%s】%s" % [npc_name(a), npc_name(b), String(names[clampi(int(r.stage), 0, 5)])])
+	# 2) 新恋情物化: 从亲密边里挑一对未婚成年异性(且双方都未在别段恋爱中)
+	if rng.randf() < float(tune("npc_court_seed_rate", 0.15)):
+		var cands: Array = []
+		for e in _all_edges():
+			var ea2 := String(e.get("a", "")); var eb2 := String(e.get("b", ""))
+			if float(e.get("val", 0.0)) < float(tune("rel_close_min", 35.0)):
+				continue
+			if rom.has(_pair_key(ea2, eb2)) or _rom_taken(rom, ea2) or _rom_taken(rom, eb2):
+				continue
+			if _rom_eligible(ea2, eb2):
+				cands.append(e)
+		if not cands.is_empty():
+			var pick: Dictionary = cands[rng.randi_range(0, cands.size() - 1)]
+			var pa := String(pick.get("a", "")); var pb := String(pick.get("b", ""))
+			var seed := clampf(float(pick.get("val", 0.0)) * 10.0, 0.0, 800.0)
+			rom[_pair_key(pa, pb)] = {"aff": seed, "stage": _rom_stage(seed), "married": false}
+			_report("坊市闲话: 听说【%s】与【%s】越走越近, 有了心思" % [npc_name(pa), npc_name(pb)])
+	# 3) 争风吃醋: 随机挑一条恋爱扣好, 已婚者可能降段退婚
+	if not rom.is_empty() and rng.randf() < float(tune("worldsim_rival_rate", 0.04)):
+		var keys: Array = rom.keys()
+		var jk := String(keys[rng.randi_range(0, keys.size() - 1)])
+		var jr: Dictionary = rom[jk]
+		jr.aff = maxf(0.0, float(jr.get("aff", 0.0)) - float(rng.randi_range(30, 60)))
+		var js := _rom_stage(float(jr.aff))
+		var jp: PackedStringArray = jk.split("|")
+		if js < int(jr.get("stage", 0)):
+			if bool(jr.get("married", false)) and js < 4:
+				_divorce(String(jp[0]), String(jp[1]), jr)
+			else:
+				_report("茶摊闲话: 【%s】与【%s】闹了别扭, 凉了半截" % [npc_name(String(jp[0])), npc_name(String(jp[1]))])
+		jr.stage = js
+
+
+## 某人是否已名花有主(在任一段恋爱中)。
+func _rom_taken(rom: Dictionary, key: String) -> bool:
+	for pk in rom:
+		var ps: PackedStringArray = String(pk).split("|")
+		if String(ps[0]) == key or String(ps[1]) == key:
+			return true
+	return false
+
+
+## 恋爱资格: 异性、皆成年、皆未婚、非玩家道侣、彼此非亲缘。
+func _rom_eligible(a: String, b: String) -> bool:
+	if a == "" or b == "" or a == b:
+		return false
+	var ea := _npc_entry(a); var eb := _npc_entry(b)
+	if ea.is_empty() or eb.is_empty():
+		return false
+	if _npc_is_minor(a) or _npc_is_minor(b):
+		return false
+	if String(ea.get("spouse", "")) != "" or String(eb.get("spouse", "")) != "":
+		return false
+	if bool(ea.get("dao_lu", false)) or bool(eb.get("dao_lu", false)):
+		return false
+	if npc_male(a) == npc_male(b):
+		return false
+	var rel := relation_between(a, b)
+	return String(rel.get("tag", "")) != "亲子"
+
+
+## 全部关系边(静态+动态)一览。
+func _all_edges() -> Array:
+	var out: Array = []
+	out.append_array(DataManager.relations)
+	out.append_array(run.get("world_rels", []))
+	return out
+
+
+func _marry(a: String, b: String, r: Dictionary) -> void:
+	var ea := _npc_entry(a); var eb := _npc_entry(b)
+	if ea.is_empty() or eb.is_empty():
+		return
+	if String(ea.get("spouse", "")) != "" or String(eb.get("spouse", "")) != "":
+		return   # 兜底: 已名花有主, 不再许婚
+	r.married = true
+	r.stage = 5
+	ea.spouse = b
+	eb.spouse = a
+	_report("◆ 大喜: 【%s】与【%s】结为夫妻 —— 坊间随了份子" % [npc_name(a), npc_name(b)])
+	_queue_wall_event("relation", {"a": npc_name(a), "b": npc_name(b), "tag": "夫妻"})
+
+
+func _divorce(a: String, b: String, r: Dictionary) -> void:
+	r.married = false
+	var ea := _npc_entry(a); var eb := _npc_entry(b)
+	if String(ea.get("spouse", "")) == b:
+		ea.spouse = ""
+	if String(eb.get("spouse", "")) == a:
+		eb.spouse = ""
+	_report("◆ 可惜: 【%s】与【%s】缘尽于此, 婚约作废" % [npc_name(a), npc_name(b)])
+
+
+## 添丁: 遍历已婚对按率造娃(遗传双亲), 双亲皆入册则孩子进名录、否则进世界池; 补亲子边。
+func _npc_family_tick() -> void:
+	var rom: Dictionary = run.get("npc_romance", {})
+	for pk in rom.keys():
+		var r: Dictionary = rom[pk]
+		if not bool(r.get("married", false)):
+			continue
+		var parts: PackedStringArray = String(pk).split("|")
+		var fa := String(parts[0]); var mo := String(parts[1])
+		var ef := _npc_entry(fa); var em := _npc_entry(mo)
+		if ef.is_empty() or em.is_empty():
+			continue
+		if int(ef.get("children", []).size()) >= int(tune("npc_kids_max", 2)):
+			continue
+		if rng.randf() >= float(tune("npc_baby_rate", 0.04)):
+			continue
+		_birth_child(fa, mo, ef, em)
+
+
+func _birth_child(fa: String, mo: String, ef: Dictionary, em: Dictionary) -> void:
+	var kid := npc_generator.breed_child(rng, ef, em, _world_existing())
+	if kid.is_empty():
+		return
+	var kid_key := String(kid.key)
+	kid["born_m"] = int(run.age_m)
+	kid["parents"] = [fa, mo]
+	# 随父母入册: 双亲皆在名录 → 孩子进名录(可见可交互); 否则进世界池(未识)
+	if run.npcs.has(fa) and run.npcs.has(mo):
+		var base := _npc_init()
+		base.merge(kid, true)
+		base.met = true
+		run.npcs[kid_key] = base
+	else:
+		run.world_npcs[kid_key] = kid
+	if not ef.has("children"):
+		ef.children = []
+	if not em.has("children"):
+		em.children = []
+	(ef.children as Array).append(kid_key)
+	(em.children as Array).append(kid_key)
+	_try_world_edge(kid_key, fa, {})
+	_try_world_edge(kid_key, mo, {})
+	# 亲子边固定 tag/val(覆盖随机模板)
+	for e in run.world_rels:
+		if (String(e.get("a", "")) == kid_key and String(e.get("b", "")) == fa) or (String(e.get("b", "")) == kid_key and String(e.get("a", "")) == fa):
+			e.tag = "亲子"; e.val = 70.0; e.note = "%s是%s的娃 —— 眉眼像爹, 脾气像娘" % [npc_name(kid_key), npc_name(fa)]
+		if (String(e.get("a", "")) == kid_key and String(e.get("b", "")) == mo) or (String(e.get("b", "")) == kid_key and String(e.get("a", "")) == mo):
+			e.tag = "亲子"; e.val = 70.0; e.note = "%s是%s的娃 —— 眉眼像爹, 脾气像娘" % [npc_name(kid_key), npc_name(mo)]
+	_report("◆ 添丁: 【%s】家喜得%s【%s】" % [npc_name(fa), "麟儿" if String(kid.get("gender", "")) == "male" else "千金", npc_name(kid_key)])
+	changed.emit()
+
+
+## 成年礼: 满 npc_adult_years 的孩子上报一声, 自此入修炼与婚配池(境界 0 起步)。
+func _npc_growth_tick() -> void:
+	for key in run.npcs.keys():
+		_growth_check(String(key))
+	if run.has("world_npcs"):
+		for key in (run.world_npcs as Dictionary).keys():
+			_growth_check(String(key))
+
+
+func _growth_check(key: String) -> void:
+	var e := _npc_entry(key)
+	if e.is_empty() or not e.has("born_m") or bool(e.get("grown", false)):
+		return
+	if _npc_age_years(key) < int(tune("npc_adult_years", 12)):
+		return
+	e.grown = true
+	_report("◇ 岁月催人: 【%s】家孩子长大成人, 开始修行" % npc_name(key))
 
 
 ## 聚灵效率 = 境界基数 × 灵根系数 × 功法倍率 × 洞府聚灵阵 ×(1+资质)×(1+食修效率 buff)×(1+灵息体)×(1+气质)
@@ -751,11 +1139,15 @@ func resolve_option(i: int) -> void:
 				_log("◇ 你把这张脸记在心里 —— 有缘自会再见(缘分页仍为传闻中的面孔)。")
 		"travel_meet":
 			var tn: Dictionary = pending.data.npc
+			var pk := String(pending.data.get("pool_key", ""))
 			if i == 0:
-				_enroll_npc(tn)
+				if pk != "":
+					_enroll_pool_npc(pk)
+				else:
+					_enroll_npc(tn)
 				_log("◇ 你与【%s】攀谈几句 —— 入册缘分页(%s)" % [npc_name(String(tn.key)), String(tn.get("id_name", ""))])
 			else:
-				_log("◇ 你把这张脸记在心里 —— 换个去处, 自会遇见别的缘分。")
+				_log("◇ 你把这张脸记在心里 —— %s" % ("这张脸还在世上, 缘未尽自会再见。" if pk != "" else "换个去处, 自会遇见别的缘分。"))
 		"friend_meet":
 			var fn: Dictionary = pending.data.npc
 			if i == 0:
@@ -903,10 +1295,10 @@ func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice
 	_log("—— 前世遗产折价 %d 道韵: %s铸体×%d, 天道眷顾×%d(+%.0f%%冲关率)%s ——" % [spend, trim_txt, forge_times, bless_times, bless_times * BLESS_STEP * 100.0, ("·" + trait_display(traits)) if not traits.is_empty() else ""])
 	_start_life(origin, forge_times, root_choice, traits)
 
-## 开始界面「新开一世」: Meta 归零(道韵/历世/最佳境界全清)并起第 1 世(灵根五行俱全)。
+## 开始界面「新开一世」: Meta 重置(道韵回到起始值, 历世/最佳境界全清)并起第 1 世(灵根五行俱全)。
 ## 只管内存与落盘; 文件级清档由 SaveSystem.clear_all() 先行。
 func new_game() -> void:
-	meta = {"schema": SCHEMA, "dao": 0, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
+	meta = {"schema": SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
 	SaveSystem.save_meta(meta)
 	rebirth({}, 0, 0, {}, [])
 
@@ -1016,6 +1408,8 @@ func _tick_core() -> void:
 			run.npcs[key].gift_q = 0
 	_first_meet_roll()   # 被动首遇检定: 命中弹「初遇」选择框, 攀谈才入册(2026-09-13 修: 拒绝不入册)
 	_worldsim_tick()
+	if rng.randf() < float(tune("world_npc_churn", 0.02)):
+		_world_churn()   # 世界脉动: 偶有新客搬来, 顺手攀一条交情
 	_aff_drift()
 	_favor_gift_tick()      # 好感厚礼: 心动段及以上 NPC 按主角境界差人送菜/送灵植(每月至多一份)
 	_npc_cultivation()      # NPC 修行: 各自周期到点破境(上限渡劫, 话本成精等无境界者不参与)
@@ -1180,6 +1574,15 @@ func farm_reclaim_cost() -> int:
 	if idx < 0 or idx >= costs.size():
 		return -1
 	return int(costs[idx])
+
+## 下一块地所需的境界名: 扩地条件 = 境界序 + 出身加成 ≥ 已开块数 + 1; 已满软上限返回空串。
+func farm_plot_need_realm() -> String:
+	var bonus := 1 if _origin_bonus_plot() else 0
+	var need_ord := int(farm_open_count()) + 1 - bonus
+	if need_ord > int(econ("plot_soft_cap", 9)):
+		return ""
+	var i := clampi(need_ord - 1, 0, DataManager.realms.size() - 1)
+	return String(DataManager.realms[i].get("name", "?"))
 
 ## 是否身负某行(灵根亲和判定): 读 run.roots; 老档无该字段时回退 run.element
 func _root_has(el: String) -> bool:
@@ -1988,6 +2391,8 @@ func npc_arch(key: String) -> Dictionary:
 func npc_name(key: String) -> String:
 	if run.npcs.has(key) and run.npcs[key].has("name"):
 		return String(run.npcs[key].name)   # 随机 NPC: 档案快照在 run 侧
+	if run.has("world_npcs") and (run.world_npcs as Dictionary).has(key):
+		return String(((run.world_npcs as Dictionary)[key] as Dictionary).get("name", key))   # 世界池未识者: 名字照报, 脸不见
 	for n in DataManager.npcs:
 		if String(n.key) == key:
 			return String(n.name)
@@ -2074,6 +2479,8 @@ func _npc_cultivation() -> void:
 		var npc: Dictionary = run.npcs[key]
 		if not bool(npc.get("met", false)):
 			continue
+		if _npc_is_minor(String(key)):
+			continue   # 幼年不修炼(成年礼后入轨)
 		var ord := int(npc.get("realm_ord", -99))
 		if ord == -99:
 			ord = int(npc_arch(key).get("realm_ord", -1))
@@ -2124,6 +2531,8 @@ func npc_male(key: String) -> bool:
 	var g := ""
 	if run.npcs.has(key):
 		g = String(run.npcs[key].get("gender", ""))
+	if g == "" and run.has("world_npcs") and (run.world_npcs as Dictionary).has(key):
+		g = String(((run.world_npcs as Dictionary)[key] as Dictionary).get("gender", ""))
 	if g == "":
 		g = String(npc_arch(key).get("gender", "male"))
 	return g != "female"
@@ -2271,6 +2680,8 @@ func _npc_prompt_check() -> bool:
 		var npc: Dictionary = run.npcs[key]
 		if not bool(npc.get("met", false)):
 			continue
+		if _npc_is_minor(String(key)):
+			continue   # 红线: 幼年绝不进入玩家恋爱线
 		npc.gate = int(npc.gate) + 1
 		var stage := int(npc.stage)
 		if stage < ths.size() and float(npc.aff) >= float(ths[stage]) and int(npc.gate) >= int(tune("gate_months", 24)):
@@ -2447,14 +2858,19 @@ func _travel_tick() -> void:
 		if _rand_count() >= int(tune("travel_name_cap", 20)):
 			_report("游历%s: 遇见几位面熟的路人, 点头而过" % String(info.name))
 			return
-		var npc := npc_generator.generate(rng, run.npcs, info.ids)
+		var pool_key := _pick_pool_npc()
+		var npc: Dictionary = {}
+		if pool_key != "":
+			npc = run.world_npcs[pool_key]
+		else:
+			npc = npc_generator.generate(rng, run.npcs, info.ids)   # 池空回退: 当场造人(不入池, 拒绝即散)
 		if npc.is_empty():
 			_report("游历%s: 人潮里没遇见新鲜面孔" % String(info.name))
 			return
 		_fire_interrupt("游历初遇 · %s" % String(info.name), "行至%s, 你与【%s】(%s)打了个照面 —— %s。相逢自是有缘, 是否攀谈?(相遇不加好感; 入册后可交谈/赠礼/约会)" % [String(info.name), String(npc.name), String(npc.get("id_name", "")), String(npc.get("moe", ""))], [
 			{"t": "攀谈几句(入册)", "need": "无", "result": "入册缘分页: 可交谈/赠礼/约会"},
-			{"t": "记在心里", "need": "无", "result": "不入册 · 换个去处自会再遇他人"},
-		], "travel_meet", {"npc": npc})
+			{"t": "记在心里", "need": "无", "result": ("不入册 · 这张脸还在世上, 换个去处自会再遇" if pool_key != "" else "不入册 · 换个去处自会遇见别的缘分")},
+		], "travel_meet", {"npc": npc, "pool_key": pool_key})
 		return
 	if roll < fm + float(tune("travel_encounter", 0.30)) * mult:
 		var met_rands: Array = []
@@ -2515,6 +2931,9 @@ func _introduce_friend(introducer: String) -> bool:
 func _worldsim_tick() -> void:
 	if is_ended() or run.npcs.is_empty():
 		return
+	_npc_romance_tick()    # NPC 恋爱六段推进/成婚/争风(全员含池内)
+	_npc_family_tick()     # 已婚添丁(遗传造娃)
+	_npc_growth_tick()     # 满 12 岁成年礼
 	var met: Array = []
 	for k in run.npcs:
 		if bool(run.npcs[k].get("met", false)):
@@ -2549,6 +2968,14 @@ func _gossip_pair(met: Array, negative: bool) -> Array:
 		var v := float(e.get("val", 0.0))
 		if (negative and v < 0.0) or (not negative and v >= float(tune("rel_close_min", 35.0))):
 			hit.append([a, b])
+	for e in run.get("world_rels", []):   # 动态边: 至少一端入册即可成话 —— 八卦能提到没见过的脸
+		var a2 := String(e.get("a", ""))
+		var b2 := String(e.get("b", ""))
+		if not (met.has(a2) or met.has(b2)):
+			continue
+		var v2 := float(e.get("val", 0.0))
+		if (negative and v2 < 0.0) or (not negative and v2 >= float(tune("rel_close_min", 35.0))):
+			hit.append([a2, b2])
 	if not hit.is_empty() and rng.randf() < float(tune("worldsim_relation_bias", 0.8)):
 		return hit[rng.randi_range(0, hit.size() - 1)]
 	var a2 := String(met[rng.randi_range(0, met.size() - 1)])
@@ -2692,6 +3119,11 @@ func _normalize_roots(root_choice: Dictionary) -> Array:
 func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_ids := []) -> void:
 	pending = {}
 	month_notes.clear()
+	# 容貌跨世延续: 本函数整换 run, 先把上一世已应用的容貌留底(三生石/转世卡预览的正是它), 新世重新落上
+	var carry_look: Dictionary = {}
+	var prev_lk: Variant = run.get("look", null)
+	if prev_lk is Dictionary and not (prev_lk as Dictionary).is_empty():
+		carry_look = (prev_lk as Dictionary).duplicate(true)
 	# 灵根三源归一: 出身只定风味/地块, 灵根 = 行数(钱) + 持有五行(免费自择); 铸体照常叠加
 	var nr := _normalize_roots(root_choice)
 	var n := int(nr[0])
@@ -2728,8 +3160,14 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 			"inv": {},
 		},
 		"kpi": {"ticks": 0, "interrupts": 0, "floors": 0},
+		"world_npcs": {},
+		"world_rels": [],
+		"npc_romance": {},
 		"ended": false,
 	}
+	if not carry_look.is_empty():
+		run.look = carry_look
+	_seed_world()   # 世界 NPC 池: 未识亦在世, 彼此有关系
 	_wall_seed_opening()   # 入世时照壁正热闹: 预置旧帖(不入月报)
 	_inv_add("chunjiu", "凡", 10)   # 初始家底: 春韭种子 ×10(留种/烹「素炒春韭」皆可用)
 	_log("—— 第 %d 世: 宗主在山道上又捡回了一个孩子。出身【%s】, 灵根 ×%.2f(%s), 16 岁测灵入炼气 ——" % [run.life, run.origin, run.root, root_display()])

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bwpool1smoke"]
+
+[ext_resource type="Script" path="res://tests/world_pool_smoke.gd" id="1_wp"]
+
+[node name="WorldPoolSmoke" type="Node"]
+script = ExtResource("1_wp")

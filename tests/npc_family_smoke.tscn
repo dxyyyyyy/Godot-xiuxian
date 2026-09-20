@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bnpcfam1smoke"]
+
+[ext_resource type="Script" path="res://tests/npc_family_smoke.gd" id="1_nf"]
+
+[node name="NpcFamilySmoke" type="Node"]
+script = ExtResource("1_nf")

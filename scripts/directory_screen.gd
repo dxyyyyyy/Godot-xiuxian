@@ -80,8 +80,6 @@ func _rebuild() -> void:
 	stat.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_content.add_child(stat)
 
-	_content.add_child(_relation_section(ordered))   # NPC 之间的关系网(只显示在册双向者)
-
 	if _open_key != "" and Game.run.npcs.has(_open_key):
 		_open_detail(_open_key)
 
@@ -110,18 +108,22 @@ func _npc_tile(key: String, npc: Dictionary) -> Control:
 
 	var display_name := Game.npc_name(key)
 
+	# 主角同款玉阵头像框(按该 NPC 气质染色; 52px 头像等比缩框, 外框约 71)
+	var k := 52.0 / 132.0
+	var outer := 180.0 * k
 	var avatar_wrap := Control.new()
-	avatar_wrap.custom_minimum_size = Vector2(52, 52)
+	avatar_wrap.custom_minimum_size = Vector2(outer, outer)
 	avatar_wrap.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	avatar_wrap.add_child(Portrait.build_for(key, 52))
+	avatar_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	avatar_wrap.add_child(UiKit.jade_frame(Portrait.build_for(key, 52), UiKit.aura_tint(String(Game.npc_look(key).get("aura", ""))), k))
 	# 性别徽章(左上角)
 	var male := Game.npc_male(key)
 	var gbadge := UiKit.pill("♂" if male else "♀", UiKit.WHITE, UiKit.BLUE_500 if male else UiKit.PINK_400, 10, 600)
-	gbadge.position = Vector2(0, -3)
+	gbadge.position = Vector2(2, 2)
 	avatar_wrap.add_child(gbadge)
 	if bool(npc.get("dao_lu", false)):
 		var ring := UiKit.pill("道侣", UiKit.WHITE, UiKit.RED_400, 9, 600)
-		ring.position = Vector2(34, -4)
+		ring.position = Vector2(outer - 34, 0)
 		avatar_wrap.add_child(ring)
 	vb.add_child(avatar_wrap)
 
@@ -169,59 +171,7 @@ func _npc_tile(key: String, npc: Dictionary) -> Control:
 	return tile
 
 
-# ================= 关系网 =================
-
-## 关系网分区: 列出在册 NPC 之间手写预设的关系(relations.json), 按亲疏从亲到疏。
-## 未入册者不出现 —— 「传闻中的面孔」尚不重要到能牵扯人情。
-func _relation_section(ordered: Array) -> Control:
-	var rows: Array = []
-	for i in range(ordered.size()):
-		for j in range(i + 1, ordered.size()):
-			var a := String(ordered[i])
-			var b := String(ordered[j])
-			if not _is_met(a) or not _is_met(b):
-				continue
-			var rel := Game.relation_between(a, b)
-			if not rel.is_empty():
-				rows.append([a, b, rel])
-	rows.sort_custom(func(x, y): return float(x[2].val) > float(y[2].val))
-	if rows.is_empty():
-		var empty := Control.new()
-		empty.visible = false
-		return empty
-
-	var box := UiKit.pink_box()
-	var bv := VBoxContainer.new()
-	bv.add_theme_constant_override("separation", 6)
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 6)
-	head.add_child(UiKit.label("关系网 · 人情世故", 14, UiKit.PINK_700, 600))
-	head.add_child(UiKit.expander())
-	head.add_child(UiKit.label("%d 段" % rows.size(), 11, UiKit.PINK_400))
-	bv.add_child(head)
-	for r in rows:
-		var a := String(r[0])
-		var b := String(r[1])
-		var rel: Dictionary = r[2]
-		var v := float(rel.get("val", 0.0))
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 6)
-		row.add_child(UiKit.label(Game.npc_name(a), 12, UiKit.PINK_700, 500))
-		row.add_child(UiKit.pill(String(rel.get("tag", "旧识")), UiKit.WHITE, _relation_color(v), 11, 600))
-		row.add_child(UiKit.label("·", 12, UiKit.PINK_300))
-		row.add_child(UiKit.label(Game.npc_name(b), 12, UiKit.PINK_700, 500))
-		row.add_child(UiKit.expander())
-		var vl := UiKit.label("%+d" % int(v), 11, _relation_color(v), 600)
-		vl.custom_minimum_size = Vector2(34, 0)
-		vl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		row.add_child(vl)
-		bv.add_child(row)
-		var nl := UiKit.label(String(rel.get("note", "")), 11, UiKit.PINK_400)
-		nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		bv.add_child(nl)
-	box.add_child(UiKit.margin_wrap(bv, 12))
-	return box
-
+# ================= 关系（共用小件, 供详情弹层） =================
 
 func _is_met(key: String) -> bool:
 	return Game.run.npcs.has(key) and bool(Game.run.npcs[key].get("met", false))
@@ -244,7 +194,11 @@ func _open_detail(key: String) -> void:
 	_close_detail()
 	_open_key = key
 	var npc: Dictionary = Game.run.npcs.get(key, {})
-	if npc.is_empty() or not bool(npc.get("met", false)):
+	var pool_view := false
+	if npc.is_empty():
+		npc = (Game.run.get("world_npcs", {}) as Dictionary).get(key, {})
+		pool_view = not npc.is_empty()   # 世界池未识者: 仅供测试·人物一览查看(无好感/操作)
+	if npc.is_empty() or (not pool_view and not bool(npc.get("met", false))):
 		_open_key = ""
 		return
 
@@ -285,8 +239,8 @@ func _open_detail(key: String) -> void:
 	# 好感
 	var aff_row := HBoxContainer.new()
 	aff_row.add_theme_constant_override("separation", 8)
-	aff_row.add_child(UiKit.progress(float(npc.aff) / 1000.0, _stage_color(stage)))
-	var aff_lb := UiKit.label("%.0f" % float(npc.aff), 12, UiKit.PINK_600, 600)
+	aff_row.add_child(UiKit.progress(float(npc.get("aff", 0.0)) / 1000.0, _stage_color(stage)))
+	var aff_lb := UiKit.label("%.0f" % float(npc.get("aff", 0.0)), 12, UiKit.PINK_600, 600)
 	aff_lb.custom_minimum_size = Vector2(40, 0)
 	aff_lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	aff_row.add_child(aff_lb)
@@ -329,7 +283,7 @@ func _open_detail(key: String) -> void:
 	detail.add_child(UiKit.margin_wrap(dv, 10))
 	cv.add_child(detail)
 
-	cv.add_child(_relation_box(key))
+	cv.add_child(_relation_box(key, pool_view))
 
 	if String(Game.run.get("focus", "")) == key:
 		cv.add_child(UiKit.label("♥ 特别关注中 —— 他人好感将随岁月转淡，留意故人心思", 12, UiKit.RED_400))
@@ -338,15 +292,16 @@ func _open_detail(key: String) -> void:
 	var acts := HBoxContainer.new()
 	acts.add_theme_constant_override("separation", 6)
 	var focused := String(Game.run.get("focus", "")) == key
-	acts.add_child(_mini_button("取消特别关注" if focused else "特别关注", func() -> void:
-		Game.set_focus("" if focused else key)
-		_open_detail(key)
-	))
-	if bool(npc.get("dao_lu", false)):
-		acts.add_child(_mini_button("解契", func() -> void:
-			Game.dao_cancel(key)
+	if not pool_view:
+		acts.add_child(_mini_button("取消特别关注" if focused else "特别关注", func() -> void:
+			Game.set_focus("" if focused else key)
 			_open_detail(key)
 		))
+		if bool(npc.get("dao_lu", false)):
+			acts.add_child(_mini_button("解契", func() -> void:
+				Game.dao_cancel(key)
+				_open_detail(key)
+			))
 	acts.add_child(UiKit.expander())
 	acts.add_child(_mini_button("关闭", _close_detail))
 	cv.add_child(acts)
@@ -361,12 +316,13 @@ func _close_detail() -> void:
 
 # ================= 关系（详情弹层） =================
 
-## NPC 详情里的「关系」区: Ta 与在册众人的关系 + 由此带给你的情面加成。无关系则返回隐藏控件。
-func _relation_box(key: String) -> Control:
+## NPC 详情里的「关系」区: Ta 与在册众人的关系 —— 对方头像 + 姓名 + 亲密度, 点击格子弹出该人详情。无关系则返回隐藏控件。
+## show_all(人物一览的池内视图)= 不过滤已识: 列出其全部关系(含其他未识者, 灰显+「未识」标); 常规名录仍只列已识者。
+func _relation_box(key: String, show_all := false) -> Control:
 	var items: Array = []
 	for r in Game.npc_relations(key):
 		var peer := String(r.get("peer", ""))
-		if not _is_met(peer):
+		if not show_all and not _is_met(peer):
 			continue
 		items.append(r)
 	if items.is_empty():
@@ -379,31 +335,44 @@ func _relation_box(key: String) -> Control:
 	bv.add_theme_constant_override("separation", 6)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 6)
-	if not items.is_empty():
-		head.add_child(UiKit.label("关系", 12, UiKit.PINK_700, 600))
-		head.add_child(UiKit.expander())
-		var nk := UiKit.label("%d 段" % items.size(), 11, UiKit.PINK_400)
-		nk.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		head.add_child(nk)
-		bv.add_child(head)
-		var hint := Game.relation_halo_hint(key)
-		if hint != "":
-			var hl := UiKit.label(hint, 11, UiKit.PINK_400)
-			hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			bv.add_child(hl)
+	head.add_child(UiKit.label("关系", 12, UiKit.PINK_700, 600))
+	head.add_child(UiKit.expander())
+	head.add_child(UiKit.label("%d 段" % items.size(), 11, UiKit.PINK_400))
+	bv.add_child(head)
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override("h_separation", 12)
+	flow.add_theme_constant_override("v_separation", 8)
 	for r in items:
 		var peer := String(r.get("peer", ""))
 		var v := float(r.get("val", 0.0))
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 5)
-		row.add_child(UiKit.label(Game.npc_name(peer), 12, UiKit.PINK_700, 600))
-		row.add_child(UiKit.pill(String(r.get("tag", "旧识")), UiKit.WHITE, _relation_color(v), 10, 600))
-		row.add_child(UiKit.expander())
-		row.add_child(UiKit.label("%+d" % int(v), 11, _relation_color(v), 600))
-		bv.add_child(row)
-		var nl := UiKit.label(String(r.get("note", "")), 11, UiKit.PINK_400)
-		nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		bv.add_child(nl)
+		var peer_met := _is_met(peer)
+		var cell := PanelContainer.new()
+		cell.add_theme_stylebox_override("panel", UiKit.stylebox(Color(0, 0, 0, 0), 8))
+		var item := VBoxContainer.new()
+		item.add_theme_constant_override("separation", 2)
+		var av := CenterContainer.new()
+		av.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var portrait := Portrait.build_for(peer, 40)
+		if not peer_met:
+			portrait.modulate = Color(1, 1, 1, 0.45)   # 未识者: 灰显
+		av.add_child(portrait)
+		item.add_child(av)
+		var nl := UiKit.label(Game.npc_name(peer) + ("" if peer_met else "·未识"), 10, UiKit.PINK_600 if peer_met else UiKit.GRAY_400, 500, HORIZONTAL_ALIGNMENT_CENTER)
+		nl.custom_minimum_size = Vector2(44, 0)
+		nl.clip_text = true
+		item.add_child(nl)
+		item.add_child(UiKit.label("%+d" % int(v), 11, _relation_color(v), 600, HORIZONTAL_ALIGNMENT_CENTER))
+		cell.add_child(item)
+		# 命中层(铺满格): 点击跳转到该人详情弹层
+		var hit := Button.new()
+		hit.focus_mode = Control.FOCUS_NONE
+		hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+			hit.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+		hit.pressed.connect(_open_detail.bind(peer))
+		cell.add_child(hit)
+		flow.add_child(cell)
+	bv.add_child(flow)
 	box.add_child(UiKit.margin_wrap(bv, 10))
 	return box
 
@@ -423,6 +392,8 @@ func _identity_name(key: String, npc: Dictionary) -> String:
 
 ## 境界显示: 固定 NPC 用档案标签(渡劫后期/金丹/话本成精…), 随机 NPC 按 ordinal 反查 realms.json
 func _npc_realm(key: String, npc: Dictionary) -> String:
+	if Game._npc_is_minor(key):
+		return "幼年"
 	# 破境后的 run 侧标签优先(随修炼推进), 否则用 GDD 档案标签
 	var npc_lbl := String(npc.get("realm", ""))
 	if npc_lbl != "":

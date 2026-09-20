@@ -60,7 +60,8 @@ func _farm_card() -> PanelContainer:
 	head.add_child(UiKit.expander())
 	head.add_child(UiKit.label("灵石 %d" % int(f.stones), 14, UiKit.GOLD_600, 600))
 	head.add_child(UiKit.hspace(8))
-	head.add_child(UiKit.label("%d/%d 块（随境界扩）" % [Game.farm_open_count(), Game.farm_cap()], 12, UiKit.PINK_400))
+	var need_r := Game.farm_plot_need_realm()
+	head.add_child(UiKit.label("%d/%d 块（%s）" % [Game.farm_open_count(), Game.farm_cap(), ("下一块需「%s」" % need_r) if need_r != "" else "已达上限"], 12, UiKit.PINK_400))
 	cv.add_child(head)
 
 	var grid := GridContainer.new()
@@ -96,7 +97,8 @@ func _plot_tile(p: Dictionary, idx: int) -> PanelContainer:
 			vb.add_child(UiKit.label("%d 灵石" % cost, 11, UiKit.GOLD_600, 500, HORIZONTAL_ALIGNMENT_CENTER))
 		else:
 			vb.add_child(UiKit.label("未开垦", 12, UiKit.GRAY_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
-			vb.add_child(UiKit.label("突破扩地", 11, UiKit.GRAY_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
+			var need := Game.farm_plot_need_realm()
+			vb.add_child(UiKit.label(("需「%s」扩地" % need) if need != "" else "已至上限", 11, UiKit.GRAY_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
 		tile.add_child(vb)
 		_ignore_mouse(vb)
 		if can:

@@ -101,5 +101,15 @@
  "focus_neglect_months": 12,
  "npc_bt_years": 10,
  "npc_cult_mult": 0.5,
- "npc_break_bonus": 0.0
+ "npc_break_bonus": 0.0,
+ "world_npc_count": 50,
+ "world_rel_per_npc": 1.5,
+ "world_pool_prefer_met": 0.6,
+ "world_npc_churn": 0.02,
+ "npc_court_gain_min": 4,
+ "npc_court_gain_max": 12,
+ "npc_court_seed_rate": 0.15,
+ "npc_baby_rate": 0.04,
+ "npc_kids_max": 2,
+ "npc_adult_years": 12
 }

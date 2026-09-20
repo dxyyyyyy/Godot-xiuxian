@@ -121,30 +121,37 @@ func _profile_card() -> PanelContainer:
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 5)
 
+	# 左: 头像(三生石同款玉阵框, 随气质染色; 框体总高与右侧条目齐平) | 右: 名号 + 修为/气血条; 五维小格在下方通栏
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 10)
-	top.add_child(Portrait.build_from(Game.player_look(), 40, Game.player_male()))
-	var name_vb := VBoxContainer.new()
-	name_vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	name_vb.add_theme_constant_override("separation", 1)
-	name_vb.add_child(UiKit.label(Game.realm_display(), 14, UiKit.PINK_700, 600))
-	name_vb.add_child(UiKit.label("出身%s · %s · 灵根×%.2f" % [String(Game.run.origin), Game.root_display(), float(Game.run.root)], 10, UiKit.PINK_400))
-	top.add_child(name_vb)
-	top.add_child(UiKit.expander())
+	var av := CenterContainer.new()
+	av.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var look := Game.player_look()
+	var k := 132.0 / 180.0
+	av.add_child(UiKit.jade_frame(Portrait.build_from(look, 132.0 * k, Game.player_male()), UiKit.aura_tint(String(look.get("aura", ""))), k))
+	top.add_child(av)
+	var right := VBoxContainer.new()
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right.add_theme_constant_override("separation", 5)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 6)
+	var nv := VBoxContainer.new()
+	nv.add_theme_constant_override("separation", 1)
+	nv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nv.add_child(UiKit.label(Game.realm_display(), 14, UiKit.PINK_700, 600))
+	var ol := UiKit.label("出身%s · %s · 灵根×%.2f" % [String(Game.run.origin), Game.root_display(), float(Game.run.root)], 10, UiKit.PINK_400)
+	ol.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nv.add_child(ol)
+	head.add_child(nv)
 	if Game.is_ended():
-		top.add_child(UiKit.pill("此世已了 · %s" % String(Game.run.get("end_kind", "落幕")), UiKit.WHITE, UiKit.GRAY_400, 10, 600))
-	cv.add_child(top)
-
-	var bars := GridContainer.new()
-	bars.columns = 2
-	bars.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bars.add_theme_constant_override("h_separation", 8)
-	bars.add_theme_constant_override("v_separation", 8)
+		head.add_child(UiKit.pill("此世已了 · %s" % String(Game.run.get("end_kind", "落幕")), UiKit.WHITE, UiKit.GRAY_400, 10, 600))
+	right.add_child(head)
 	var need := Game.layer_need()
 	var cult := float(Game.run.cult)
-	bars.add_child(_stat_bar("修为 · %s" % ("圆满 · 自动冲关" if Game.realm_ready() else "%s/%s" % [Game._fmt(cult), Game._fmt(need)]), cult / need if need > 0 else 0.0, "%d%%" % int(round(cult / need * 100.0)) if need > 0 else "100%"))
-	bars.add_child(_stat_bar("气血", float(Game._qi()) / float(Game.qi_max()), "%d/%d" % [Game._qi(), Game.qi_max()]))
-	cv.add_child(bars)
+	right.add_child(_stat_bar("修为 · %s" % ("圆满 · 自动冲关" if Game.realm_ready() else "%s/%s" % [Game._fmt(cult), Game._fmt(need)]), cult / need if need > 0 else 0.0, "%d%%" % int(round(cult / need * 100.0)) if need > 0 else "100%"))
+	right.add_child(_stat_bar("气血", float(Game._qi()) / float(Game.qi_max()), "%d/%d" % [Game._qi(), Game.qi_max()]))
+	top.add_child(right)
+	cv.add_child(top)
 
 	var infos := GridContainer.new()
 	infos.columns = 5

@@ -1,7 +1,7 @@
 extends Control
 ## 开始界面：标题 + 存档摘要 + 继续/新开。选毕切主场景（res://scenes/main.tscn）。
 ## 「继续修行」直接进主界面；「新开一世」清双层存档 → Game.new_game() 起第 1 世 →
-## 主界面自动落到玉牌捏脸页（GameState.fresh_start），应用容貌后回游戏。
+## 主界面自动落到玉牌三生石（GameState.fresh_start），只能经「入世/转世」按钮入局。
 
 const UiKit := preload("res://scripts/ui_kit.gd")
 const MAIN_SCENE := "res://scenes/main.tscn"

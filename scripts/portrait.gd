@@ -9,6 +9,7 @@ extends RefCounted
 const UiKit := preload("res://scripts/ui_kit.gd")
 const NG := preload("res://sim/NpcGenerator.gd")
 
+## 气质色（与 data/auras.json 的 color 字段保持一致；app_base._aura_tint 亦取自该数据）
 const AURA_COLOR := {
 	"疏懒": Color("f59e0b"), "清冷": Color("38bdf8"), "热络": Color("f472b6"),
 	"拘谨": Color("9ca3af"), "悠然": Color("2dd4bf"),
@@ -99,6 +100,11 @@ static func _appearance(key: String) -> Dictionary:
 		if rv is Dictionary:
 			for k in (rv as Dictionary):
 				a[k] = (rv as Dictionary)[k]   # 随机 NPC 快照覆盖档案
+	elif Game.run.has("world_npcs") and (Game.run.world_npcs as Dictionary).has(key):
+		var wv: Variant = ((Game.run.world_npcs as Dictionary)[key] as Dictionary).get("appearance", null)
+		if wv is Dictionary:
+			for k in (wv as Dictionary):
+				a[k] = (wv as Dictionary)[k]   # 世界池未识者: 快照出脸(仅调试/传闻视图用, 名录不露)
 	return a
 
 

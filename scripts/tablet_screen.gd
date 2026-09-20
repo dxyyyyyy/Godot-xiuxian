@@ -10,6 +10,8 @@ const APPS := [
 	{"id": "lifestone", "title": "三生石", "icon": "heart"},
 	{"id": "face", "title": "捏脸", "icon": "users", "hidden": true},
 	{"id": "npcface", "title": "捏脸 · 他人", "icon": "users", "hidden": true},
+	{"id": "kidface", "title": "幼儿捏脸", "icon": "users", "hidden": true},
+	{"id": "oldface", "title": "老年捏脸", "icon": "users", "hidden": true},
 	{"id": "storage", "title": "库房", "icon": "package"},
 	{"id": "cave", "title": "洞府", "icon": "home"},
 	{"id": "market", "title": "坊市", "icon": "coins"},
@@ -23,6 +25,8 @@ const APP_SCRIPTS := {
 	"lifestone": preload("res://scripts/apps/app_lifestone.gd"),
 	"face": preload("res://scripts/apps/app_face.gd"),
 	"npcface": preload("res://scripts/apps/app_face_npc.gd"),
+	"kidface": preload("res://scripts/apps/app_face_age.gd"),
+	"oldface": preload("res://scripts/apps/app_face_age.gd"),
 	"storage": preload("res://scripts/apps/app_storage.gd"),
 	"cave": preload("res://scripts/apps/app_cave.gd"),
 	"market": preload("res://scripts/apps/app_market.gd"),
@@ -76,14 +80,14 @@ func _on_app_exit() -> void:
 
 
 ## 主页再点一次「玉牌」即收起（回到桌面层）。
+## 开局/转世态下返回只到桌面，不进游戏——入局唯一通道是三生石的「入世/转世」按钮(main 侧兜底)。
 func back_to_desktop() -> void:
 	if GameState.face_returning:
 		GameState.face_returning = false
 		_open("lifestone")   # 捏脸返回 → 回三生石(未应用容貌)
 		return
-	if GameState.fresh_start:
-		GameState.fresh_start = false
-		leave_requested.emit()   # 三生石返回即入世
+	if GameState.fresh_start or bool(Game.run.get("ended", false)):
+		_open("lifestone")   # 锁定态: 桌面也不露, 只回三生石
 		return
 	_current = ""
 	for k in _pages:
@@ -98,6 +102,9 @@ func _open(app_id: String) -> void:
 	_desktop.visible = false
 	for k in _pages:
 		_pages[k].visible = k == app_id
+	# 锁定态(开局/转世): ‹› 快切全藏; 三生石连「返回」也藏, 只剩「入世/转世」一条路
+	var locked := GameState.fresh_start or bool(Game.run.get("ended", false))
+	_pages[app_id].set_nav_locked(locked, locked and app_id == "lifestone")
 	_refresh_badges()
 
 

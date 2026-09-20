@@ -49,13 +49,14 @@ func _ready() -> void:
 	_build_event_layer()
 	_build_end_layer()
 	GameState.tablet_unread_changed.connect(_refresh_tablet_badge)
+	GameState.npc_detail_requested.connect(_on_npc_detail_requested)
 	_screens["tablet"].leave_requested.connect(_on_tablet_leave)
 	Game.interrupted.connect(_on_interrupted)
 	Game.ended.connect(_on_ended)
 	_switch_to(_active)
 	_refresh_tablet_badge()
-	if GameState.fresh_start:
-		_nav_bar.visible = false   # 入世流程不显底栏
+	if GameState.fresh_start or bool(Game.run.get("ended", false)):
+		_nav_bar.visible = false   # 入世/转世流程不显底栏(读档遇到未转世的死亡档同样锁在玉牌)
 		_switch_to("tablet")   # 新开一世 → 三生石选属性 + 捏脸
 		_screens["tablet"].open_app("lifestone")
 
@@ -370,12 +371,21 @@ func _build_end_layer() -> void:
 	cv.add_child(go)
 
 
+## 人物一览等处的「查看某 NPC 详情」请求: 不切屏, 直接弹层(CanvasLayer 不随目录页隐藏)。
+func _on_npc_detail_requested(key: String) -> void:
+	_screens["directory"]._open_detail(key)
+
+
 func _on_tablet_leave() -> void:
+	# 开局捏人/上世已了未转世: 游戏界面锁住, 只能经三生石「入世/转世」按钮入局
+	if GameState.fresh_start or bool(Game.run.get("ended", false)):
+		return
 	_nav_bar.visible = true   # 恢复底栏
 	_switch_to("schedule")   # 玉牌 app 退出（如捏脸应用容貌）→ 回游戏主界面
 
 
 func _on_ended(summary: Dictionary) -> void:
+	_nav_bar.visible = false   # 转世前锁底栏: 结局弹窗 → 三生石, 只能经「转世」入局
 	_end_body.text = "【%s】\n享年 %d 岁 · 止步%s · 出身%s\n道韵 +%d（累计 %d）· 印记羁绊 %d · 决策 %d 次\n\n玉牌三生石可炼灵根、铸体、纳眷顾，转世再来。" % [
 		String(summary.get("kind", "落幕")), int(summary.get("years", 0)), String(summary.get("realm", "?")),
 		String(summary.get("origin", "?")), int(summary.get("dao", 0)), int(summary.get("total_dao", 0)),

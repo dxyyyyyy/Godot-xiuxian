@@ -81,10 +81,10 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 	# —— 容貌 + 五维图(同行) ——
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 6)
-	top_row.custom_minimum_size = Vector2(0, 190)
+	top_row.custom_minimum_size = Vector2(0, 200)
 	top_row.add_child(_face_portrait())
 	var radar := RootRadar.new()
-	radar.custom_minimum_size = Vector2(48, 54)
+	radar.custom_minimum_size = Vector2(170, 184)
 	radar.setup(PackedStringArray(Game.ELEMENTS), PackedStringArray(_root_els), "")
 	radar.toggled.connect(_toggle_root_el)
 	var radar_center := CenterContainer.new()
@@ -244,7 +244,7 @@ func _toggle_trait(id: String) -> void:
 	_rebuild()
 
 
-## 容貌预览：大圆形玉底 + portrait，点击进入捏脸工坊。
+## 容貌预览：玉阵头像框(UiKit.jade_frame) + portrait，点击进入捏脸工坊。
 func _face_portrait() -> Control:
 	var vb := VBoxContainer.new()
 	vb.add_theme_constant_override("separation", 6)
@@ -256,67 +256,9 @@ func _face_portrait() -> Control:
 	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
 		btn.add_theme_stylebox_override(st, StyleBoxEmpty.new())
 
-	# 外层容器：同心装饰环 + 头像
-	var frame := Control.new()
-	frame.custom_minimum_size = Vector2(180, 180)
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# 最外圈：淡金光晕（柔和辐射感）
-	var glow := PanelContainer.new()
-	var glow_sb := UiKit.stylebox(Color(UiKit.GOLD_400, 0.12), 999)
-	glow_sb.set_border_width_all(1)
-	glow_sb.border_color = Color(UiKit.GOLD_400, 0.25)
-	glow.add_theme_stylebox_override("panel", glow_sb)
-	glow.custom_minimum_size = Vector2(180, 180)
-	glow.position = Vector2.ZERO
-	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_child(glow)
-
-	# 中环：鎏金阵纹边（实色金边 + 白玉底）
-	var ring := PanelContainer.new()
-	var ring_sb := UiKit.stylebox(UiKit.PINK_50, 999)
-	ring_sb.set_border_width_all(3)
-	ring_sb.border_color = UiKit.GOLD_400
-	ring.add_theme_stylebox_override("panel", ring_sb)
-	ring.custom_minimum_size = Vector2(158, 158)
-	ring.position = Vector2(11, 11)
-	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_child(ring)
-
-	# 内圈：渐变底色（青玉 → 粉雾，贴合玉牌气质）
-	var inner := PanelContainer.new()
-	var inner_sb := UiKit.stylebox(Color(UiKit.JADE_100, 0.6), 999)
-	inner_sb.set_border_width_all(1)
-	inner_sb.border_color = Color(UiKit.GOLD_200, 0.5)
-	inner.add_theme_stylebox_override("panel", inner_sb)
-	inner.custom_minimum_size = Vector2(144, 144)
-	inner.position = Vector2(18, 18)
-	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_child(inner)
-
-	# 头像本体
-	var male := String(Game.player_look().get("gender", "female")) == "male"
-	var portrait_wrap := CenterContainer.new()
-	portrait_wrap.custom_minimum_size = Vector2(144, 144)
-	portrait_wrap.position = Vector2(18, 18)
-	portrait_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait_wrap.add_child(Portrait.build_from(Game.player_look(), 132, male))
-	frame.add_child(portrait_wrap)
-
-	# 四角小点装饰（阵纹节点感）
-	for angle in [0, 90, 180, 270]:
-		var rad := deg_to_rad(angle + 45)
-		var dot := PanelContainer.new()
-		var dot_sb := UiKit.stylebox(Color(UiKit.GOLD_400, 0.6), 999)
-		dot.add_theme_stylebox_override("panel", dot_sb)
-		dot.custom_minimum_size = Vector2(5, 5)
-		var cx := 90.0 + cos(rad) * 82.0 - 2.5
-		var cy := 90.0 + sin(rad) * 82.0 - 2.5
-		dot.position = Vector2(cx, cy)
-		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		frame.add_child(dot)
-
-	btn.add_child(frame)
+	var look := Game.player_look()
+	var male := String(look.get("gender", "female")) == "male"
+	btn.add_child(UiKit.jade_frame(Portrait.build_from(look, 132, male), UiKit.aura_tint(String(look.get("aura", "")))))
 
 	btn.pressed.connect(func() -> void:
 		GameState.face_returning = true

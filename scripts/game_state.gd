@@ -5,6 +5,12 @@ extends Node
 
 signal chronicle_changed
 signal tablet_unread_changed
+signal npc_detail_requested(key: String)   # 跨屏请求查看某 NPC 详情(main 接: 切名录页 + 开弹层)
+
+
+## 请求打开某 NPC 详情(玉牌·测试·人物一览等任意界面均可调用)。
+func request_npc_detail(key: String) -> void:
+	npc_detail_requested.emit(key)
 
 const SAVE_PATH := "user://savegame.json"
 const AUTOSAVE_INTERVAL := 30.0

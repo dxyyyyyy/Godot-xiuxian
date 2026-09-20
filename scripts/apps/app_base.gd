@@ -12,6 +12,8 @@ var app_id := ""
 var app_title := ""
 var app_order: Array = []   # 玉牌桌面上的 app 顺序，供 ‹ › 快切
 var content_vb: VBoxContainer
+var _back_btn: Button = null
+var _switcher: HBoxContainer = null
 ## 通栏开关（默认开）：内容区去左右/下边距、块间距归零、隐藏滚动条、白底层铺满；
 ## 页面内容用 bleed_head/bleed_section 拼装（纪事同款），不想通栏的子类在 _init 里置 false。
 var full_bleed := true
@@ -120,18 +122,28 @@ func _title_bar() -> PanelContainer:
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 4)
 	bar.add_child(hb)
-	hb.add_child(_title_btn("返回", true))   # 返回桌面
+	_back_btn = _title_btn("返回", true)   # 返回桌面
+	hb.add_child(_back_btn)
 	var center := CenterContainer.new()
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(UiKit.label(app_title, 17, UiKit.JADE_800, 600, HORIZONTAL_ALIGNMENT_CENTER))
 	hb.add_child(center)
-	var switcher := HBoxContainer.new()
-	switcher.add_theme_constant_override("separation", 4)
-	switcher.add_child(_title_btn("‹", false))
-	switcher.add_child(_title_btn("›", false))
-	hb.add_child(switcher)
+	_switcher = HBoxContainer.new()
+	_switcher.add_theme_constant_override("separation", 4)
+	_switcher.add_child(_title_btn("‹", false))
+	_switcher.add_child(_title_btn("›", false))
+	hb.add_child(_switcher)
 	return bar
+
+
+## 锁定态(开局/转世)收走标题栏跳转: ‹› 快切一律藏, 三生石连「返回」也藏(捏脸页留返回→三生石)。
+## 页面是常驻实例, 每次 _open 由 tablet_screen 按当前状态重设。
+func set_nav_locked(no_switch: bool, no_back: bool) -> void:
+	if _switcher != null:
+		_switcher.visible = not no_switch
+	if _back_btn != null:
+		_back_btn.visible = not no_back
 
 
 ## 标题栏文字按钮：返回 = 「返回」文字；快切 prev = ‹、next = ›（不依赖贴图旋转，方向一眼可辨）。

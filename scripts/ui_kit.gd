@@ -184,6 +184,77 @@ static func circle(d: float, from: Color, to := Color.TRANSPARENT, icon_name := 
 	return p
 
 
+## 玉阵头像框（三生石同款）：淡色光晕 + 阵纹环 + 玉底内圈 + 四角阵纹节点，头像居中嵌入（建议 132px）。
+## tint 传入气质色时环纹/光晕/玉底随其染色，缺省为鎏金；k 为整体缩放(1=外框 180, 头像 132)。
+static func jade_frame(portrait: Control, tint := Color(0, 0, 0, 0), k := 1.0) -> Control:
+	var ac := GOLD_400 if tint.a <= 0.0 else tint
+	var fill := JADE_100 if tint.a <= 0.0 else JADE_100.lerp(ac, 0.3)
+	var outer := 180.0 * k
+	var frame := Control.new()
+	frame.custom_minimum_size = Vector2(outer, outer)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# 最外圈：淡色光晕（柔和辐射感）
+	var glow := PanelContainer.new()
+	var glow_sb := stylebox(Color(ac, 0.12), 999)
+	glow_sb.set_border_width_all(1)
+	glow_sb.border_color = Color(ac, 0.25)
+	glow.add_theme_stylebox_override("panel", glow_sb)
+	glow.custom_minimum_size = Vector2(outer, outer)
+	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(glow)
+
+	# 中环：阵纹边（实色环边 + 白玉底）
+	var ring_d := 158.0 * k
+	var ring := PanelContainer.new()
+	var ring_sb := stylebox(PINK_50, 999)
+	ring_sb.set_border_width_all(int(maxi(2, roundi(3 * k))))
+	ring_sb.border_color = ac
+	ring.add_theme_stylebox_override("panel", ring_sb)
+	ring.custom_minimum_size = Vector2(ring_d, ring_d)
+	ring.position = Vector2((outer - ring_d) / 2.0, (outer - ring_d) / 2.0)
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(ring)
+
+	# 内圈：渐变底色（青玉微染气质色，贴合玉牌气质）
+	var inner_d := 144.0 * k
+	var inner := PanelContainer.new()
+	var inner_sb := stylebox(Color(fill, 0.6), 999)
+	inner_sb.set_border_width_all(1)
+	inner_sb.border_color = Color(ac.lightened(0.25), 0.5)
+	inner.add_theme_stylebox_override("panel", inner_sb)
+	inner.custom_minimum_size = Vector2(inner_d, inner_d)
+	inner.position = Vector2((outer - inner_d) / 2.0, (outer - inner_d) / 2.0)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(inner)
+
+	# 头像本体
+	var wrap := CenterContainer.new()
+	wrap.custom_minimum_size = Vector2(inner_d, inner_d)
+	wrap.position = inner.position
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(portrait)
+	frame.add_child(wrap)
+
+	# 四角小点装饰（阵纹节点感）
+	var ds := maxf(4.0, 5.0 * k)
+	for angle in [0, 90, 180, 270]:
+		var rad := deg_to_rad(angle + 45)
+		var dot := PanelContainer.new()
+		var dot_sb := stylebox(Color(ac, 0.6), 999)
+		dot.add_theme_stylebox_override("panel", dot_sb)
+		dot.custom_minimum_size = Vector2(ds, ds)
+		dot.position = Vector2(outer / 2.0 + cos(rad) * 82.0 * k - ds / 2.0, outer / 2.0 + sin(rad) * 82.0 * k - ds / 2.0)
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.add_child(dot)
+	return frame
+
+
+## 气质对应色(auras.json 的 color 字段)，无匹配/未设气质回退鎏金。
+static func aura_tint(aura: String) -> Color:
+	return Color.from_string(String(DataManager.aura_def(aura).get("color", "")), GOLD_400)
+
+
 static func label(text: String, size := 14, color := PINK_700, weight := 400, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var l := Label.new()
 	l.text = text

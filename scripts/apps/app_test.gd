@@ -1,10 +1,13 @@
 extends "res://scripts/apps/app_base.gd"
-## 测试：灰盒调试旋钮——高倍速时速 + 主动隐退重开（无境界限制）。
+## 测试：灰盒调试旋钮——高倍速时速 + 主动隐退重开（无境界限制）+ 人物一览（世界池调试视图）。
 ## 自日程页迁入；不影响铁律（一切结算仍只走 tick_month 唯一入口）。
+
+const Portrait := preload("res://scripts/portrait.gd")
 
 var _content: VBoxContainer
 var _rebuild_pending := false
 var _item_dlg: Node = null   # 添加灵植的二级弹层
+var _stage := "main"         # main=测试旋钮页 / npcs=人物一览页(两段式, 仿捏脸·他人)
 
 
 func _notification(what: int) -> void:
@@ -35,10 +38,16 @@ func _rebuild() -> void:
 	for c in _content.get_children():
 		_content.remove_child(c)
 		c.queue_free()
-	_content.add_child(_face_card())      # 捏脸入口(桌面无阵纹, 自测试页进)
-	_content.add_child(_npc_face_card())  # 他人捏脸: 固定 NPC 容貌编辑
 	if Game.run.is_empty():
 		return
+	if _stage == "npcs":
+		_content.add_child(_npcs_page())
+		return
+	_content.add_child(_face_card())      # 捏脸入口(桌面无阵纹, 自测试页进)
+	_content.add_child(_npc_face_card())  # 他人捏脸: 固定 NPC 容貌编辑
+	_content.add_child(_age_face_card("kidface", "幼儿捏脸", "编辑本世孩子的容貌（born_m 且未满 12 岁）。写入本世快照，一世位、转世即散。"))
+	_content.add_child(_age_face_card("oldface", "老年捏脸", "编辑老世辈的容貌（花甲之年的孩子、或化神以上境界者）。同样只写本世快照。"))
+	_content.add_child(_npcs_card())
 	_content.add_child(_speed_card())
 	_content.add_child(_cheat_card())
 	_content.add_child(_retire_card())
@@ -70,6 +79,120 @@ func _face_card() -> PanelContainer:
 	cv.add_child(_action_button("进入捏脸工坊", func() -> void: open_app.emit("face"), true))
 	c.add_child(UiKit.margin_wrap(cv, 16))
 	return c
+
+
+## 幼儿/老年捏脸入口: 共用 app_face_age 编辑器(按 app_id 分模式), 只写本世 run 快照。
+func _age_face_card(app: String, title: String, desc: String) -> PanelContainer:
+	var c := bleed_section()
+	var cv := VBoxContainer.new()
+	cv.add_theme_constant_override("separation", 8)
+	cv.add_child(UiKit.label(title, 16, UiKit.PINK_700, 600))
+	var d := UiKit.label(desc, 12, UiKit.PINK_400)
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cv.add_child(d)
+	cv.add_child(_action_button("进入" + title, func() -> void: open_app.emit(app), true))
+	c.add_child(UiKit.margin_wrap(cv, 16))
+	return c
+
+
+## 人物一览入口(调试): 本世所有已生成 NPC —— 已入册 / 世界池(未识) / 未遇固定, 点按钮进二级页。
+## 池内未识者仅此页可见(名录与详情弹层仍不露脸), 供验证世界池生成与关系网。
+func _npcs_card() -> PanelContainer:
+	var c := bleed_section()
+	var cv := VBoxContainer.new()
+	cv.add_theme_constant_override("separation", 8)
+	cv.add_child(UiKit.label("人物一览", 16, UiKit.PINK_700, 600))
+	cv.add_child(UiKit.label(_npcs_caption(), 11, UiKit.PINK_400))
+	cv.add_child(_action_button("进入人物一览", func() -> void:
+		_stage = "npcs"
+		_rebuild()
+	))
+	c.add_child(UiKit.margin_wrap(cv, 16))
+	return c
+
+
+func _npcs_caption() -> String:
+	var pool: Dictionary = Game.run.get("world_npcs", {})
+	var rels: Array = Game.run.get("world_rels", [])
+	var enrolled := 0
+	for k in Game.run.npcs:
+		if bool(Game.run.npcs[k].get("met", false)):
+			enrolled += 1
+	return "已入册 %d · 世界池 %d · 关系边 %d 条 —— 未识者仅此页露脸" % [enrolled, pool.size(), rels.size()]
+
+
+## 人物一览二级页: 返回行 + 5 列方格墙(整页随玉牌滚动); 点格子弹详情, 本页保持打开。
+func _npcs_page() -> PanelContainer:
+	var c := bleed_section()
+	var cv := VBoxContainer.new()
+	cv.add_theme_constant_override("separation", 10)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	var back := _cheat_button("‹ 返回测试", func() -> void:
+		_stage = "main"
+		_rebuild()
+	)
+	back.custom_minimum_size = Vector2(96, 30)
+	head.add_child(back)
+	head.add_child(UiKit.label("人物一览", 16, UiKit.PINK_700, 600))
+	cv.add_child(head)
+	var cap := UiKit.label(_npcs_caption(), 11, UiKit.PINK_400)
+	cap.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	cv.add_child(cap)
+	var grid := GridContainer.new()
+	grid.columns = 5
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 8)
+	cv.add_child(grid)
+	var pool: Dictionary = Game.run.get("world_npcs", {})
+	# 关系数预聚合(静态+动态边一次扫完, 56 格不重复遍历)
+	var rel_count := {}
+	for e in DataManager.relations:
+		rel_count[String(e.get("a", ""))] = int(rel_count.get(String(e.get("a", "")), 0)) + 1
+		rel_count[String(e.get("b", ""))] = int(rel_count.get(String(e.get("b", "")), 0)) + 1
+	for e in Game.run.get("world_rels", []):
+		rel_count[String(e.get("a", ""))] = int(rel_count.get(String(e.get("a", "")), 0)) + 1
+		rel_count[String(e.get("b", ""))] = int(rel_count.get(String(e.get("b", "")), 0)) + 1
+	for k in Game.run.npcs:
+		if bool(Game.run.npcs[k].get("met", false)):
+			grid.add_child(_npc_cell(String(k), Game.run.npcs[k], "入册" + ("·幼年" if Game._npc_is_minor(String(k)) else ""), int(rel_count.get(String(k), 0))))
+	for k in pool:
+		grid.add_child(_npc_cell(String(k), pool[k] as Dictionary, "池中" + ("·幼年" if Game._npc_is_minor(String(k)) else ""), int(rel_count.get(String(k), 0))))
+	for n in DataManager.npcs:
+		var fk := String(n.key)
+		if not Game.run.npcs.has(fk):
+			grid.add_child(_npc_cell(fk, n, "未遇", int(rel_count.get(fk, 0))))
+	c.add_child(UiKit.margin_wrap(cv, 16))
+	return c
+
+
+## 一览方格: 头像 + 姓名 + 状态 + 关系数, 点击跳该人详情弹层(池内未识者亦可查看)。
+func _npc_cell(key: String, d: Dictionary, state: String, rel_n := 0) -> Control:
+	var cell := PanelContainer.new()
+	cell.add_theme_stylebox_override("panel", UiKit.stylebox(Color(0, 0, 0, 0), 10))
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 2)
+	var av := CenterContainer.new()
+	av.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	av.add_child(Portrait.build_for(key, 48))
+	vb.add_child(av)
+	var nl := UiKit.label(Game.npc_name(key), 11, UiKit.PINK_700, 600, HORIZONTAL_ALIGNMENT_CENTER)
+	nl.custom_minimum_size = Vector2(64, 0)
+	nl.clip_text = true
+	vb.add_child(nl)
+	vb.add_child(UiKit.label(state, 9, UiKit.PINK_400 if state == "入册" else UiKit.GRAY_400, 500, HORIZONTAL_ALIGNMENT_CENTER))
+	vb.add_child(UiKit.label("关系 %d" % rel_n, 9, UiKit.JADE_600, 500, HORIZONTAL_ALIGNMENT_CENTER))
+	cell.add_child(vb)
+	var hit := Button.new()
+	hit.focus_mode = Control.FOCUS_NONE
+	hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+		hit.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	hit.pressed.connect(GameState.request_npc_detail.bind(key))
+	cell.add_child(hit)
+	return cell
 
 
 ## 高倍速档(自日程页移入): 10×~100×。常规档(暂停/1×/2×/5×)仍在日程页。
