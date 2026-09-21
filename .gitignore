@@ -13,6 +13,11 @@ assets/portraits/_ai/out/
 assets/portraits/_ai/parts_black/
 assets/portraits/_candidates/
 
+# ZCode 会话产物(规划/工作流草稿/冒烟临时输出, 非工程内容)
+.zcode/
+.video_agent/
+tests/_smoke_out.txt
+
 # 系统垃圾文件
 .DS_Store
 Thumbs.db
