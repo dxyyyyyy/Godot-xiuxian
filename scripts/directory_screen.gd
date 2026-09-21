@@ -11,6 +11,8 @@ const ID_NAME_FALLBACK := {"baimenzong": "百味宗弟子", "tongming": "仙门�
 var _content: VBoxContainer
 var _rebuild_pending := false
 var _detail: Node             # 详情弹层（CanvasLayer 全屏对话框）
+var _detail_chron: Button     # 详情弹层里的「纪事」按钮（纪事子层开着时置蓝）
+var _npc_chron: Node          # 纪事子弹层（从详情打开, 叠在详情之上）
 var _open_key := ""           # 当前弹层展示的 NPC（重建后保持）
 
 
@@ -149,7 +151,9 @@ func _npc_tile(key: String, npc: Dictionary) -> Control:
 	aff_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	aff_row.add_theme_constant_override("separation", 3)
 	aff_row.add_child(UiKit.icon_rect("heart_filled", 11, UiKit.RED_400))
-	aff_row.add_child(UiKit.label("%.0f" % float(npc.aff), 11, UiKit.PINK_600, 600))
+	aff_row.add_child(UiKit.label("友%.0f" % float(npc.aff), 10, _friend_color(float(npc.aff)), 600))
+	if float(npc.get("love", 0.0)) > 0.0:   # 情值 0 不显示 —— 同性 NPC 恒 0 恒隐
+		aff_row.add_child(UiKit.label("情%.0f" % float(npc.love), 10, _love_color(float(npc.love)), 600))
 	vb.add_child(aff_row)
 
 	tile.add_child(vb)
@@ -188,6 +192,15 @@ func _relation_color(v: float) -> Color:
 	return UiKit.GRAY_400
 
 
+## 双值配色(拍板): 友情值绿 · 感情值粉 · 负值一律红
+func _friend_color(v: float) -> Color:
+	return UiKit.RED_400 if v < 0.0 else UiKit.GREEN_500
+
+
+func _love_color(v: float) -> Color:
+	return UiKit.RED_400 if v < 0.0 else UiKit.PINK_500
+
+
 # ================= 详情弹层 =================
 
 func _open_detail(key: String) -> void:
@@ -198,9 +211,13 @@ func _open_detail(key: String) -> void:
 	if npc.is_empty():
 		npc = (Game.run.get("world_npcs", {}) as Dictionary).get(key, {})
 		pool_view = not npc.is_empty()   # 世界池未识者: 仅供测试·人物一览查看(无好感/操作)
-	if npc.is_empty() or (not pool_view and not bool(npc.get("met", false))):
+	if npc.is_empty() and not Game.npc_arch(key).is_empty():
+		npc = {"met": false, "aff": 0.0, "love": 0.0, "hidden": 0.0, "stage": 0, "gate": 0, "talk_cd": 0, "gift_q": 0}   # 固定 NPC 未首遇(仅季忘川开局在册): 临时只读骨架, 不回写 run.npcs
+	if npc.is_empty():
 		_open_key = ""
 		return
+	if not bool(npc.get("met", false)):
+		pool_view = true   # 未入册(关系区灰显格/人物一览未相逢固定 NPC): 只读基础档案, 不给操作
 
 	var dlg := UiKit.dialog_layer(self, 348.0)
 	_detail = dlg.layer
@@ -236,15 +253,26 @@ func _open_detail(key: String) -> void:
 	top.add_child(UiKit.pill(stage_name, UiKit.WHITE, _stage_color(stage), 12, 600))
 	cv.add_child(top)
 
-	# 好感
+	# 好感双轨: 友情条(aff · 人人有) + 情条(love · 仅异性可涨, 为 0 整行不显)
 	var aff_row := HBoxContainer.new()
 	aff_row.add_theme_constant_override("separation", 8)
+	aff_row.add_child(UiKit.label("友", 12, _friend_color(float(npc.get("aff", 0.0))), 600))
 	aff_row.add_child(UiKit.progress(float(npc.get("aff", 0.0)) / 1000.0, _stage_color(stage)))
-	var aff_lb := UiKit.label("%.0f" % float(npc.get("aff", 0.0)), 12, UiKit.PINK_600, 600)
+	var aff_lb := UiKit.label("%.0f" % float(npc.get("aff", 0.0)), 12, _friend_color(float(npc.get("aff", 0.0))), 600)
 	aff_lb.custom_minimum_size = Vector2(40, 0)
 	aff_lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	aff_row.add_child(aff_lb)
 	cv.add_child(aff_row)
+	if float(npc.get("love", 0.0)) > 0.0:
+		var love_row := HBoxContainer.new()
+		love_row.add_theme_constant_override("separation", 8)
+		love_row.add_child(UiKit.label("情", 12, _love_color(float(npc.love)), 600))
+		love_row.add_child(UiKit.progress(float(npc.love) / 1000.0, UiKit.PINK_400))
+		var love_lb := UiKit.label("%.0f" % float(npc.love), 12, _love_color(float(npc.love)), 600)
+		love_lb.custom_minimum_size = Vector2(40, 0)
+		love_lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		love_row.add_child(love_lb)
+		cv.add_child(love_row)
 	if float(npc.get("hidden", 0.0)) > 0.0:
 		cv.add_child(UiKit.label("情深许 %.0f（溢出好感化作此间牵系）" % float(npc.hidden), 11, UiKit.RED_400))
 
@@ -283,15 +311,17 @@ func _open_detail(key: String) -> void:
 	detail.add_child(UiKit.margin_wrap(dv, 10))
 	cv.add_child(detail)
 
-	cv.add_child(_relation_box(key, pool_view))
+	cv.add_child(_relation_box(key))
 
 	if String(Game.run.get("focus", "")) == key:
 		cv.add_child(UiKit.label("♥ 特别关注中 —— 他人好感将随岁月转淡，留意故人心思", 12, UiKit.RED_400))
 
-	# 操作
+	# 操作栏(特别关注/解契仅入册者 · 纪事人人可看 —— 世间事不因未见而不发生)
 	var acts := HBoxContainer.new()
 	acts.add_theme_constant_override("separation", 6)
 	var focused := String(Game.run.get("focus", "")) == key
+	_detail_chron = _mini_button("纪事", func() -> void: _open_npc_chron(key))
+	acts.add_child(_detail_chron)
 	if not pool_view:
 		acts.add_child(_mini_button("取消特别关注" if focused else "特别关注", func() -> void:
 			Game.set_focus("" if focused else key)
@@ -309,22 +339,94 @@ func _open_detail(key: String) -> void:
 
 func _close_detail() -> void:
 	_open_key = ""
+	_close_npc_chron()
 	if _detail != null:
 		_detail.queue_free()
 		_detail = null
+	_detail_chron = null
+
+
+## 关纪子弹层并还原「纪事」按钮样式(按钮本体随详情弹层管, 这里不清引用)。
+func _close_npc_chron() -> void:
+	if _npc_chron != null:
+		_npc_chron.queue_free()
+		_npc_chron = null
+	if _detail_chron != null:
+		_detail_chron.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_50, 8))
+		_detail_chron.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_100, 8))
+
+
+## 纪事子弹层: 此人相关的纪事(最新在前), 数据走 Game.chronicle_of —— 认日志里的【名字】,
+## 月末汇总行已拆条只剩提及 Ta 的条目。列表限高约八成屏, 超长滚动。
+func _open_npc_chron(key: String) -> void:
+	_close_npc_chron()
+	var entries: Array = Game.chronicle_of(key)
+	var dlg := UiKit.dialog_layer(self, 348.0)
+	_npc_chron = dlg.layer
+	UiKit.dim_click_close(dlg.dim, _close_npc_chron)
+	if _detail_chron != null:   # 详情里的「纪事」按钮置选中态, 关闭时还原
+		_detail_chron.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_100, 8))
+		_detail_chron.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_100, 8))
+
+	var cv: VBoxContainer = dlg.vb
+	# 头部: 头像 + 「纪事 · 名字」 + 条数
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 12)
+	top.add_child(Portrait.build_for(key, 40))
+	var name_vb := VBoxContainer.new()
+	name_vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	name_vb.add_theme_constant_override("separation", 1)
+	name_vb.add_child(UiKit.label("纪事 · %s" % Game.npc_name(key), 15, UiKit.PINK_700, 600))
+	name_vb.add_child(UiKit.label("Ta 在岁月里留下的痕迹", 10, UiKit.PINK_400))
+	top.add_child(name_vb)
+	top.add_child(UiKit.expander())
+	top.add_child(UiKit.pill("%d 条" % entries.size(), UiKit.WHITE, UiKit.PINK_500, 11, 600))
+	cv.add_child(top)
+
+	if entries.is_empty():
+		var empty := UiKit.label("还没有关于 Ta 的纪事 —— 故事正在路上。", 12, UiKit.PINK_400)
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		cv.add_child(empty)
+	else:
+		# 估算正文高: 超出屏高约六成则限高滚动(行高按字号粗估, 348 宽下每行约 18 字)
+		var scroll := ScrollContainer.new()
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var sv := VBoxContainer.new()
+		sv.custom_minimum_size = Vector2(316, 0)   # 滚动内容须显式横向展开, 否则只拿到子节点最小宽
+		sv.add_theme_constant_override("separation", 10)
+		var est := 0.0
+		for e in entries:
+			var lb := UiKit.label(String((e as Dictionary).get("text", "")), 12, UiKit.PINK_700)
+			lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var row := VBoxContainer.new()
+			row.add_theme_constant_override("separation", 2)
+			row.add_child(UiKit.label(String((e as Dictionary).get("day", "")), 10, UiKit.PINK_400, 500))
+			row.add_child(lb)
+			sv.add_child(row)
+			est += 20.0 + ceilf(float(String((e as Dictionary).get("text", "")).length()) / 18.0) * 18.0
+		scroll.add_child(sv)
+		var cap := float(get_viewport_rect().size.y) * 0.55
+		if est > cap:
+			scroll.custom_minimum_size = Vector2(0, cap)
+		cv.add_child(scroll)
+
+	var acts := HBoxContainer.new()
+	acts.add_theme_constant_override("separation", 6)
+	acts.add_child(UiKit.expander())
+	acts.add_child(_mini_button("关闭", _close_npc_chron))
+	cv.add_child(acts)
 
 
 # ================= 关系（详情弹层） =================
 
-## NPC 详情里的「关系」区: Ta 与在册众人的关系 —— 对方头像 + 姓名 + 亲密度, 点击格子弹出该人详情。无关系则返回隐藏控件。
-## show_all(人物一览的池内视图)= 不过滤已识: 列出其全部关系(含其他未识者, 灰显+「未识」标); 常规名录仍只列已识者。
-func _relation_box(key: String, show_all := false) -> Control:
-	var items: Array = []
-	for r in Game.npc_relations(key):
-		var peer := String(r.get("peer", ""))
-		if not show_all and not _is_met(peer):
-			continue
-		items.append(r)
+## NPC 详情里的「关系」区: Ta 的全部关系边 —— 对方头像 + 姓名 + 友情值(边亲疏) + 关系名称(+恋爱对加情值), 点击格子弹出该人详情。无关系则返回隐藏控件。
+## 未识者一并列出(头像灰显): 关系是世间真情, 不因玩家是否认识而遮蔽 —— 如季忘川开局在册而其故交均未入册。
+## 情值(恋爱边 aff 0~1000)仅恋爱对显示; 同性/无恋爱边者情值恒 0 无来源, 不占行。
+func _relation_box(key: String) -> Control:
+	var items: Array = Game.npc_relations(key)
 	if items.is_empty():
 		var none := Control.new()
 		none.visible = false
@@ -357,11 +459,17 @@ func _relation_box(key: String, show_all := false) -> Control:
 			portrait.modulate = Color(1, 1, 1, 0.45)   # 未识者: 灰显
 		av.add_child(portrait)
 		item.add_child(av)
-		var nl := UiKit.label(Game.npc_name(peer) + ("" if peer_met else "·未识"), 10, UiKit.PINK_600 if peer_met else UiKit.GRAY_400, 500, HORIZONTAL_ALIGNMENT_CENTER)
+		var nl := UiKit.label(Game.npc_name(peer), 10, UiKit.PINK_600 if peer_met else UiKit.GRAY_400, 500, HORIZONTAL_ALIGNMENT_CENTER)
 		nl.custom_minimum_size = Vector2(44, 0)
 		nl.clip_text = true
 		item.add_child(nl)
-		item.add_child(UiKit.label("%+d" % int(v), 11, _relation_color(v), 600, HORIZONTAL_ALIGNMENT_CENTER))
+		item.add_child(UiKit.label("友 %+d" % int(v), 11, _friend_color(v), 600, HORIZONTAL_ALIGNMENT_CENTER))
+		var tag_lb := UiKit.label(String(r.get("tag", "")) if String(r.get("tag", "")) != "" else "相识", 10, _relation_color(v), 500, HORIZONTAL_ALIGNMENT_CENTER)
+		tag_lb.custom_minimum_size = Vector2(44, 0)
+		tag_lb.clip_text = true
+		item.add_child(tag_lb)
+		if r.has("aff"):   # 恋爱对独享: 情值逐月涨好感、争风吃醋会扣, 恋爱态已在 tag 冠名
+			item.add_child(UiKit.label("情 %.0f" % float(r.get("aff", 0.0)), 10, _love_color(float(r.get("aff", 0.0))), 600, HORIZONTAL_ALIGNMENT_CENTER))
 		cell.add_child(item)
 		# 命中层(铺满格): 点击跳转到该人详情弹层
 		var hit := Button.new()

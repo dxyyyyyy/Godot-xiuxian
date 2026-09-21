@@ -125,6 +125,9 @@ func _ensure_run() -> void:
 			npc.talk_q = 0
 		if not npc.has("gift_q"):
 			npc.gift_q = 0
+		if not npc.has("love"):
+			# 双轨拆分迁移: 旧档 3 段以上(心动/相恋/道侣)者, 超出相熟阈值(400)的好感即为已积累的情分; 其余情值自 0
+			npc.love = maxf(0.0, float(npc.get("aff", 0.0)) - 400.0) if int(npc.get("stage", 0)) >= 3 else 0.0
 		if String(key).begins_with("rand_") and npc_generator.OLD_FLAVOR_NAMES.has(String(npc.get("name", ""))):
 			var used_names := {}   # 旧版风味名(非真名) → 迁移为程序化新名 + 人称别号
 			for k2 in run.npcs:
@@ -300,7 +303,7 @@ func relation_halo(key: String) -> float:
 		var v := float(rel.get("val", 0.0))
 		if v <= 0.0:
 			continue
-		var bond := clampf(float(run.npcs[ok].get("aff", 0.0)) / 1000.0, 0.0, 1.0)
+		var bond := clampf(maxf(float(run.npcs[ok].get("aff", 0.0)), float(run.npcs[ok].get("love", 0.0))) / 1000.0, 0.0, 1.0)
 		sum += (v / 100.0) * bond * per
 	return minf(sum, cap)
 
@@ -325,7 +328,7 @@ func _relation_gift(key: String) -> Dictionary:
 		var v := float(rel.get("val", 0.0))
 		if v <= 0.0:
 			continue
-		var bond := clampf(float(run.npcs[ok].get("aff", 0.0)) / 1000.0, 0.0, 1.0)
+		var bond := clampf(maxf(float(run.npcs[ok].get("aff", 0.0)), float(run.npcs[ok].get("love", 0.0))) / 1000.0, 0.0, 1.0)
 		var g := v * bond * per
 		if g > best:
 			best = g
@@ -370,19 +373,67 @@ func _world_existing() -> Dictionary:
 	return m
 
 
+## 造一条动态边。派系亲疏先验: 同派系更不易结怨(neg 概率 world_rel_neg_same, 默认 5%,
+## 异派系 15% —— 低头不见抬头见), 且亲疏整体上移 world_rel_same_bonus —— 同门照拂、同行相护,
+## 同派系的边更容易落进 rel_close_min 的亲近带(至交漂移/传言/初见情面都吃这个带)。
 func _make_world_edge(a: String, b: String) -> Dictionary:
-	var neg := rng.randf() < 0.15
+	var fac_a := _npc_faction(a)
+	var same := fac_a != "" and fac_a == _npc_faction(b)
+	var neg_rate := float(tune("world_rel_neg_same", 0.05)) if same else float(tune("world_rel_neg_rate", 0.15))
+	var neg := rng.randf() < neg_rate
 	var pool: Array = []
 	for t in WORLD_REL_TAGS:
 		if (neg and int(t[1]) < 0) or (not neg and int(t[1]) >= 0):
 			pool.append(t)
 	var t: Array = pool[rng.randi_range(0, pool.size() - 1)]
 	var note := String(t[3][rng.randi_range(0, (t[3] as Array).size() - 1)]) % [npc_name(a), npc_name(b)]
-	return {"a": a, "b": b, "tag": String(t[0]), "val": float(rng.randi_range(int(t[1]), int(t[2]))), "note": note}
+	var val := float(rng.randi_range(int(t[1]), int(t[2])))
+	if same:
+		val += float(tune("world_rel_same_bonus", 15.0))
+	return {"a": a, "b": b, "tag": String(t[0]), "val": clampf(val, -100.0, 100.0), "note": note}
+
+
+## 派系(identity): 在册/池内快照与固定档案(npcs.json)同字段取名 —— 「物以类聚」的关系先验用它。
+func _npc_faction(key: String) -> String:
+	var e := _npc_entry(key)
+	if not e.is_empty():
+		return String(e.get("identity", ""))
+	for nd in DataManager.npcs:
+		if String(nd.get("key", "")) == key:
+			return String(nd.get("identity", ""))
+	return ""
+
+
+## 两人是否已有边(本轮 pairs 或存档 静态+动态) —— 选对端时先探一刀, 免得抽签空转。
+func _pair_known(a: String, b: String, pairs: Dictionary) -> bool:
+	if a == "" or b == "" or a == b:
+		return true
+	var pair := a + "|" + b if a < b else b + "|" + a
+	return pairs.has(pair) or not relation_between(a, b).is_empty()
+
+
+## 挑「相识对端」(派系先验): 以 world_rel_same_faction 的概率在同派系里找(试连 8 次避开已有边);
+## 同派系无人可连或概率未命中 → 退回全池随机。派系是偏向不是隔离: 跨派系的缘分照旧发生。
+func _pick_relate_partner(a: String, all_keys: Array, pairs: Dictionary, same_p: float) -> String:
+	if rng.randf() < same_p:
+		var fac := _npc_faction(a)
+		if fac != "":
+			var kin: Array = []
+			for k in all_keys:
+				var ks := String(k)
+				if ks != a and _npc_faction(ks) == fac:
+					kin.append(ks)
+			for _t in mini(8, kin.size()):
+				var cand := String(kin[rng.randi_range(0, kin.size() - 1)])
+				if not _pair_known(a, cand, pairs):
+					return cand
+	return String(all_keys[rng.randi_range(0, all_keys.size() - 1)])
 
 
 ## 开世造世界: 一批池内 NPC + 彼此/与固定 NPC 的关系边。循环一律遍历 DataManager.npcs,
 ## 后续新增固定档案(掌门等)自动进网; 已有边(静态或动态)不重复连。
+## 派系先验: 每人 1~2 条边走 _pick_relate_partner(同派系更易相识、更亲近, 见 _make_world_edge);
+## 枢纽边保持全池随机 —— 枢纽的天职就是跨派系搭桥, 网才连成一张而不是一堆孤岛。
 func _seed_world() -> void:
 	var count := int(tune("world_npc_count", 50))
 	for _i in count:
@@ -394,13 +445,65 @@ func _seed_world() -> void:
 	var all_keys := world_keys.duplicate()
 	for nd in DataManager.npcs:
 		all_keys.append(String(nd.key))
+	var same_p := float(tune("world_rel_same_faction", 0.75))
 	var pairs := {}
 	for a in world_keys:
 		var want := 1 + (1 if rng.randf() < maxf(0.0, float(tune("world_rel_per_npc", 1.5)) - 1.0) else 0)
 		for _w in want:
-			_try_world_edge(String(a), String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), pairs)
+			_try_world_edge(String(a), _pick_relate_partner(String(a), all_keys, pairs, same_p), pairs)
 	for _h in int(count * 0.3):   # 枢纽边: 让少数人认识很多人, 网才有「世故」味
 		_try_world_edge(String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), pairs)
+	_seed_fixed_floor(world_keys, pairs)   # 保底: 每位固定 NPC 至少一条边 —— 新档案自动进网是口径, 不靠抽签
+	_seed_start_couples()
+
+
+## 固定 NPC 保底连线: 抽签式的 per-NPC/hub 边可能漏掉档案新人(掌门等), 无边的补一条到池内随机人。
+func _seed_fixed_floor(world_keys: Array, pairs: Dictionary) -> void:
+	if world_keys.is_empty():
+		return
+	for nd in DataManager.npcs:
+		var fk := String(nd.key)
+		var linked := false
+		for e in run.world_rels:
+			if String(e.get("a", "")) == fk or String(e.get("b", "")) == fk:
+				linked = true
+				break
+		if linked:
+			continue
+		var n0: int = int(run.world_rels.size())
+		for _t in 8:
+			if run.world_rels.size() > n0:
+				break
+			_try_world_edge(fk, String(world_keys[rng.randi_range(0, world_keys.size() - 1)]), pairs)
+
+
+## 开局婚配: 世界池随机点几对成年未婚异性结为夫妻 —— 市井本该有人家。
+## 走与月结婚配同一套恋爱边(run.npc_romance married 态 + 双方 spouse 字段), 日后可降段退婚、按率添丁;
+## 静默播种不发报闻(玩家未逢, 无喜可观), 一夫一妻由 _rom_taken/_rom_eligible 双守卫; 婚配边亲疏拉进高带(60~90) —— 夫妻必高好感。
+func _seed_start_couples() -> void:
+	var rom: Dictionary = run.get("npc_romance", {})
+	var keys: Array = (run.world_npcs as Dictionary).keys()
+	var want := int(tune("world_start_couples", 2))
+	var guard := maxi(want, 1) * 15   # 防抽样死循环: 池小/多幼年时尽力而为
+	while want > 0 and guard > 0 and keys.size() >= 2:
+		guard -= 1
+		var a := String(keys[rng.randi_range(0, keys.size() - 1)])
+		var b := String(keys[rng.randi_range(0, keys.size() - 1)])
+		if _rom_taken(rom, a) or _rom_taken(rom, b) or not _rom_eligible(a, b):
+			continue
+		_try_world_edge(a, b, {})   # 缘分来由: 无则补一条边(已有则跳过)
+		for e in run.world_rels:   # 夫妻必高亲疏: 婚配边拉进高带, 杜绝「旧怨夫妻」(展示层恋爱态只覆盖 tag 不改 val)
+			var ea2 := String(e.get("a", ""))
+			var eb2 := String(e.get("b", ""))
+			if (ea2 == a and eb2 == b) or (ea2 == b and eb2 == a):
+				e.val = float(rng.randi_range(60, 90))
+				break
+		rom[_pair_key(a, b)] = {"aff": 1000.0, "stage": 5, "married": true}
+		var ea := _npc_entry(a)
+		var eb := _npc_entry(b)
+		ea.spouse = b
+		eb.spouse = a
+		want -= 1
 
 
 func _try_world_edge(a: String, b: String, pairs: Dictionary) -> void:
@@ -446,6 +549,37 @@ func _enroll_pool_npc(key: String) -> void:
 	changed.emit()
 
 
+## 友情值(边 val)按月漂移: 至交或更铁或稍淡、久不往来渐淡、宿怨可解可结 —— 静默无报闻。
+## 只动世界池动态边: 静态边(relations.json)是 GDD 预设设定不随存档变; 亲子血亲不漂。
+## 淡出止于 0、和解止于 0, 归零即休眠 —— 变淡只到陌生, 缘尽不再漂; 新交情由事件另起(游历/婚配/播种),
+## 宿怨恶化同理只在负带内。
+func _friendship_drift() -> void:
+	var rate := float(tune("friend_drift_rate", 0.25))
+	var step_min := int(tune("friend_drift_step_min", 1))
+	var step_max := int(tune("friend_drift_step_max", 3))
+	for e in run.get("world_rels", []):
+		if String(e.get("tag", "")) == "亲子":
+			continue
+		var v := float(e.get("val", 0.0))
+		if v == 0.0:   # 陌生休眠: 不掷随机, 杜绝 0→有 的无来由翻转
+			continue
+		if rng.randf() >= rate:
+			continue
+		var step := float(rng.randi_range(step_min, step_max))
+		var warm := rng.randf()
+		if v >= float(tune("rel_close_min", 35.0)):
+			v += step if warm < 0.6 else -step          # 至交: 六成续温, 四成小淡
+		elif v <= -40.0:
+			v += step if warm < 0.5 else -step          # 宿怨: 五五开, 可解可结
+		elif v > 0.0:
+			v += step if warm < 0.35 else -step         # 浅交: 三分热络七分随淡
+			v = maxf(v, 0.0)
+		else:
+			v += step if warm < 0.65 else -step         # 微恙: 偏向释怀
+			v = minf(v, 0.0)
+		e.val = clampf(v, -100.0, 100.0)
+
+
 ## 世界脉动: 偶尔补一位新客入池, 顺手牵一条边 —— 市井本该有人搬来, 有人攀上交情。
 func _world_churn() -> void:
 	if not run.has("world_npcs") or (run.world_npcs as Dictionary).size() >= int(tune("world_npc_count", 50)):
@@ -457,7 +591,8 @@ func _world_churn() -> void:
 	var all_keys: Array = (run.world_npcs as Dictionary).keys()
 	for nd in DataManager.npcs:
 		all_keys.append(String(nd.key))
-	_try_world_edge(String(npc.key), String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), {})
+	# 新客的牵线也走派系先验: 同乡同业先搭上线, 人生地不熟才四处撞缘分
+	_try_world_edge(String(npc.key), _pick_relate_partner(String(npc.key), all_keys, {}, float(tune("world_rel_same_faction", 0.75))), {})
 
 
 # ---------------------------------------------------------------- NPC 恋爱·婚配·子嗣(好感度驱动)
@@ -1124,14 +1259,16 @@ func resolve_option(i: int) -> void:
 			var nk := String(pending.data.key)
 			var rates: Array = pending.data.rates
 			var npc_n: Dictionary = run.npcs[nk]
+			var ntrack := "love" if int(npc_n.get("stage", 0)) >= 2 else "friend"   # 心动起节点进恋爱轨, 之前仍是友情轨
+			var nunit := "情分" if ntrack == "love" else "好感"
 			if deterministic or rng.randf() < float(rates[clampi(i, 0, rates.size() - 1)]):
-				_bump_aff(nk, 50.0)
-				_log("◇ 抉择「%s」—— 说到了 Ta 心坎上(好感 +50)" % choice)
+				_bump_aff(nk, 50.0, ntrack)
+				_log("◇ 抉择「%s」—— 说到了 Ta 心坎上(%s +50)" % [choice, nunit])
 				_advance_node(nk)
 			else:
 				var wave := -float(rng.randi_range(int(tune("aff_drift", [2, 10])[0]) + 8, int(tune("aff_drift", [2, 10])[1]) + 20))
-				_bump_aff(nk, wave)
-				_log("◇ 抉择「%s」—— 话没接住, 好感 %.0f(这道闸顺延, 来日再提)" % [choice, wave])
+				_bump_aff(nk, wave, ntrack)
+				_log("◇ 抉择「%s」—— 话没接住, %s %.0f(这道闸顺延, 来日再提)" % [choice, nunit, wave])
 		"met_note":
 			if i == 0:
 				_first_meet(String(pending.data.key))   # 攀谈才入册(2026-09-13 修: 选择前不入册)
@@ -1162,9 +1299,9 @@ func resolve_option(i: int) -> void:
 			var d3 := String(pending.data.dao)
 			if i == 0:
 				var a := rng.randi_range(int(tune("confess_range", [-30, 20])[0]), int(tune("confess_range", [-30, 20])[1]))
-				_bump_aff(t3, float(a))
-				_bump_aff(d3, float(a))
-				_log("◇ 坦白从宽: 你把话与【%s】、【%s】摊开 —— 各自好感 %+d, 此线自此透明" % [npc_name(t3), npc_name(d3), a])
+				_bump_aff(t3, float(a), "love")
+				_bump_aff(d3, float(a), "love")
+				_log("◇ 坦白从宽: 你把话与【%s】、【%s】摊开 —— 各自情分 %+d, 此线自此透明" % [npc_name(t3), npc_name(d3), a])
 			else:
 				run.npcs[t3].luochang_lowkey = true
 				_log("◇ 低调维持: 风平浪静 —— 只是同一位的局, 12 月内再引爆率 +10%%")
@@ -1173,9 +1310,9 @@ func resolve_option(i: int) -> void:
 			var d4 := String(pending.data.dao)
 			if i == 0:
 				var a2 := rng.randi_range(int(tune("confess_range", [-30, 20])[0]), int(tune("confess_range", [-30, 20])[1]))
-				_bump_aff(t4, float(a2))
-				_bump_aff(d4, float(a2))
-				_log("◇ 坦白从宽: 满城风雨里你把话说尽 —— 各自好感 %+d" % a2)
+				_bump_aff(t4, float(a2), "love")
+				_bump_aff(d4, float(a2), "love")
+				_log("◇ 坦白从宽: 满城风雨里你把话说尽 —— 各自情分 %+d" % a2)
 			else:
 				_log("◇ 打马虎眼: 「那是远房表妹。」—— 茶摊笑作一团, 谁也没当真, 谁也没受伤。")
 		"seal":
@@ -1191,8 +1328,8 @@ func resolve_option(i: int) -> void:
 		"focus_mile":
 			var mk := String(pending.data.key)
 			if i == 0:
-				_bump_aff(mk, 10.0)
-				_log("◇ 你顺势靠近了些 —— 与【%s】的话头多了几分暖意(好感 +10)" % npc_name(mk))
+					_bump_aff(mk, 10.0, "love")   # 心动时分是恋意的坎 —— 进情轨(同性 focus 自动落回友情轨)
+					_log("◇ 你顺势靠近了些 —— 与【%s】的话头多了几分暖意(情分 +10)" % npc_name(mk))
 			else:
 				_log("◇ 你把这份暖意收进岁月里 —— 静待花开。")
 		"neglect":
@@ -1470,36 +1607,36 @@ func _execute_plan() -> void:
 					if not bool(npc.get("met", false)) or int(npc.stage) < 3 or not npc_male(String(key)):
 						continue
 					ranked.append(String(key))
-				ranked.sort_custom(func(a, b): return float(run.npcs[a].aff) > float(run.npcs[b].aff))
+				ranked.sort_custom(func(a, b): return float(run.npcs[a].get("love", 0.0)) > float(run.npcs[b].get("love", 0.0)))
 				var f2 := _focus_key()
 				if f2 == "" and ranked.size() > 0:
 					f2 = String(ranked[0])
 				if f2 != "" and ranked.has(f2):
 					ranked.erase(f2)
 					ranked.push_front(f2)
-				if f2 != "" and ranked.size() > 0:
-					run.date_cd = int(tune("date_cd", 3))
-					var went: Array = []
-					var third := ""
-					for i in range(mini(parlor_dates(), ranked.size())):
-						var k3 := String(ranked[i])
-						_bump_aff(k3, float(tune("date_gain", 60)))
-						went.append(npc_name(k3))
-						if third == "" and k3 != _dao_key():
-							third = k3
-					if went.size() > 0:
-						_report("同游灯会(%d 人): %s 好感各+%.0f" % [went.size(), "、".join(went), float(tune("date_gain", 60))])
-					# 多人同游被撞破 → 火葬场: 发现者好感重挫, 吃瓜帖延迟 1 月上壁(人越多越容易被撞破)
-					if went.size() >= 2:
-						var found_rate := minf(0.9, float(econ("date_found_rate", 0.45)) + (0.25 if went.size() >= 3 else 0.0))
-						if rng.randf() < found_rate:
-							var found := String(ranked[rng.randi_range(0, went.size() - 1)])
-							var hit := float(tune("jealousy_hit", 200))
-							_bump_aff(found, -hit)
-							_report("【%s】撞见了另一场灯会 —— 火葬场了(好感 -%.0f)" % [npc_name(found), hit])
-							_queue_wall_event("huozangchang", {"npc": npc_name(found)})
-					if third != "":
-						_luochang_check(third)
+					if f2 != "" and ranked.size() > 0:
+						run.date_cd = int(tune("date_cd", 3))
+						var went: Array = []
+						var third := ""
+						for i in range(mini(parlor_dates(), ranked.size())):
+							var k3 := String(ranked[i])
+							_bump_aff(k3, float(tune("date_gain", 60)), "love")
+							went.append(npc_name(k3))
+							if third == "" and k3 != _dao_key():
+								third = k3
+						if went.size() > 0:
+							_report("同游灯会(%d 人): %s 情意各+%.0f" % [went.size(), "、".join(went), float(tune("date_gain", 60))])
+						# 多人同游被撞破 → 火葬场: 发现者情分重挫, 吃瓜帖延迟 1 月上壁(人越多越容易被撞破)
+						if went.size() >= 2:
+							var found_rate := minf(0.9, float(econ("date_found_rate", 0.45)) + (0.25 if went.size() >= 3 else 0.0))
+							if rng.randf() < found_rate:
+								var found := String(ranked[rng.randi_range(0, went.size() - 1)])
+								var hit := float(tune("jealousy_hit", 200))
+								_bump_aff(found, -hit, "love")
+								_report("【%s】撞见了另一场灯会 —— 火葬场了(情分 -%.0f)" % [npc_name(found), hit])
+								_queue_wall_event("huozangchang", {"npc": npc_name(found)})
+						if third != "":
+							_luochang_check(third)
 		"travel":
 			_travel_tick()
 		"seek":
@@ -2398,6 +2535,30 @@ func npc_name(key: String) -> String:
 			return String(n.name)
 	return key
 
+
+## 某人相关的纪事(名录·详情「纪事」页用): 扫 GameState.chronicle, 认「【Ta】」的写法 ——
+## 日志出口(_report/_log)都以【名】括人名, 姓名在册+池内防重, 【】括住即可唯一定位。
+## 月末汇总行(「第X年·M月 · 条目 · 条目…」)按条拆开, 只留提及 Ta 的条; 返回最新在前 [{day,text}]。
+func chronicle_of(key: String) -> Array:
+	var tag := "【%s】" % npc_name(key)
+	var out: Array = []
+	for e in GameState.chronicle:
+		var text := String(e.get("text", ""))
+		if not text.contains(tag):
+			continue
+		var day := String(e.get("day", ""))
+		if text.begins_with("第") and text.contains(" · "):
+			var segs: PackedStringArray = []
+			for s in text.split(" · "):
+				if String(s).contains(tag):
+					segs.append(String(s))
+			if segs.is_empty():
+				continue
+			text = " · ".join(segs)
+		out.append({"day": day, "text": text})
+	out.reverse()
+	return out
+
 ## 专注对象仅限已首遇 NPC(§5); 未设则默认好感最高者
 func _focus_key() -> String:
 	var f := String(run.get("focus", ""))
@@ -2408,8 +2569,9 @@ func _focus_key() -> String:
 	for key in run.npcs:
 		if not bool(run.npcs[key].get("met", false)):
 			continue
-		if float(run.npcs[key].aff) > best_aff:
-			best_aff = float(run.npcs[key].aff)
+		var bond: float = maxf(float(run.npcs[key].aff), float(run.npcs[key].get("love", 0.0)))   # 双轨取最重: 情浓者亦系心
+		if bond > best_aff:
+			best_aff = bond
 			best = String(key)
 	return best
 
@@ -2537,9 +2699,10 @@ func npc_male(key: String) -> bool:
 		g = String(npc_arch(key).get("gender", "male"))
 	return g != "female"
 
-## 六态: 陌生(0)→相识(1)→相熟(2)→心动(3)→相恋(4)→道侣(5); 阈 [200,400,600,800,1000]
+## 六态: 陌生(0)→相识(1)→相熟(2)→心动(3)→相恋(4)→道侣(5); 0-2 段吃 aff(友情轨), 3-5 段吃 love(恋爱轨)
+## love 仅异性 NPC 可涨(同性恒 0 不可变动); aff 沿用 0-1000 满量程。
 func _npc_init() -> Dictionary:
-	return {"aff": 0.0, "hidden": 0.0, "stage": 0, "gate": 0, "met": false,
+	return {"aff": 0.0, "love": 0.0, "hidden": 0.0, "stage": 0, "gate": 0, "met": false,
 		"talk_cd": 0, "talk_q": 0, "gift_q": 0, "date_cd": 0,
 		"sealed": false, "dao_lu": false, "luochang_lowkey": false}
 
@@ -2558,13 +2721,17 @@ func _first_meet(key: String, reason := "") -> void:
 	_gift_note(key)
 	changed.emit()
 
-## 好感 0-1000 封顶, 溢出 100% 转「情深许」隐藏值(§1.5); 微幅负波动先扣隐藏、隐藏不足才落面板(下限 0)
-func _bump_aff(key: String, v: float) -> void:
+## 双轨好感: track="friend"(aff, 人人可涨) / "love"(love, 恋爱行为专属 —— 同性守回落回友情轨)。
+## 各轨 0-1000 封顶, 溢出 100% 转「情深许」隐藏值(§1.5); 微幅负波动先扣隐藏、隐藏不足才落面板(下限 0)
+func _bump_aff(key: String, v: float, track := "friend") -> void:
 	var npc: Dictionary = run.npcs[key]
+	if track == "love" and not npc_male(key):
+		track = "friend"   # 同性守门: 女性 NPC 情值恒 0 —— 恋爱类行为落在她们身上只算友情
 	var cap := float(tune("aff_thresholds", [200, 400, 600, 800, 1000])[4])
-	# 气质 + 关系网: 主角气质、这位 NPC 的气质、以及「Ta 的故交恰是你的故交」这道情面 —— 都只放大正向好感, 不放大扣分
+	# 气质 + 关系网: 主角气质、这位 NPC 的气质、以及「Ta 的故交恰是你的故交」这道情面 —— 都只放大正向, 不放大扣分
 	var dv := v * (1.0 + aura_self("aff") + aura_npc_aff(key) + relation_halo(key)) if v > 0.0 else v
-	var na := float(npc.aff) + dv
+	var cur := float(npc.aff) if track == "friend" else float(npc.get("love", 0.0))
+	var na := cur + dv
 	if na > cap:
 		npc.hidden = float(npc.get("hidden", 0.0)) + (na - cap)
 		na = cap
@@ -2572,10 +2739,13 @@ func _bump_aff(key: String, v: float) -> void:
 		var back: float = minf(float(npc.get("hidden", 0.0)), cap - na)
 		npc.hidden = float(npc.get("hidden", 0.0)) - back
 		na += back
-	npc.aff = maxf(0.0, na)
+	if track == "friend":
+		npc.aff = maxf(0.0, na)
+	else:
+		npc.love = maxf(0.0, na)
 	# 特别关注里程碑: 好感每跨过一道 100 的坎, 记一次待触发的「心动时分」(⑥ 打断判定统一弹出)
 	if key == _explicit_focus():
-		var m := int(npc.aff / 100.0)
+		var m := int(float(npc.aff if track == "friend" else npc.get("love", 0.0)) / 100.0)
 		if m > int(npc.get("mile", 0)):
 			npc.mile = m
 			npc.mile_pending = true
@@ -2676,6 +2846,7 @@ func _fire_node_event(key: String, stage: int) -> void:
 ## 节点/时光闸/魂印 —— 命中即打断; 节点「满阈 + 闸到期」每 tick 重弹; 魂印走年终检定(道侣位 + 隐藏≥10000)
 func _npc_prompt_check() -> bool:
 	var ths: Array = tune("aff_thresholds", [200, 400, 600, 800, 1000])
+	var lovs: Array = tune("love_thresholds", [200, 500, 1000])   # 心动/相恋/道侣 三跳的情值门槛
 	for key in run.npcs:
 		var npc: Dictionary = run.npcs[key]
 		if not bool(npc.get("met", false)):
@@ -2684,7 +2855,10 @@ func _npc_prompt_check() -> bool:
 			continue   # 红线: 幼年绝不进入玩家恋爱线
 		npc.gate = int(npc.gate) + 1
 		var stage := int(npc.stage)
-		if stage < ths.size() and float(npc.aff) >= float(ths[stage]) and int(npc.gate) >= int(tune("gate_months", 24)):
+		# 双轨门槛: 0~2 段比 aff(友情), 3~5 段比 love(恋爱轨 · 同性恒 0 故永不达标)
+		var cur := float(npc.aff) if stage <= 2 else float(npc.get("love", 0.0))
+		var need := float(ths[stage]) if stage <= 2 else float(lovs[clampi(stage - 3, 0, 2)])
+		if stage < ths.size() and cur >= need and int(npc.gate) >= int(tune("gate_months", 24)):
 			# 缘分门槛: 只有男性 NPC 可谈恋爱/结道侣 —— 女性止步「相熟」, 不弹心动节点
 			if not npc_male(String(key)) and stage >= 2:
 				continue
@@ -2742,7 +2916,7 @@ func dao_cancel(key: String) -> void:
 	var npc: Dictionary = run.npcs[key]
 	npc.dao_lu = false
 	npc.stage = 4
-	npc.aff = maxf(float(npc.aff), 800.0)
+	npc.love = maxf(float(npc.get("love", 0.0)), float(tune("love_thresholds", [200, 500, 1000])[1]))   # 情分收在相恋位(旧档语义: aff 顶回 800)
 	npc.gate = 0
 	_log("◇ 与【%s】解契 —— 道侣位已释放, 情分锁在相恋段; 魂印若有, 不随契解(§1.6)" % npc_name(key))
 	_queue_wall_event("jieqi", {"npc": npc_name(key)})   # 闲话壁: 解契唏嘘帖(延迟 1 月)
@@ -2931,6 +3105,7 @@ func _introduce_friend(introducer: String) -> bool:
 func _worldsim_tick() -> void:
 	if is_ended() or run.npcs.is_empty():
 		return
+	_friendship_drift()    # 友情值(亲疏边)按月漂移: 先漂后恋, 新恋情挑的是当月的温度
 	_npc_romance_tick()    # NPC 恋爱六段推进/成婚/争风(全员含池内)
 	_npc_family_tick()     # 已婚添丁(遗传造娃)
 	_npc_growth_tick()     # 满 12 岁成年礼
