@@ -146,29 +146,65 @@ func _npcs_page() -> PanelContainer:
 	grid.add_theme_constant_override("v_separation", 8)
 	cv.add_child(grid)
 	var pool: Dictionary = Game.run.get("world_npcs", {})
-	# 关系数预聚合(静态+动态边一次扫完, 56 格不重复遍历)
-	var rel_count := {}
+	# 可用关系名称标签预聚合(静态边+世界池动态边一次扫完, 56 格不重复遍历; 恋爱边另见 rel_romance)
+	# 值是 Array[String](引用语义, 原位 append 生效; PackedStringArray 存字典有 CoW 丢改写的坑)
+	var rel_tags := {}
 	for e in DataManager.relations:
-		rel_count[String(e.get("a", ""))] = int(rel_count.get(String(e.get("a", "")), 0)) + 1
-		rel_count[String(e.get("b", ""))] = int(rel_count.get(String(e.get("b", "")), 0)) + 1
+		var ea := String(e.get("a", ""))
+		var eb := String(e.get("b", ""))
+		if not rel_tags.has(ea):
+			rel_tags[ea] = []
+		if not rel_tags.has(eb):
+			rel_tags[eb] = []
+		(rel_tags[ea] as Array).append(String(e.get("tag", "")))
+		(rel_tags[eb] as Array).append(String(e.get("r_tag", e.get("tag", ""))))
 	for e in Game.run.get("world_rels", []):
-		rel_count[String(e.get("a", ""))] = int(rel_count.get(String(e.get("a", "")), 0)) + 1
-		rel_count[String(e.get("b", ""))] = int(rel_count.get(String(e.get("b", "")), 0)) + 1
+		var wa := String(e.get("a", ""))
+		var wb := String(e.get("b", ""))
+		var wt := String(e.get("tag", ""))
+		if not rel_tags.has(wa):
+			rel_tags[wa] = []
+		if not rel_tags.has(wb):
+			rel_tags[wb] = []
+		(rel_tags[wa] as Array).append(wt)
+		(rel_tags[wb] as Array).append(wt)
+	var romance: Dictionary = Game.run.get("npc_romance", {})
+	var stage_names: Array = Game.tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])
+	var rel_romance := {}   # 恋爱边单独收集: 展示时拼在普通标签前, 截断也优先露出
+	for rk in romance:
+		var rr: Dictionary = romance[rk]
+		var segs := String(rk).split("|")
+		if segs.size() != 2:
+			continue
+		var disp := "夫妻" if bool(rr.get("married", false)) else String(stage_names[clampi(int(rr.get("stage", 0)), 1, 4)])
+		for side in segs:
+			var sk := String(side)
+			if not rel_romance.has(sk):
+				rel_romance[sk] = []
+			(rel_romance[sk] as Array).append(disp)
 	for k in Game.run.npcs:
 		if bool(Game.run.npcs[k].get("met", false)):
-			grid.add_child(_npc_cell(String(k), Game.run.npcs[k], "入册" + ("·幼年" if Game._npc_is_minor(String(k)) else ""), int(rel_count.get(String(k), 0))))
+			grid.add_child(_npc_cell(String(k), Game.run.npcs[k], "入册" + ("·幼年" if Game._npc_is_minor(String(k)) else ""), _tags_view(rel_romance, rel_tags, String(k))))
 	for k in pool:
-		grid.add_child(_npc_cell(String(k), pool[k] as Dictionary, "池中" + ("·幼年" if Game._npc_is_minor(String(k)) else ""), int(rel_count.get(String(k), 0))))
+		grid.add_child(_npc_cell(String(k), pool[k] as Dictionary, "池中" + ("·幼年" if Game._npc_is_minor(String(k)) else ""), _tags_view(rel_romance, rel_tags, String(k))))
 	for n in DataManager.npcs:
 		var fk := String(n.key)
 		if not Game.run.npcs.has(fk):
-			grid.add_child(_npc_cell(fk, n, "未遇", int(rel_count.get(fk, 0))))
+			grid.add_child(_npc_cell(fk, n, "未遇", _tags_view(rel_romance, rel_tags, fk)))
 	c.add_child(UiKit.margin_wrap(cv, 16))
 	return c
 
 
-## 一览方格: 头像 + 姓名 + 状态 + 关系数, 点击跳该人详情弹层(池内未识者亦可查看)。
-func _npc_cell(key: String, d: Dictionary, state: String, rel_n := 0) -> Control:
+## 恋爱边在前 + 普通边在后(有恋爱关系时截断也优先露出恋爱标签)。
+func _tags_view(rel_romance: Dictionary, rel_tags: Dictionary, key: String) -> PackedStringArray:
+	var out: Array = []
+	out.append_array(rel_romance.get(key, []))
+	out.append_array(rel_tags.get(key, []))
+	return PackedStringArray(out)
+
+
+## 一览方格: 头像 + 姓名 + 状态 + 可用关系名称标签(格线截断, 悬停看全表), 点击跳该人详情弹层(池内未识者亦可查看)。
+func _npc_cell(key: String, d: Dictionary, state: String, tags: PackedStringArray) -> Control:
 	var cell := PanelContainer.new()
 	cell.add_theme_stylebox_override("panel", UiKit.stylebox(Color(0, 0, 0, 0), 10))
 	var vb := VBoxContainer.new()
@@ -183,13 +219,20 @@ func _npc_cell(key: String, d: Dictionary, state: String, rel_n := 0) -> Control
 	nl.clip_text = true
 	vb.add_child(nl)
 	vb.add_child(UiKit.label(state, 9, UiKit.PINK_400 if state == "入册" else UiKit.GRAY_400, 500, HORIZONTAL_ALIGNMENT_CENTER))
-	vb.add_child(UiKit.label("关系 %d" % rel_n, 9, UiKit.JADE_600, 500, HORIZONTAL_ALIGNMENT_CENTER))
+	var tl := UiKit.label(("关系%d %s" % [tags.size(), "·".join(tags)]) if not tags.is_empty() else "关系 0", 9, UiKit.JADE_600, 500, HORIZONTAL_ALIGNMENT_CENTER)
+	tl.custom_minimum_size = Vector2(64, 0)
+	tl.clip_text = true
+	vb.add_child(tl)
 	cell.add_child(vb)
+	if not tags.is_empty():
+		cell.tooltip_text = "关系标签: " + "、".join(tags)
 	var hit := Button.new()
 	hit.focus_mode = Control.FOCUS_NONE
 	hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
 		hit.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	if not tags.is_empty():
+		hit.tooltip_text = cell.tooltip_text
 	hit.pressed.connect(GameState.request_npc_detail.bind(key))
 	cell.add_child(hit)
 	return cell
