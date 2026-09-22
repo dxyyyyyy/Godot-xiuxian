@@ -90,6 +90,7 @@
  "worldsim_rival_rate": 0.04,
  "worldsim_friend_rate": 0.05,
  "worldsim_relation_bias": 0.8,
+ "side_scene_main_bias": 0.7,
  "rel_close_min": 35,
  "rel_halo_per": 0.3,
  "rel_halo_max": 0.2,

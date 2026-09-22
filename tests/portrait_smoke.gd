@@ -18,6 +18,8 @@ func _ready() -> void:
 	_check("legacy", Portrait.build_from(legacy, 64, false))
 	for key in ["jianshu", "yaoshi", "shanjun", "moxiu", "shushu", "huzhu"]:
 		_check("npc " + key, Portrait.build_for(key, 52))
+	# kid 套(脸A 幼儿): k 件真叠绘
+	_check("default kid", Portrait.build_from_kit(NG.default_look_kit("kid"), 64, "kid"))
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	for i in 30:
@@ -25,6 +27,10 @@ func _ready() -> void:
 		var ap := NG.random_look(rng, male)
 		ap["aura"] = String(NG.AURAS[rng.randi_range(0, NG.AURAS.size() - 1)])
 		_check("rand%d" % i, Portrait.build_from(ap, 40, male))
+	for i in 10:
+		var kap := NG.random_look_kit(rng, "kid")
+		kap["aura"] = String(NG.AURAS[rng.randi_range(0, NG.AURAS.size() - 1)])
+		_check("rand_kid%d" % i, Portrait.build_from_kit(kap, 40, "kid"))
 	# 捏脸 App: 实例化 + 逐字段 ‹› 切换 + 换性别重置 + 应用写档
 	var app := Control.new()
 	app.set_script(load("res://scripts/apps/app_face.gd"))

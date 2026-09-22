@@ -67,9 +67,10 @@ func _on_game_changed() -> void:
 
 # ---- 纪事 ----
 
-## 纪事记录：一行为一事，滚动上限 CHRONICLE_LIMIT；时间戳取灰盒月历。
-func log_chronicle(text: String) -> void:
-	chronicle.append({"day": Game.calendar(), "text": text})
+## 纪事记录：一行为一事，滚动上限 CHRONICLE_LIMIT；时间戳由发射方随线传入
+## (月报线=刚过去的结算月, 其余空串回退当前月历) —— tick 内直接取 calendar() 会早一个月。
+func log_chronicle(text: String, day := "") -> void:
+	chronicle.append({"day": day if day != "" else Game.calendar(), "text": text})
 	while chronicle.size() > CHRONICLE_LIMIT:
 		chronicle.pop_front()
 	chronicle_unread += 1

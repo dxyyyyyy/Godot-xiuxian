@@ -204,19 +204,9 @@
     "src": "前发/3小脸"
    },
    {
-    "id": "3小脸[金]",
-    "name": "小脸[金]",
-    "n": 4,
-    "back": false,
-    "back_only": false,
-    "color": "金",
-    "skin": "white",
-    "src": "前发/3小脸[金]"
-   },
-   {
     "id": "3平凡刘海",
     "name": "平凡刘海",
-    "n": 5,
+    "n": 4,
     "back": false,
     "back_only": false,
     "color": "",
@@ -226,7 +216,7 @@
    {
     "id": "3普通刘海[棕]",
     "name": "普通刘海[棕]",
-    "n": 6,
+    "n": 5,
     "back": false,
     "back_only": false,
     "color": "棕",
@@ -236,7 +226,7 @@
    {
     "id": "3波波头刘海",
     "name": "波波头刘海",
-    "n": 7,
+    "n": 6,
     "back": false,
     "back_only": false,
     "color": "",
@@ -246,7 +236,7 @@
    {
     "id": "3蓬松[棕]",
     "name": "蓬松[棕]",
-    "n": 8,
+    "n": 7,
     "back": false,
     "back_only": false,
     "color": "棕",
@@ -256,7 +246,7 @@
    {
     "id": "3露额短发",
     "name": "露额短发",
-    "n": 9,
+    "n": 8,
     "back": false,
     "back_only": false,
     "color": "",
@@ -266,7 +256,7 @@
    {
     "id": "4卷发刘海",
     "name": "卷发刘海",
-    "n": 10,
+    "n": 9,
     "back": false,
     "back_only": false,
     "color": "",
@@ -276,7 +266,7 @@
    {
     "id": "4油头前1",
     "name": "油头前1",
-    "n": 11,
+    "n": 10,
     "back": false,
     "back_only": false,
     "color": "",
@@ -286,7 +276,7 @@
    {
     "id": "4油头前2",
     "name": "油头前2",
-    "n": 12,
+    "n": 11,
     "back": false,
     "back_only": false,
     "color": "",
@@ -296,7 +286,7 @@
    {
     "id": "4油头前3",
     "name": "油头前3",
-    "n": 13,
+    "n": 12,
     "back": false,
     "back_only": false,
     "color": "",
@@ -306,7 +296,7 @@
    {
     "id": "4长发刘海",
     "name": "长发刘海",
-    "n": 14,
+    "n": 13,
     "back": true,
     "back_only": false,
     "color": "",
@@ -316,7 +306,7 @@
    {
     "id": "C前发旋",
     "name": "前发旋",
-    "n": 15,
+    "n": 14,
     "back": false,
     "back_only": false,
     "color": "",
@@ -324,19 +314,9 @@
     "src": "前发/C前发旋"
    },
    {
-    "id": "C前发旋[金]",
-    "name": "前发旋[金]",
-    "n": 16,
-    "back": false,
-    "back_only": false,
-    "color": "金",
-    "skin": "white",
-    "src": "前发/C前发旋[金]"
-   },
-   {
     "id": "C独眼长发",
     "name": "独眼长发",
-    "n": 17,
+    "n": 15,
     "back": false,
     "back_only": false,
     "color": "",
@@ -344,14 +324,70 @@
     "src": "前发/C独眼长发"
    },
    {
-    "id": "S红发+方巾",
-    "name": "红发+方巾",
-    "n": 18,
+    "id": "2刘海下竖",
+    "name": "刘海下竖(少年)",
+    "n": 16,
     "back": false,
     "back_only": false,
     "color": "",
     "skin": "white",
-    "src": "前发/S红发+方巾"
+    "src": "前发/2刘海下竖",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2卷发[棕]",
+    "name": "卷发[棕](少年)",
+    "n": 17,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/2卷发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3刘海_三分[棕]",
+    "name": "刘海_三分[棕](少年)",
+    "n": 18,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/3刘海_三分[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3直发[棕]",
+    "name": "直发[棕](少年)",
+    "n": 19,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/3直发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3软绵绵[棕]",
+    "name": "软绵绵[棕](少年)",
+    "n": 20,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/3软绵绵[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4波波头风鬓角[棕]",
+    "name": "波波头风鬓角[棕](少年)",
+    "n": 21,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/4波波头风鬓角[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "hair_back": [
@@ -406,19 +442,9 @@
     "src": "后发/2柔顺短发"
    },
    {
-    "id": "2柔顺短发[金]",
-    "name": "柔顺短发[金]",
-    "n": 6,
-    "back": true,
-    "back_only": false,
-    "color": "金",
-    "skin": "white",
-    "src": "后发/2柔顺短发[金]"
-   },
-   {
     "id": "2油头后1",
     "name": "油头后1",
-    "n": 7,
+    "n": 6,
     "back": true,
     "back_only": false,
     "color": "",
@@ -428,7 +454,7 @@
    {
     "id": "2蘑菇头",
     "name": "蘑菇头",
-    "n": 8,
+    "n": 7,
     "back": false,
     "back_only": false,
     "color": "",
@@ -438,7 +464,7 @@
    {
     "id": "2蘑菇头[浅棕]",
     "name": "蘑菇头[浅棕]",
-    "n": 9,
+    "n": 8,
     "back": false,
     "back_only": false,
     "color": "浅棕",
@@ -446,19 +472,9 @@
     "src": "后发/2蘑菇头[浅棕]"
    },
    {
-    "id": "2蘑菇头[金]",
-    "name": "蘑菇头[金]",
-    "n": 10,
-    "back": false,
-    "back_only": false,
-    "color": "金",
-    "skin": "white",
-    "src": "后发/2蘑菇头[金]"
-   },
-   {
     "id": "3倒竖",
     "name": "倒竖",
-    "n": 11,
+    "n": 9,
     "back": false,
     "back_only": false,
     "color": "",
@@ -468,7 +484,7 @@
    {
     "id": "3后翘",
     "name": "后翘",
-    "n": 12,
+    "n": 10,
     "back": false,
     "back_only": false,
     "color": "",
@@ -478,7 +494,7 @@
    {
     "id": "4中长发后发",
     "name": "中长发后发",
-    "n": 13,
+    "n": 11,
     "back": true,
     "back_only": false,
     "color": "",
@@ -488,7 +504,7 @@
    {
     "id": "4长直发",
     "name": "长直发",
-    "n": 14,
+    "n": 12,
     "back": true,
     "back_only": false,
     "color": "",
@@ -498,7 +514,7 @@
    {
     "id": "5横向发束",
     "name": "横向发束",
-    "n": 15,
+    "n": 13,
     "back": false,
     "back_only": false,
     "color": "",
@@ -508,7 +524,7 @@
    {
     "id": "C外翘",
     "name": "外翘",
-    "n": 16,
+    "n": 14,
     "back": false,
     "back_only": false,
     "color": "",
@@ -516,14 +532,136 @@
     "src": "后发/C外翘"
    },
    {
-    "id": "C外翘[金]",
-    "name": "外翘[金]",
+    "id": "1少女·后发超短发",
+    "name": "少女·后发超短发(少年)",
+    "n": 15,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/1少女·后发超短发",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2卷发[棕]",
+    "name": "卷发[棕](少年)",
+    "n": 16,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/2卷发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2短发卷发",
+    "name": "短发卷发(少年)",
     "n": 17,
     "back": false,
     "back_only": false,
-    "color": "金",
+    "color": "",
     "skin": "white",
-    "src": "后发/C外翘[金]"
+    "src": "后发/2短发卷发",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3外翘长发[棕]",
+    "name": "外翘长发[棕](少年)",
+    "n": 18,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/3外翘长发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3软绵绵[棕]",
+    "name": "软绵绵[棕](少年)",
+    "n": 19,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/3软绵绵[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3马尾辫[棕]",
+    "name": "马尾辫[棕](少年)",
+    "n": 20,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/3马尾辫[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4卷发双马尾[棕]",
+    "name": "卷发双马尾[棕](少年)",
+    "n": 21,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4卷发双马尾[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4双马尾[棕]",
+    "name": "双马尾[棕](少年)",
+    "n": 22,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4双马尾[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4蓬松侧马尾01[棕]",
+    "name": "蓬松侧马尾01[棕](少年)",
+    "n": 23,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4蓬松侧马尾01[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4蓬松侧马尾02[棕]",
+    "name": "蓬松侧马尾02[棕](少年)",
+    "n": 24,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4蓬松侧马尾02[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4蓬松双马尾[棕]",
+    "name": "蓬松双马尾[棕](少年)",
+    "n": 25,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4蓬松双马尾[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4蓬松长发[棕]",
+    "name": "蓬松长发[棕](少年)",
+    "n": 26,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4蓬松长发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "brows": [
@@ -816,6 +954,325 @@
     "color": "",
     "skin": "white",
     "src": "眉毛/o青年男惊锐利"
+   },
+   {
+    "id": "2少年垂眉",
+    "name": "少年垂眉(少年)",
+    "n": 30,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2少年垂眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2怒",
+    "name": "怒(少年)",
+    "n": 31,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2怒",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2眉",
+    "name": "眉(少年)",
+    "n": 32,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3三角眉",
+    "name": "三角眉(少年)",
+    "n": 33,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3三角眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3少年细眉",
+    "name": "少年细眉(少年)",
+    "n": 34,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3少年细眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3强势眉",
+    "name": "强势眉(少年)",
+    "n": 35,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3强势眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3正经眉",
+    "name": "正经眉(少年)",
+    "n": 36,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3正经眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3温柔眉",
+    "name": "温柔眉(少年)",
+    "n": 37,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3温柔眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4粗犷眉",
+    "name": "粗犷眉(少年)",
+    "n": 38,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/4粗犷眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通弓形",
+    "name": "少年普通弓形(少年)",
+    "n": 39,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通弓形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通方形",
+    "name": "少年普通方形(少年)",
+    "n": 40,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通方形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通自然",
+    "name": "少年普通自然(少年)",
+    "n": 41,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通自然",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通轮廓",
+    "name": "少年普通轮廓(少年)",
+    "n": 42,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通轮廓",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通锐利",
+    "name": "少年普通锐利(少年)",
+    "n": 43,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通锐利",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒弓形",
+    "name": "少年怒弓形(少年)",
+    "n": 44,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒弓形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒方形",
+    "name": "少年怒方形(少年)",
+    "n": 45,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒方形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒自然",
+    "name": "少年怒自然(少年)",
+    "n": 46,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒自然",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒轮廓",
+    "name": "少年怒轮廓(少年)",
+    "n": 47,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒轮廓",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒锐利",
+    "name": "少年怒锐利(少年)",
+    "n": 48,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒锐利",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰弓形",
+    "name": "少年困扰弓形(少年)",
+    "n": 49,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰弓形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰方形",
+    "name": "少年困扰方形(少年)",
+    "n": 50,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰方形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰自然",
+    "name": "少年困扰自然(少年)",
+    "n": 51,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰自然",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰轮廓",
+    "name": "少年困扰轮廓(少年)",
+    "n": 52,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰轮廓",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰锐利",
+    "name": "少年困扰锐利(少年)",
+    "n": 53,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰锐利",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊弓形",
+    "name": "少年惊弓形(少年)",
+    "n": 54,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊弓形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊方形",
+    "name": "少年惊方形(少年)",
+    "n": 55,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊方形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊自然",
+    "name": "少年惊自然(少年)",
+    "n": 56,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊自然",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊轮廓",
+    "name": "少年惊轮廓(少年)",
+    "n": 57,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊轮廓",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊锐利",
+    "name": "少年惊锐利(少年)",
+    "n": 58,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊锐利",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "eyes": [
@@ -1148,6 +1605,204 @@
     "color": "",
     "skin": "white",
     "src": "眼睛/C笑脸[垂耳]"
+   },
+   {
+    "id": "2偏小",
+    "name": "偏小(少年)",
+    "n": 34,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2偏小",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2欢快",
+    "name": "欢快(少年)",
+    "n": 35,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2欢快",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2＞＜",
+    "name": "2＞＜(少年)",
+    "n": 36,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2＞＜",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3冷酷眼",
+    "name": "冷酷眼(少年)",
+    "n": 37,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3冷酷眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3吊梢眼",
+    "name": "吊梢眼(少年)",
+    "n": 38,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3吊梢眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3孩童眼B",
+    "name": "孩童眼B(少年)",
+    "n": 39,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3孩童眼B",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3孩童眼[蓝]",
+    "name": "孩童眼[蓝](少年)",
+    "n": 40,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3孩童眼[蓝]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3小嚣张眼",
+    "name": "小嚣张眼(少年)",
+    "n": 41,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3小嚣张眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3小垂眼[蓝]",
+    "name": "小垂眼[蓝](少年)",
+    "n": 42,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3小垂眼[蓝]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3普通眼[棕]",
+    "name": "普通眼[棕](少年)",
+    "n": 43,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3普通眼[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3浅色眼[蓝]",
+    "name": "浅色眼[蓝](少年)",
+    "n": 44,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3浅色眼[蓝]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B水润吊梢",
+    "name": "B水润吊梢(少年)",
+    "n": 45,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/B水润吊梢",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B水润吊梢坏笑",
+    "name": "B水润吊梢坏笑(少年)",
+    "n": 46,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/B水润吊梢坏笑",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B水润吊梢笑",
+    "name": "B水润吊梢笑(少年)",
+    "n": 47,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/B水润吊梢笑",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年_欢快",
+    "name": "少年_欢快(少年)",
+    "n": 48,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/少年_欢快",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年爱心眼(noise)(Level2)",
+    "name": "少年爱心眼(noise)(Level2)(少年)",
+    "n": 49,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/少年爱心眼(noise)(Level2)",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年闭眼",
+    "name": "少年闭眼(少年)",
+    "n": 50,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/少年闭眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "青年女_爱心眼",
+    "name": "青年女_爱心眼(少年)",
+    "n": 51,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/青年女_爱心眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "mouth": [
@@ -1330,6 +1985,248 @@
     "color": "",
     "skin": "white",
     "src": "嘴巴/青年男线嘴"
+   },
+   {
+    "id": "2八字嘴",
+    "name": "八字嘴(少年)",
+    "n": 19,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2八字嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2少年口水",
+    "name": "少年口水(少年)",
+    "n": 20,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2少年口水",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3吐舌",
+    "name": "吐舌(少年)",
+    "n": 21,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3吐舌",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3少年_偏小嘴",
+    "name": "少年_偏小嘴(少年)",
+    "n": 22,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3少年_偏小嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3少年_偏小嘴笑脸",
+    "name": "少年_偏小嘴笑脸(少年)",
+    "n": 23,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3少年_偏小嘴笑脸",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3开口",
+    "name": "开口(少年)",
+    "n": 24,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3开口",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3狡黠笑",
+    "name": "狡黠笑(少年)",
+    "n": 25,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3狡黠笑",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3轻笑嘴",
+    "name": "轻笑嘴(少年)",
+    "n": 26,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3轻笑嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3露齿嘴",
+    "name": "露齿嘴(少年)",
+    "n": 27,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3露齿嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4大闭嘴",
+    "name": "大闭嘴(少年)",
+    "n": 28,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4大闭嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4少年张嘴",
+    "name": "少年张嘴(少年)",
+    "n": 29,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4少年张嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4少年栗形嘴",
+    "name": "少年栗形嘴(少年)",
+    "n": 30,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4少年栗形嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4笑脸",
+    "name": "笑脸(少年)",
+    "n": 31,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4笑脸",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B唔",
+    "name": "B唔(少年)",
+    "n": 32,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B唔",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B唔口红",
+    "name": "B唔口红(少年)",
+    "n": 33,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B唔口红",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B猫嘴",
+    "name": "B猫嘴(少年)",
+    "n": 34,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B猫嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B猫嘴口红",
+    "name": "B猫嘴口红(少年)",
+    "n": 35,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B猫嘴口红",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B猫嘴张开",
+    "name": "B猫嘴张开(少年)",
+    "n": 36,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B猫嘴张开",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B猫嘴张开口红",
+    "name": "B猫嘴张开口红(少年)",
+    "n": 37,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B猫嘴张开口红",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年坏笑嘴",
+    "name": "少年坏笑嘴(少年)",
+    "n": 38,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/少年坏笑嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年线嘴",
+    "name": "少年线嘴(少年)",
+    "n": 39,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/少年线嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "舔唇(无舌)",
+    "name": "舔唇(无舌)(少年)",
+    "n": 40,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/舔唇(无舌)",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "ears": [
@@ -1376,6 +2273,30 @@
     "skin": "black",
     "src": "耳朵/h青年男普通耳肤色黑",
     "base": "青年男普通耳"
+   },
+   {
+    "id": "h少年普通耳肤色白",
+    "name": "少年普通耳肤色白(少年)",
+    "n": 5,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "耳朵/h少年普通耳肤色白",
+    "base": "少年普通耳",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通耳肤色黑",
+    "name": "少年普通耳肤色黑(少年)",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "black",
+    "src": "耳朵/h少年普通耳肤色黑",
+    "base": "少年普通耳",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "cloth": [
@@ -1420,9 +2341,64 @@
     "src": "服装/青年男披风"
    },
    {
+    "id": "基础服",
+    "name": "基础服(少年)",
+    "n": 5,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/基础服",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年白袍",
+    "name": "少年白袍(少年)",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/少年白袍",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "平安风服装",
+    "name": "平安风服装(少年)",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/平安风服装",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "白色服装",
+    "name": "白色服装(少年)",
+    "n": 8,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/白色服装",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "白色服装B",
+    "name": "白色服装B(少年)",
+    "n": 9,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/白色服装B",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
     "id": "AI_靛青交领袍",
     "name": "靛青交领袍",
-    "n": 5,
+    "n": 10,
     "back": false,
     "back_only": false,
     "color": "",
@@ -1432,7 +2408,7 @@
    {
     "id": "AI_玄色劲装",
     "name": "玄色劲装",
-    "n": 6,
+    "n": 11,
     "back": false,
     "back_only": false,
     "color": "",
@@ -1442,7 +2418,7 @@
    {
     "id": "AI_月白鹤氅",
     "name": "月白鹤氅",
-    "n": 7,
+    "n": 12,
     "back": false,
     "back_only": false,
     "color": "",
@@ -1452,7 +2428,7 @@
    {
     "id": "AI_赭石道袍",
     "name": "赭石道袍",
-    "n": 8,
+    "n": 13,
     "back": false,
     "back_only": false,
     "color": "",
@@ -1462,7 +2438,7 @@
    {
     "id": "AI_墨绿长衫",
     "name": "墨绿长衫",
-    "n": 9,
+    "n": 14,
     "back": false,
     "back_only": false,
     "color": "",
@@ -1756,14 +2732,70 @@
     "src": "前发/S带发带"
    },
    {
-    "id": "S红发+方巾",
-    "name": "红发+方巾",
+    "id": "2刘海下竖",
+    "name": "刘海下竖(少年)",
     "n": 19,
     "back": false,
     "back_only": false,
     "color": "",
     "skin": "white",
-    "src": "前发/S红发+方巾"
+    "src": "前发/2刘海下竖",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2卷发[棕]",
+    "name": "卷发[棕](少年)",
+    "n": 20,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/2卷发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3刘海_三分[棕]",
+    "name": "刘海_三分[棕](少年)",
+    "n": 21,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/3刘海_三分[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3直发[棕]",
+    "name": "直发[棕](少年)",
+    "n": 22,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/3直发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3软绵绵[棕]",
+    "name": "软绵绵[棕](少年)",
+    "n": 23,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/3软绵绵[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4波波头风鬓角[棕]",
+    "name": "波波头风鬓角[棕](少年)",
+    "n": 24,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/4波波头风鬓角[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "hair_back": [
@@ -1976,6 +3008,138 @@
     "color": "",
     "skin": "white",
     "src": "后发/5横向蓬发"
+   },
+   {
+    "id": "1少女·后发超短发",
+    "name": "少女·后发超短发(少年)",
+    "n": 22,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/1少女·后发超短发",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2卷发[棕]",
+    "name": "卷发[棕](少年)",
+    "n": 23,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/2卷发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2短发卷发",
+    "name": "短发卷发(少年)",
+    "n": 24,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2短发卷发",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3外翘长发[棕]",
+    "name": "外翘长发[棕](少年)",
+    "n": 25,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/3外翘长发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3软绵绵[棕]",
+    "name": "软绵绵[棕](少年)",
+    "n": 26,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/3软绵绵[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3马尾辫[棕]",
+    "name": "马尾辫[棕](少年)",
+    "n": 27,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/3马尾辫[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4卷发双马尾[棕]",
+    "name": "卷发双马尾[棕](少年)",
+    "n": 28,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4卷发双马尾[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4双马尾[棕]",
+    "name": "双马尾[棕](少年)",
+    "n": 29,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4双马尾[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4蓬松侧马尾01[棕]",
+    "name": "蓬松侧马尾01[棕](少年)",
+    "n": 30,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4蓬松侧马尾01[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4蓬松侧马尾02[棕]",
+    "name": "蓬松侧马尾02[棕](少年)",
+    "n": 31,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4蓬松侧马尾02[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4蓬松双马尾[棕]",
+    "name": "蓬松双马尾[棕](少年)",
+    "n": 32,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4蓬松双马尾[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4蓬松长发[棕]",
+    "name": "蓬松长发[棕](少年)",
+    "n": 33,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4蓬松长发[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "brows": [
@@ -2278,6 +3442,314 @@
     "color": "",
     "skin": "white",
     "src": "眉毛/o青年女惊锐利"
+   },
+   {
+    "id": "2少年垂眉",
+    "name": "少年垂眉(少年)",
+    "n": 31,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2少年垂眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2怒",
+    "name": "怒(少年)",
+    "n": 32,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2怒",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3三角眉",
+    "name": "三角眉(少年)",
+    "n": 33,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3三角眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3少年细眉",
+    "name": "少年细眉(少年)",
+    "n": 34,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3少年细眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3强势眉",
+    "name": "强势眉(少年)",
+    "n": 35,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3强势眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3正经眉",
+    "name": "正经眉(少年)",
+    "n": 36,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3正经眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3温柔眉",
+    "name": "温柔眉(少年)",
+    "n": 37,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3温柔眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4粗犷眉",
+    "name": "粗犷眉(少年)",
+    "n": 38,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/4粗犷眉",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通弓形",
+    "name": "少年普通弓形(少年)",
+    "n": 39,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通弓形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通方形",
+    "name": "少年普通方形(少年)",
+    "n": 40,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通方形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通自然",
+    "name": "少年普通自然(少年)",
+    "n": 41,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通自然",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通轮廓",
+    "name": "少年普通轮廓(少年)",
+    "n": 42,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通轮廓",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通锐利",
+    "name": "少年普通锐利(少年)",
+    "n": 43,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h少年普通锐利",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒弓形",
+    "name": "少年怒弓形(少年)",
+    "n": 44,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒弓形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒方形",
+    "name": "少年怒方形(少年)",
+    "n": 45,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒方形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒自然",
+    "name": "少年怒自然(少年)",
+    "n": 46,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒自然",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒轮廓",
+    "name": "少年怒轮廓(少年)",
+    "n": 47,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒轮廓",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "i少年怒锐利",
+    "name": "少年怒锐利(少年)",
+    "n": 48,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i少年怒锐利",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰弓形",
+    "name": "少年困扰弓形(少年)",
+    "n": 49,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰弓形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰方形",
+    "name": "少年困扰方形(少年)",
+    "n": 50,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰方形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰自然",
+    "name": "少年困扰自然(少年)",
+    "n": 51,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰自然",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰轮廓",
+    "name": "少年困扰轮廓(少年)",
+    "n": 52,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰轮廓",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "k少年困扰锐利",
+    "name": "少年困扰锐利(少年)",
+    "n": 53,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k少年困扰锐利",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊弓形",
+    "name": "少年惊弓形(少年)",
+    "n": 54,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊弓形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊方形",
+    "name": "少年惊方形(少年)",
+    "n": 55,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊方形",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊自然",
+    "name": "少年惊自然(少年)",
+    "n": 56,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊自然",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊轮廓",
+    "name": "少年惊轮廓(少年)",
+    "n": 57,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊轮廓",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "o少年惊锐利",
+    "name": "少年惊锐利(少年)",
+    "n": 58,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o少年惊锐利",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "eyes": [
@@ -2530,6 +4002,215 @@
     "color": "",
     "skin": "white",
     "src": "眼睛/D温和睫毛笑"
+   },
+   {
+    "id": "2三白眼",
+    "name": "三白眼(少年)",
+    "n": 26,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2三白眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2偏小",
+    "name": "偏小(少年)",
+    "n": 27,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2偏小",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2垂眼",
+    "name": "垂眼(少年)",
+    "n": 28,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2垂眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2欢快",
+    "name": "欢快(少年)",
+    "n": 29,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2欢快",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2＞＜",
+    "name": "2＞＜(少年)",
+    "n": 30,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2＞＜",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3冷酷眼",
+    "name": "冷酷眼(少年)",
+    "n": 31,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3冷酷眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3孩童眼B",
+    "name": "孩童眼B(少年)",
+    "n": 32,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3孩童眼B",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3孩童眼[蓝]",
+    "name": "孩童眼[蓝](少年)",
+    "n": 33,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3孩童眼[蓝]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3小嚣张眼",
+    "name": "小嚣张眼(少年)",
+    "n": 34,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3小嚣张眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3小垂眼[蓝]",
+    "name": "小垂眼[蓝](少年)",
+    "n": 35,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3小垂眼[蓝]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3普通眼[棕]",
+    "name": "普通眼[棕](少年)",
+    "n": 36,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3普通眼[棕]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3浅色眼[蓝]",
+    "name": "浅色眼[蓝](少年)",
+    "n": 37,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3浅色眼[蓝]",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B水润吊梢",
+    "name": "B水润吊梢(少年)",
+    "n": 38,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/B水润吊梢",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B水润吊梢坏笑",
+    "name": "B水润吊梢坏笑(少年)",
+    "n": 39,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/B水润吊梢坏笑",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B水润吊梢笑",
+    "name": "B水润吊梢笑(少年)",
+    "n": 40,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/B水润吊梢笑",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年_欢快",
+    "name": "少年_欢快(少年)",
+    "n": 41,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/少年_欢快",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年爱心眼(noise)(Level2)",
+    "name": "少年爱心眼(noise)(Level2)(少年)",
+    "n": 42,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/少年爱心眼(noise)(Level2)",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年闭眼",
+    "name": "少年闭眼(少年)",
+    "n": 43,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/少年闭眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "青年女_爱心眼",
+    "name": "青年女_爱心眼(少年)",
+    "n": 44,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/青年女_爱心眼",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "mouth": [
@@ -2802,6 +4483,248 @@
     "color": "",
     "skin": "white",
     "src": "嘴巴/4开口"
+   },
+   {
+    "id": "2八字嘴",
+    "name": "八字嘴(少年)",
+    "n": 28,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2八字嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "2少年口水",
+    "name": "少年口水(少年)",
+    "n": 29,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2少年口水",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3吐舌",
+    "name": "吐舌(少年)",
+    "n": 30,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3吐舌",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3少年_偏小嘴",
+    "name": "少年_偏小嘴(少年)",
+    "n": 31,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3少年_偏小嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3少年_偏小嘴笑脸",
+    "name": "少年_偏小嘴笑脸(少年)",
+    "n": 32,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3少年_偏小嘴笑脸",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3开口",
+    "name": "开口(少年)",
+    "n": 33,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3开口",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3狡黠笑",
+    "name": "狡黠笑(少年)",
+    "n": 34,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3狡黠笑",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3轻笑嘴",
+    "name": "轻笑嘴(少年)",
+    "n": 35,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3轻笑嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "3露齿嘴",
+    "name": "露齿嘴(少年)",
+    "n": 36,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3露齿嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4大闭嘴",
+    "name": "大闭嘴(少年)",
+    "n": 37,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4大闭嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4少年张嘴",
+    "name": "少年张嘴(少年)",
+    "n": 38,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4少年张嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4少年栗形嘴",
+    "name": "少年栗形嘴(少年)",
+    "n": 39,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4少年栗形嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "4笑脸",
+    "name": "笑脸(少年)",
+    "n": 40,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4笑脸",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B唔",
+    "name": "B唔(少年)",
+    "n": 41,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B唔",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B唔口红",
+    "name": "B唔口红(少年)",
+    "n": 42,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B唔口红",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B猫嘴",
+    "name": "B猫嘴(少年)",
+    "n": 43,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B猫嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B猫嘴口红",
+    "name": "B猫嘴口红(少年)",
+    "n": 44,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B猫嘴口红",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B猫嘴张开",
+    "name": "B猫嘴张开(少年)",
+    "n": 45,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B猫嘴张开",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "B猫嘴张开口红",
+    "name": "B猫嘴张开口红(少年)",
+    "n": 46,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/B猫嘴张开口红",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年坏笑嘴",
+    "name": "少年坏笑嘴(少年)",
+    "n": 47,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/少年坏笑嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年线嘴",
+    "name": "少年线嘴(少年)",
+    "n": 48,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/少年线嘴",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "舔唇(无舌)",
+    "name": "舔唇(无舌)(少年)",
+    "n": 49,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/舔唇(无舌)",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "ears": [
@@ -2837,6 +4760,30 @@
     "skin": "black",
     "src": "耳朵/h青年女普通耳肤色黑",
     "base": "青年女普通耳"
+   },
+   {
+    "id": "h少年普通耳肤色白",
+    "name": "少年普通耳肤色白(少年)",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "耳朵/h少年普通耳肤色白",
+    "base": "少年普通耳",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "h少年普通耳肤色黑",
+    "name": "少年普通耳肤色黑(少年)",
+    "n": 5,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "black",
+    "src": "耳朵/h少年普通耳肤色黑",
+    "base": "少年普通耳",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "cloth": [
@@ -2881,29 +4828,9 @@
     "src": "服装/和服[花纹]"
    },
    {
-    "id": "无袖中式〔藏青〕",
-    "name": "无袖中式〔藏青〕",
-    "n": 5,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "服装/无袖中式〔藏青〕"
-   },
-   {
-    "id": "露胸中式无袖",
-    "name": "露胸中式无袖",
-    "n": 6,
-    "back": true,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "服装/露胸中式无袖"
-   },
-   {
     "id": "露胸中式有袖",
     "name": "露胸中式有袖",
-    "n": 7,
+    "n": 5,
     "back": true,
     "back_only": false,
     "color": "",
@@ -2911,9 +4838,64 @@
     "src": "服装/露胸中式有袖"
    },
    {
+    "id": "基础服",
+    "name": "基础服(少年)",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/基础服",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "少年白袍",
+    "name": "少年白袍(少年)",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/少年白袍",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "平安风服装",
+    "name": "平安风服装(少年)",
+    "n": 8,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/平安风服装",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "白色服装",
+    "name": "白色服装(少年)",
+    "n": 9,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/白色服装",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
+    "id": "白色服装B",
+    "name": "白色服装B(少年)",
+    "n": 10,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/白色服装B",
+    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
+   },
+   {
     "id": "AI_月白襦裙",
     "name": "月白襦裙",
-    "n": 8,
+    "n": 11,
     "back": false,
     "back_only": false,
     "color": "",
@@ -2923,7 +4905,7 @@
    {
     "id": "AI_藕荷襦裙",
     "name": "藕荷襦裙",
-    "n": 9,
+    "n": 12,
     "back": false,
     "back_only": false,
     "color": "",
@@ -2933,7 +4915,7 @@
    {
     "id": "AI_水蓝广袖裙",
     "name": "水蓝广袖裙",
-    "n": 10,
+    "n": 13,
     "back": false,
     "back_only": false,
     "color": "",
@@ -2943,7 +4925,7 @@
    {
     "id": "AI_玄紫劲装",
     "name": "玄紫劲装",
-    "n": 11,
+    "n": 14,
     "back": false,
     "back_only": false,
     "color": "",
@@ -2953,12 +4935,2054 @@
    {
     "id": "AI_素白道袍",
     "name": "素白道袍",
-    "n": 12,
+    "n": 15,
     "back": false,
     "back_only": false,
     "color": "",
     "skin": "white",
     "src": "_ai/parts/cloth/12f.png"
+   }
+  ]
+ },
+ "kid": {
+  "face": [
+   {
+    "id": "幼儿底稿",
+    "name": "幼儿底稿",
+    "n": 1,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "基础层/幼儿底稿"
+   },
+   {
+    "id": "幼儿底稿肤色白",
+    "name": "幼儿底稿肤色白",
+    "n": 2,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "基础层/幼儿底稿肤色白"
+   },
+   {
+    "id": "幼儿底稿肤色黑",
+    "name": "幼儿底稿肤色黑",
+    "n": 3,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "black",
+    "src": "基础层/幼儿底稿肤色黑"
+   },
+   {
+    "id": "深肤色",
+    "name": "深肤色",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "black",
+    "src": "基础层/深肤色"
+   },
+   {
+    "id": "深肤色脸红",
+    "name": "深肤色脸红",
+    "n": 5,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "black",
+    "src": "基础层/深肤色脸红"
+   },
+   {
+    "id": "深肤色蔫蔫",
+    "name": "深肤色蔫蔫",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "black",
+    "src": "基础层/深肤色蔫蔫"
+   },
+   {
+    "id": "白皙幼儿",
+    "name": "白皙幼儿",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "基础层/白皙幼儿"
+   },
+   {
+    "id": "肤白幼儿",
+    "name": "肤白幼儿",
+    "n": 8,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "基础层/肤白幼儿"
+   },
+   {
+    "id": "肤白幼儿2",
+    "name": "肤白幼儿2",
+    "n": 9,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "基础层/肤白幼儿2"
+   },
+   {
+    "id": "脸红",
+    "name": "脸红",
+    "n": 10,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "基础层/脸红"
+   },
+   {
+    "id": "蔫蔫",
+    "name": "蔫蔫",
+    "n": 11,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "基础层/蔫蔫"
+   }
+  ],
+  "hair_front": [
+   {
+    "id": "1波波头短[棕]",
+    "name": "波波头短[棕]",
+    "n": 1,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/1波波头短[棕]"
+   },
+   {
+    "id": "2偏多刘海",
+    "name": "偏多刘海",
+    "n": 2,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/2偏多刘海"
+   },
+   {
+    "id": "2偏短刘海[棕]",
+    "name": "偏短刘海[棕]",
+    "n": 3,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/2偏短刘海[棕]"
+   },
+   {
+    "id": "2披发A",
+    "name": "披发A",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/2披发A"
+   },
+   {
+    "id": "2拖把头",
+    "name": "拖把头",
+    "n": 5,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/2拖把头"
+   },
+   {
+    "id": "2波波头刘海[棕]",
+    "name": "波波头刘海[棕]",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/2波波头刘海[棕]"
+   },
+   {
+    "id": "2蓬松",
+    "name": "蓬松",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/2蓬松"
+   },
+   {
+    "id": "3内卷刘海",
+    "name": "内卷刘海",
+    "n": 8,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/3内卷刘海"
+   },
+   {
+    "id": "3右分刘海[棕]",
+    "name": "右分刘海[棕]",
+    "n": 9,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/3右分刘海[棕]"
+   },
+   {
+    "id": "3右眼刘海",
+    "name": "右眼刘海",
+    "n": 10,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/3右眼刘海"
+   },
+   {
+    "id": "3左眼刘海",
+    "name": "左眼刘海",
+    "n": 11,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/3左眼刘海"
+   },
+   {
+    "id": "3幼儿_普通发",
+    "name": "幼儿_普通发",
+    "n": 12,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/3幼儿_普通发"
+   },
+   {
+    "id": "3披发B",
+    "name": "披发B",
+    "n": 13,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/3披发B"
+   },
+   {
+    "id": "3毛糙A",
+    "name": "毛糙A",
+    "n": 14,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/3毛糙A"
+   },
+   {
+    "id": "3毛糙B",
+    "name": "毛糙B",
+    "n": 15,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/3毛糙B"
+   },
+   {
+    "id": "3直发[棕]",
+    "name": "直发[棕]",
+    "n": 16,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "前发/3直发[棕]"
+   },
+   {
+    "id": "3蓬蓬",
+    "name": "蓬蓬",
+    "n": 17,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/3蓬蓬"
+   },
+   {
+    "id": "4披发C",
+    "name": "披发C",
+    "n": 18,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/4披发C"
+   },
+   {
+    "id": "4披发D - 副本",
+    "name": "披发D - 副本",
+    "n": 19,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/4披发D - 副本"
+   },
+   {
+    "id": "4披发D",
+    "name": "披发D",
+    "n": 20,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/4披发D"
+   },
+   {
+    "id": "4毛糙C",
+    "name": "毛糙C",
+    "n": 21,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/4毛糙C"
+   },
+   {
+    "id": "4毛糙D",
+    "name": "毛糙D",
+    "n": 22,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "前发/4毛糙D"
+   }
+  ],
+  "hair_back": [
+   {
+    "id": "1乱发",
+    "name": "乱发",
+    "n": 1,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/1乱发"
+   },
+   {
+    "id": "1光头",
+    "name": "光头",
+    "n": 2,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/1光头"
+   },
+   {
+    "id": "1光头[10日元]",
+    "name": "光头[10日元]",
+    "n": 3,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/1光头[10日元]"
+   },
+   {
+    "id": "1光头[芝麻]",
+    "name": "光头[芝麻]",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/1光头[芝麻]"
+   },
+   {
+    "id": "1单扎",
+    "name": "单扎",
+    "n": 5,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/1单扎"
+   },
+   {
+    "id": "1双扎卷卷",
+    "name": "双扎卷卷",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/1双扎卷卷"
+   },
+   {
+    "id": "2侧扎",
+    "name": "侧扎",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2侧扎"
+   },
+   {
+    "id": "2单扎短",
+    "name": "单扎短",
+    "n": 8,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2单扎短"
+   },
+   {
+    "id": "2单扎短·反翘",
+    "name": "单扎短·反翘",
+    "n": 9,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2单扎短·反翘"
+   },
+   {
+    "id": "2单扎蓬蓬",
+    "name": "单扎蓬蓬",
+    "n": 10,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2单扎蓬蓬"
+   },
+   {
+    "id": "2双扎细长",
+    "name": "双扎细长",
+    "n": 11,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2双扎细长"
+   },
+   {
+    "id": "2双扎饱满",
+    "name": "双扎饱满",
+    "n": 12,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2双扎饱满"
+   },
+   {
+    "id": "2外翘",
+    "name": "外翘",
+    "n": 13,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2外翘"
+   },
+   {
+    "id": "2短发",
+    "name": "短发",
+    "n": 14,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2短发"
+   },
+   {
+    "id": "2短发[棕]",
+    "name": "短发[棕]",
+    "n": 15,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/2短发[棕]"
+   },
+   {
+    "id": "2短发露额",
+    "name": "短发露额",
+    "n": 16,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2短发露额"
+   },
+   {
+    "id": "2马尾",
+    "name": "马尾",
+    "n": 17,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2马尾"
+   },
+   {
+    "id": "2马尾短发",
+    "name": "马尾短发",
+    "n": 18,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/2马尾短发"
+   },
+   {
+    "id": "3双马尾",
+    "name": "双马尾",
+    "n": 19,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/3双马尾"
+   },
+   {
+    "id": "3外翘",
+    "name": "外翘",
+    "n": 20,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/3外翘"
+   },
+   {
+    "id": "3幼儿_普通后发",
+    "name": "幼儿_普通后发",
+    "n": 21,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/3幼儿_普通后发"
+   },
+   {
+    "id": "3波波头[棕]",
+    "name": "波波头[棕]",
+    "n": 22,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/3波波头[棕]"
+   },
+   {
+    "id": "3直发[棕]",
+    "name": "直发[棕]",
+    "n": 23,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/3直发[棕]"
+   },
+   {
+    "id": "3马尾",
+    "name": "马尾",
+    "n": 24,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/3马尾"
+   },
+   {
+    "id": "4双马尾[棕]",
+    "name": "双马尾[棕]",
+    "n": 25,
+    "back": false,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4双马尾[棕]"
+   },
+   {
+    "id": "4双马尾长发",
+    "name": "双马尾长发",
+    "n": 26,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "后发/4双马尾长发"
+   },
+   {
+    "id": "4长发[棕]",
+    "name": "长发[棕]",
+    "n": 27,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4长发[棕]"
+   },
+   {
+    "id": "4长发单扎[棕]",
+    "name": "长发单扎[棕]",
+    "n": 28,
+    "back": true,
+    "back_only": false,
+    "color": "棕",
+    "skin": "white",
+    "src": "后发/4长发单扎[棕]"
+   }
+  ],
+  "brows": [
+   {
+    "id": "1短垂眉",
+    "name": "短垂眉",
+    "n": 1,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/1短垂眉"
+   },
+   {
+    "id": "1短挑眉",
+    "name": "短挑眉",
+    "n": 2,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/1短挑眉"
+   },
+   {
+    "id": "1短眉",
+    "name": "短眉",
+    "n": 3,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/1短眉"
+   },
+   {
+    "id": "1细眉",
+    "name": "细眉",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/1细眉"
+   },
+   {
+    "id": "2困扰",
+    "name": "困扰",
+    "n": 5,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2困扰"
+   },
+   {
+    "id": "2怒",
+    "name": "怒",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2怒"
+   },
+   {
+    "id": "2温和眉困惑",
+    "name": "温和眉困惑",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2温和眉困惑"
+   },
+   {
+    "id": "2温和眉悲叹",
+    "name": "温和眉悲叹",
+    "n": 8,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2温和眉悲叹"
+   },
+   {
+    "id": "2温和眉普通",
+    "name": "温和眉普通",
+    "n": 9,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2温和眉普通"
+   },
+   {
+    "id": "2眉",
+    "name": "眉",
+    "n": 10,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/2眉"
+   },
+   {
+    "id": "3垂眉",
+    "name": "垂眉",
+    "n": 11,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3垂眉"
+   },
+   {
+    "id": "3稀疏垂眉",
+    "name": "稀疏垂眉",
+    "n": 12,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3稀疏垂眉"
+   },
+   {
+    "id": "3稀疏挑眉",
+    "name": "稀疏挑眉",
+    "n": 13,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3稀疏挑眉"
+   },
+   {
+    "id": "3稀疏眉",
+    "name": "稀疏眉",
+    "n": 14,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3稀疏眉"
+   },
+   {
+    "id": "3粗眉",
+    "name": "粗眉",
+    "n": 15,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/3粗眉"
+   },
+   {
+    "id": "4圆垂眉",
+    "name": "圆垂眉",
+    "n": 16,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/4圆垂眉"
+   },
+   {
+    "id": "4圆挑眉",
+    "name": "圆挑眉",
+    "n": 17,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/4圆挑眉"
+   },
+   {
+    "id": "4圆眉",
+    "name": "圆眉",
+    "n": 18,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/4圆眉"
+   },
+   {
+    "id": "4浓密垂眉",
+    "name": "浓密垂眉",
+    "n": 19,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/4浓密垂眉"
+   },
+   {
+    "id": "4浓密挑眉",
+    "name": "浓密挑眉",
+    "n": 20,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/4浓密挑眉"
+   },
+   {
+    "id": "4浓密眉",
+    "name": "浓密眉",
+    "n": 21,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/4浓密眉"
+   },
+   {
+    "id": "h幼儿普通弓形",
+    "name": "幼儿普通弓形",
+    "n": 22,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h幼儿普通弓形"
+   },
+   {
+    "id": "h幼儿普通方形",
+    "name": "幼儿普通方形",
+    "n": 23,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h幼儿普通方形"
+   },
+   {
+    "id": "h幼儿普通自然",
+    "name": "幼儿普通自然",
+    "n": 24,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h幼儿普通自然"
+   },
+   {
+    "id": "h幼儿普通轮廓",
+    "name": "幼儿普通轮廓",
+    "n": 25,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h幼儿普通轮廓"
+   },
+   {
+    "id": "h幼儿普通锐利",
+    "name": "幼儿普通锐利",
+    "n": 26,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/h幼儿普通锐利"
+   },
+   {
+    "id": "i幼儿怒弓形",
+    "name": "幼儿怒弓形",
+    "n": 27,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i幼儿怒弓形"
+   },
+   {
+    "id": "i幼儿怒方形",
+    "name": "幼儿怒方形",
+    "n": 28,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i幼儿怒方形"
+   },
+   {
+    "id": "i幼儿怒自然",
+    "name": "幼儿怒自然",
+    "n": 29,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i幼儿怒自然"
+   },
+   {
+    "id": "i幼儿怒轮廓",
+    "name": "幼儿怒轮廓",
+    "n": 30,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i幼儿怒轮廓"
+   },
+   {
+    "id": "i幼儿怒锐利",
+    "name": "幼儿怒锐利",
+    "n": 31,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/i幼儿怒锐利"
+   },
+   {
+    "id": "k幼儿困扰弓形",
+    "name": "幼儿困扰弓形",
+    "n": 32,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k幼儿困扰弓形"
+   },
+   {
+    "id": "k幼儿困扰方形",
+    "name": "幼儿困扰方形",
+    "n": 33,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k幼儿困扰方形"
+   },
+   {
+    "id": "k幼儿困扰自然",
+    "name": "幼儿困扰自然",
+    "n": 34,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k幼儿困扰自然"
+   },
+   {
+    "id": "k幼儿困扰轮廓",
+    "name": "幼儿困扰轮廓",
+    "n": 35,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k幼儿困扰轮廓"
+   },
+   {
+    "id": "k幼儿困扰锐利",
+    "name": "幼儿困扰锐利",
+    "n": 36,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/k幼儿困扰锐利"
+   },
+   {
+    "id": "o幼儿惊弓形",
+    "name": "幼儿惊弓形",
+    "n": 37,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o幼儿惊弓形"
+   },
+   {
+    "id": "o幼儿惊方形",
+    "name": "幼儿惊方形",
+    "n": 38,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o幼儿惊方形"
+   },
+   {
+    "id": "o幼儿惊自然",
+    "name": "幼儿惊自然",
+    "n": 39,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o幼儿惊自然"
+   },
+   {
+    "id": "o幼儿惊轮廓",
+    "name": "幼儿惊轮廓",
+    "n": 40,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o幼儿惊轮廓"
+   },
+   {
+    "id": "o幼儿惊锐利",
+    "name": "幼儿惊锐利",
+    "n": 41,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眉毛/o幼儿惊锐利"
+   }
+  ],
+  "eyes": [
+   {
+    "id": "1抿紧",
+    "name": "抿紧",
+    "n": 1,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/1抿紧"
+   },
+   {
+    "id": "1漫画怒",
+    "name": "漫画怒",
+    "n": 2,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/1漫画怒"
+   },
+   {
+    "id": "1漫画泪眼",
+    "name": "漫画泪眼",
+    "n": 3,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/1漫画泪眼"
+   },
+   {
+    "id": "1漫画泪眼摆动",
+    "name": "漫画泪眼摆动",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/1漫画泪眼摆动"
+   },
+   {
+    "id": "1漫画泪眼泪珠",
+    "name": "漫画泪眼泪珠",
+    "n": 5,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/1漫画泪眼泪珠"
+   },
+   {
+    "id": "1眼(无眼白)",
+    "name": "眼(无眼白)",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/1眼(无眼白)"
+   },
+   {
+    "id": "1路人眼",
+    "name": "路人眼",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/1路人眼"
+   },
+   {
+    "id": "2半睁无光A",
+    "name": "半睁无光A",
+    "n": 8,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2半睁无光A"
+   },
+   {
+    "id": "2半睁无光B",
+    "name": "半睁无光B",
+    "n": 9,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2半睁无光B"
+   },
+   {
+    "id": "2半睁无光C",
+    "name": "半睁无光C",
+    "n": 10,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2半睁无光C"
+   },
+   {
+    "id": "2半睁无光D",
+    "name": "半睁无光D",
+    "n": 11,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2半睁无光D"
+   },
+   {
+    "id": "2半睁有光A",
+    "name": "半睁有光A",
+    "n": 12,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2半睁有光A"
+   },
+   {
+    "id": "2半睁有光B",
+    "name": "半睁有光B",
+    "n": 13,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2半睁有光B"
+   },
+   {
+    "id": "2半睁有光C",
+    "name": "半睁有光C",
+    "n": 14,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2半睁有光C"
+   },
+   {
+    "id": "2半睁有光D",
+    "name": "半睁有光D",
+    "n": 15,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2半睁有光D"
+   },
+   {
+    "id": "2哭",
+    "name": "哭",
+    "n": 16,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2哭"
+   },
+   {
+    "id": "2圆点泪眼",
+    "name": "圆点泪眼",
+    "n": 17,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2圆点泪眼"
+   },
+   {
+    "id": "2圆点眼",
+    "name": "圆点眼",
+    "n": 18,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2圆点眼"
+   },
+   {
+    "id": "2圆点眼2",
+    "name": "圆点眼2",
+    "n": 19,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2圆点眼2"
+   },
+   {
+    "id": "2圆睁A",
+    "name": "圆睁A",
+    "n": 20,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2圆睁A"
+   },
+   {
+    "id": "2圆睁B",
+    "name": "圆睁B",
+    "n": 21,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2圆睁B"
+   },
+   {
+    "id": "2圆睁C",
+    "name": "圆睁C",
+    "n": 22,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2圆睁C"
+   },
+   {
+    "id": "2圆睁D",
+    "name": "圆睁D",
+    "n": 23,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2圆睁D"
+   },
+   {
+    "id": "2垂眼",
+    "name": "垂眼",
+    "n": 24,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2垂眼"
+   },
+   {
+    "id": "2普通A",
+    "name": "普通A",
+    "n": 25,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2普通A"
+   },
+   {
+    "id": "2普通B",
+    "name": "普通B",
+    "n": 26,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2普通B"
+   },
+   {
+    "id": "2普通C",
+    "name": "普通C",
+    "n": 27,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2普通C"
+   },
+   {
+    "id": "2普通D",
+    "name": "普通D",
+    "n": 28,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2普通D"
+   },
+   {
+    "id": "2欢快",
+    "name": "欢快",
+    "n": 29,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2欢快"
+   },
+   {
+    "id": "2欲哭",
+    "name": "欲哭",
+    "n": 30,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2欲哭"
+   },
+   {
+    "id": "2点眼无光",
+    "name": "点眼无光",
+    "n": 31,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2点眼无光"
+   },
+   {
+    "id": "2爱心眼",
+    "name": "爱心眼",
+    "n": 32,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2爱心眼"
+   },
+   {
+    "id": "2眯眯眼",
+    "name": "眯眯眼",
+    "n": 33,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2眯眯眼"
+   },
+   {
+    "id": "2睡眼无光",
+    "name": "睡眼无光",
+    "n": 34,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2睡眼无光"
+   },
+   {
+    "id": "2睡眼有光",
+    "name": "睡眼有光",
+    "n": 35,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2睡眼有光"
+   },
+   {
+    "id": "2瞪A",
+    "name": "瞪A",
+    "n": 36,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2瞪A"
+   },
+   {
+    "id": "2瞪B",
+    "name": "瞪B",
+    "n": 37,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2瞪B"
+   },
+   {
+    "id": "2瞪C",
+    "name": "瞪C",
+    "n": 38,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2瞪C"
+   },
+   {
+    "id": "2瞪D",
+    "name": "瞪D",
+    "n": 39,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2瞪D"
+   },
+   {
+    "id": "2笑眼",
+    "name": "笑眼",
+    "n": 40,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2笑眼"
+   },
+   {
+    "id": "2线吊眼",
+    "name": "线吊眼",
+    "n": 41,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2线吊眼"
+   },
+   {
+    "id": "2线垂眼",
+    "name": "线垂眼",
+    "n": 42,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2线垂眼"
+   },
+   {
+    "id": "2路人眼",
+    "name": "路人眼",
+    "n": 43,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/2路人眼"
+   },
+   {
+    "id": "3吊梢眼[棕]",
+    "name": "吊梢眼[棕]",
+    "n": 44,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3吊梢眼[棕]"
+   },
+   {
+    "id": "3幼儿眼[棕]",
+    "name": "幼儿眼[棕]",
+    "n": 45,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3幼儿眼[棕]"
+   },
+   {
+    "id": "3幼儿闭眼",
+    "name": "幼儿闭眼",
+    "n": 46,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3幼儿闭眼"
+   },
+   {
+    "id": "3异色瞳[红+蓝]",
+    "name": "异色瞳[红+蓝]",
+    "n": 47,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3异色瞳[红+蓝]"
+   },
+   {
+    "id": "3死鱼眼[棕]",
+    "name": "死鱼眼[棕]",
+    "n": 48,
+    "back": true,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3死鱼眼[棕]"
+   },
+   {
+    "id": "3眯眯眼双眼皮",
+    "name": "眯眯眼双眼皮",
+    "n": 49,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3眯眯眼双眼皮"
+   },
+   {
+    "id": "3眯眼无光",
+    "name": "眯眼无光",
+    "n": 50,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3眯眼无光"
+   },
+   {
+    "id": "3眯眼有光",
+    "name": "眯眼有光",
+    "n": 51,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/3眯眼有光"
+   },
+   {
+    "id": "S圈圈",
+    "name": "圈圈",
+    "n": 52,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "眼睛/S圈圈"
+   }
+  ],
+  "mouth": [
+   {
+    "id": "1_3嘴",
+    "name": "1_3嘴",
+    "n": 1,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/1_3嘴"
+   },
+   {
+    "id": "1ω嘴",
+    "name": "1ω嘴",
+    "n": 2,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/1ω嘴"
+   },
+   {
+    "id": "1∧嘴",
+    "name": "1∧嘴",
+    "n": 3,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/1∧嘴"
+   },
+   {
+    "id": "1△嘴",
+    "name": "1△嘴",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/1△嘴"
+   },
+   {
+    "id": "1幼儿细线嘴",
+    "name": "幼儿细线嘴",
+    "n": 5,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/1幼儿细线嘴"
+   },
+   {
+    "id": "1樱桃小口",
+    "name": "樱桃小口",
+    "n": 6,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/1樱桃小口"
+   },
+   {
+    "id": "2八字嘴",
+    "name": "八字嘴",
+    "n": 7,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2八字嘴"
+   },
+   {
+    "id": "2吐舌",
+    "name": "吐舌",
+    "n": 8,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2吐舌"
+   },
+   {
+    "id": "2唔",
+    "name": "唔",
+    "n": 9,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2唔"
+   },
+   {
+    "id": "2幼儿口水",
+    "name": "幼儿口水",
+    "n": 10,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2幼儿口水"
+   },
+   {
+    "id": "2开口",
+    "name": "开口",
+    "n": 11,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2开口"
+   },
+   {
+    "id": "2微笑嘴A",
+    "name": "微笑嘴A",
+    "n": 12,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2微笑嘴A"
+   },
+   {
+    "id": "2微笑嘴B",
+    "name": "微笑嘴B",
+    "n": 13,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2微笑嘴B"
+   },
+   {
+    "id": "2暴牙",
+    "name": "暴牙",
+    "n": 14,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2暴牙"
+   },
+   {
+    "id": "2暴牙微笑",
+    "name": "暴牙微笑",
+    "n": 15,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2暴牙微笑"
+   },
+   {
+    "id": "2猫嘴",
+    "name": "猫嘴",
+    "n": 16,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2猫嘴"
+   },
+   {
+    "id": "2虎牙",
+    "name": "虎牙",
+    "n": 17,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2虎牙"
+   },
+   {
+    "id": "2闭嘴",
+    "name": "闭嘴",
+    "n": 18,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/2闭嘴"
+   },
+   {
+    "id": "3不悦[圆润]",
+    "name": "不悦[圆润]",
+    "n": 19,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3不悦[圆润]"
+   },
+   {
+    "id": "3口水",
+    "name": "口水",
+    "n": 20,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3口水"
+   },
+   {
+    "id": "3口水[圆润]",
+    "name": "口水[圆润]",
+    "n": 21,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3口水[圆润]"
+   },
+   {
+    "id": "3哈哈",
+    "name": "哈哈",
+    "n": 22,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3哈哈"
+   },
+   {
+    "id": "3哈哈缺牙",
+    "name": "哈哈缺牙",
+    "n": 23,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3哈哈缺牙"
+   },
+   {
+    "id": "3哦—",
+    "name": "哦—",
+    "n": 24,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3哦—"
+   },
+   {
+    "id": "3啊哇哇",
+    "name": "啊哇哇",
+    "n": 25,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3啊哇哇"
+   },
+   {
+    "id": "3嘟嘟张嘴",
+    "name": "嘟嘟张嘴",
+    "n": 26,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3嘟嘟张嘴"
+   },
+   {
+    "id": "3幼儿张嘴",
+    "name": "幼儿张嘴",
+    "n": 27,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3幼儿张嘴"
+   },
+   {
+    "id": "3张嘴",
+    "name": "张嘴",
+    "n": 28,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3张嘴"
+   },
+   {
+    "id": "3得意嘴",
+    "name": "得意嘴",
+    "n": 29,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3得意嘴"
+   },
+   {
+    "id": "3微笑[圆润]",
+    "name": "微笑[圆润]",
+    "n": 30,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3微笑[圆润]"
+   },
+   {
+    "id": "3暴牙哈哈",
+    "name": "暴牙哈哈",
+    "n": 31,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3暴牙哈哈"
+   },
+   {
+    "id": "3桀骜笑",
+    "name": "桀骜笑",
+    "n": 32,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3桀骜笑"
+   },
+   {
+    "id": "3诶—",
+    "name": "诶—",
+    "n": 33,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/3诶—"
+   },
+   {
+    "id": "4咦—",
+    "name": "咦—",
+    "n": 34,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4咦—"
+   },
+   {
+    "id": "4啊—",
+    "name": "啊—",
+    "n": 35,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4啊—"
+   },
+   {
+    "id": "4幼儿嘴_笑脸",
+    "name": "幼儿嘴_笑脸",
+    "n": 36,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4幼儿嘴_笑脸"
+   },
+   {
+    "id": "4幼儿栗形嘴",
+    "name": "幼儿栗形嘴",
+    "n": 37,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4幼儿栗形嘴"
+   },
+   {
+    "id": "4张嘴",
+    "name": "张嘴",
+    "n": 38,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/4张嘴"
+   },
+   {
+    "id": "5龇牙嘴",
+    "name": "龇牙嘴",
+    "n": 39,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/5龇牙嘴"
+   },
+   {
+    "id": "幼儿坏笑嘴",
+    "name": "幼儿坏笑嘴",
+    "n": 40,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "嘴巴/幼儿坏笑嘴"
+   }
+  ],
+  "ears": [
+   {
+    "id": "3普通耳(深肤色用)",
+    "name": "普通耳(深肤色用)",
+    "n": 1,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "black",
+    "src": "耳朵/3普通耳(深肤色用)",
+    "base": "普通耳"
+   },
+   {
+    "id": "3普通耳",
+    "name": "普通耳",
+    "n": 2,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "耳朵/3普通耳",
+    "base": "普通耳"
+   },
+   {
+    "id": "h幼儿普通耳肤色白",
+    "name": "幼儿普通耳肤色白",
+    "n": 3,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "耳朵/h幼儿普通耳肤色白",
+    "base": "幼儿普通耳"
+   },
+   {
+    "id": "h幼儿普通耳肤色黑",
+    "name": "幼儿普通耳肤色黑",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "black",
+    "src": "耳朵/h幼儿普通耳肤色黑",
+    "base": "幼儿普通耳"
+   }
+  ],
+  "cloth": [
+   {
+    "id": "和服",
+    "name": "交领袍",
+    "n": 1,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/和服"
+   },
+   {
+    "id": "童装[紫]",
+    "name": "童装[紫]",
+    "n": 2,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/童装[紫]"
+   },
+   {
+    "id": "雪国服装",
+    "name": "雪国服装",
+    "n": 3,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/雪国服装"
+   },
+   {
+    "id": "黑白服装",
+    "name": "黑白服装",
+    "n": 4,
+    "back": false,
+    "back_only": false,
+    "color": "",
+    "skin": "white",
+    "src": "服装/黑白服装"
    }
   ]
  }

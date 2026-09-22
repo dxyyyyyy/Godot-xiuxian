@@ -1,7 +1,8 @@
 # 捏脸部件库（CharaGraphicMaker → 纸娃娃分层叠绘）
 
 本目录的部件 PNG 与 `catalog.json` 由 **`import_chara_parts.py`** 从
-`E:\Game\CharaGraphicMaker\角色图形合成器\Graphics\` 的 **脸C(青年男)/脸D(青年女)** 套件生成，
+`E:\Game\CharaGraphicMaker\角色图形合成器\Graphics\` 的 **脸C(青年男)/脸D(青年女)/脸A(幼儿)** 套件生成，
+**脸B(少年)** 件则并入 male/female 成年组末尾(脸型底稿不并入、显示名带「(少年)」后缀、与既有件同 id 时成年件优先)。
 **不要手工往槽位目录里塞图**——重跑脚本会清空重建（黑名单/清洗规则改脚本顶部）。
 
 ```
@@ -11,18 +12,22 @@ python import_chara_parts.py --preview  # 只重出校验图(E:\Game\CharaGraphi
 
 ## 数据流
 
-- `catalog.json`：`{"male"/"female": {槽位: [{id,name,n,back,back_only,color,skin,base?,src}]}}`。
+- `catalog.json`：`{"male"/"female"/"kid": {槽位: [{id,name,n,back,back_only,color,skin,base?,src}]}}`。
   `id`=原文件名(唯一键，appearance 字典里存它)，`name`=清洗后中文显示名，`n`=文件序号(1 基)，
   `back`=有同名 `$` 背面件，`back_only`=仅背面件，`color`=发色标签(前后发同色配对用)，
   `skin`=肤色标签(耳朵随脸型肤色自动换同形件)，`base`=耳朵同形归组键。
-- 运行时单一数据源：`sim/NpcGenerator.gd` 的目录 API(`options/entry/default_id/resolve_look/random_look/layer_paths`)，
+- 运行时单一数据源：`sim/NpcGenerator.gd` 的目录 API(kit 主 API `*_kit("male"/"female"/"kid")`，
+  旧 bool 包装 `options/entry/default_id/resolve_look/random_look/layer_paths` 保留给成年套调用方)，
   `scripts/portrait.gd` 叠绘、`scripts/apps/app_face.gd` 捏脸工坊都走它。
 - appearance 字典：`{gender, face, brows, eyes, mouth, ears, hair_front, hair_back, cloth, aura}`；
   存档只存参数不存图。旧版值(鹅蛋脸/高马尾…)与缺槽自动落该性别默认件；当前无可空槽。
+- **幼儿相 `kid_look`**：未成年(born_m 且未满 npc_adult_years)渲染改用脸A 套, 部件 id 存在快照的
+  `kid_look` 键(由 `breed_child` 掷出, 「幼儿捏脸」页编辑)；`Game.npc_kit` 统一判定用哪套,
+  成年礼后自动落回 `appearance`(成年相)。kid 件与成年件 id 同名会撞时互不影响(各查各目录)。
 
 ## 槽位与文件命名
 
-`<slot>/<序号>m.png`(男·脸C) / `<序号>f.png`(女·脸D)，背面件加 `_back` 后缀：
+`<slot>/<序号>m.png`(男·脸C) / `<序号>f.png`(女·脸D) / `<序号>k.png`(幼儿·脸A)，背面件加 `_back` 后缀：
 
 | 槽位 | 素材分类 | 叠绘深度(底→顶) | 背面层深度 |
 |---|---|---|---|
@@ -40,6 +45,14 @@ python import_chara_parts.py --preview  # 只重出校验图(E:\Game\CharaGraphi
 
 深度与素材 `Setting.txt` 的图层/第三参数实测一致(`$` 同名图按第三参数垫层)。
 `aura` 不出图，作头像背景色底(五色见 portrait.gd)。
+
+## 发色口径: 只保留棕发(按需求)
+
+发件三道闸: **标签闸**(`HAIR_BROWN`: 无标签/棕/浅棕, 金灰粉蓝红白金等彩发件不收)+ **深棕命名闸**
+(`HAIR_DARK`: 含「深棕/(深)」的发件按需求排除, 其亮度与棕连续无法像素区分)+ **像素闸**
+(`hair_is_brown`: 不透明像素主色相圆均值须落棕域 12°~50° 且彩度占比 ≥15%, 专杀未标注的
+银白/灰黑/粉红旗稿)。随机生成(`random_look_kit`)发色色相恒守原棕不重掷, 只掷深浅彩度;
+捏脸页的发色滑杆仍可手动重染(玩家显式选择)。瞳色不受限。
 
 ## 发色/瞳色调色(recolor.gdshader)
 

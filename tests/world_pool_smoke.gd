@@ -96,7 +96,7 @@ func _ready() -> void:
 		var e2: Dictionary = Game.run.world_rels[i]
 		var v: float = float(e2.get("val", 0.0))
 		var v0: float = float(before_vals[i][1])
-		if String(before_vals[i][0]) == "亲子":
+		if Game._is_kin(String(before_vals[i][0])):
 			if v != v0:
 				print("  DRIFT BAD 亲子动了 idx=", i, " v0=", v0, " v=", v)
 				drift_ok = false

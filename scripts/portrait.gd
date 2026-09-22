@@ -1,7 +1,8 @@
 extends RefCounted
-## 纸娃娃头像合成器：把 appearance 叠绘成一张分层头像（素材源自 CharaGraphicMaker 脸C/脸D 部件库）。
+## 纸娃娃头像合成器：把 appearance 叠绘成一张分层头像（素材源自 CharaGraphicMaker 脸C/脸D(青年)与脸A(幼儿) 部件库）。
 ## 部件目录 catalog.json 由 assets/portraits/import_chara_parts.py 生成，查询统一走 NpcGenerator；
-## 零件约定 res://assets/portraits/<slot>/<序号>{m|f}.png，带背面配对的再加 <序号>{m|f}_back.png。
+## 零件约定 res://assets/portraits/<slot>/<序号>{m|f|k}.png，带背面配对的再加 <序号>{m|f|k}_back.png。
+## 套件选择走 Game.npc_kit：未成年用脸A(kid, 快照键 kid_look)，成年按性别用 appearance。
 ## 层深（底→顶，与素材 Setting.txt 实测一致）：饰品$ -1 → 后发$/前发$ 0 → 脸 1 → 底饰$ 2 → 衣 3
 ## → 后发 6 → 耳 7 → 眼$ 8 → 眼 9 → 眉/嘴 10 → 底饰 11 → 前发 12 → 饰品 13。
 ## 任一零件都缺失时回退 users 占位圆；aura 不出图，作背景色底。
@@ -35,18 +36,25 @@ static func _recolor_mat(hue_deg: int, sat_pct: int) -> ShaderMaterial:
 
 
 ## 生成一个 px×px 的分层头像控件（放进 avatar_wrap 等，徽标由其上层叠加）。
-## 按性别取件（脸C=男套 / 脸D=女套），appearance 旧值自动落默认。
+## 按 Game.npc_kit 选套（脸C=男 / 脸D=女 / 脸A=幼儿），appearance 旧值自动落默认。
 static func build_for(key: String, px: float) -> Control:
-	return build_from(_appearance(key), px, Game.npc_male(key))
+	var kit := Game.npc_kit(key)
+	if kit == "kid":
+		return build_from_kit(_kid_appearance(key), px, "kid")
+	return build_from_kit(_appearance(key), px, kit)
 
 
 ## 直接给一份 appearance 字典叠绘（捏脸工坊预览、主角头像用）。
 static func build_from(ap: Dictionary, px: float, male := false) -> Control:
-	var look := NG.resolve_look(ap, male)
+	return build_from_kit(ap, px, "male" if male else "female")
+
+
+static func build_from_kit(ap: Dictionary, px: float, kit := "female") -> Control:
+	var look := NG.resolve_look_kit(ap, kit)
 	var layers: Array = []   # [depth, seq, path, slot]，depth 相同按加入序稳定
 	var seq := 0
 	for slot in NG.SLOTS:
-		for p in NG.layer_paths(look, slot, male):
+		for p in NG.layer_paths_kit(look, slot, kit):
 			layers.append([p[0], seq, p[1], slot])
 			seq += 1
 	if layers.is_empty():
@@ -87,6 +95,14 @@ static func default_look(male := false) -> Dictionary:
 	d["gender"] = "male" if male else "female"
 	d["aura"] = String(NG.AURAS[0])
 	return d
+
+
+## 幼儿相: 快照 kid_look(脸A 套件)缺省时自动落幼儿默认; aura 底随成年相快照, 换套不断档。
+static func _kid_appearance(key: String) -> Dictionary:
+	var e := Game._npc_entry(key)
+	var kid: Dictionary = (e.get("kid_look", {}) as Dictionary).duplicate(true)
+	kid["aura"] = String(_appearance(key).get("aura", ""))
+	return kid
 
 
 static func _appearance(key: String) -> Dictionary:

@@ -9,7 +9,7 @@ extends Node
 const XLSX_REF_MONTHS := {"炼气": 171, "筑基": 223, "金丹": 440, "元婴": 784, "化神": 1451, "炼虚": 2675, "合体": 4932, "渡劫": 8877}
 
 func _ready() -> void:
-	Game.logged.connect(func(t): print(t))
+	Game.logged.connect(func(t, _day): print(t))
 	var n := 6
 	for a in OS.get_cmdline_user_args():
 		if String(a).begins_with("--LIVES="):

@@ -13,6 +13,31 @@ func _chk(name: String, ok: bool) -> void:
 
 func _ready() -> void:
 	Game.set_speed(0)
+	# ---- 覆盖: 每月坊市侧写 —— 未被互动的入册者也要进纪事(不再只归互动对象) ----
+	Game.new_game()
+	Game.deterministic = true
+	for _m in 24:
+		Game.tick_month()
+		while not Game.pending.is_empty():
+			Game.resolve_option(0)
+		if Game.is_ended():
+			break
+	var named := 0
+	for k0 in ["jianshu", "yaoshi", "shanjun", "moxiu", "shushu", "huzhu"]:
+		if not Game.chronicle_of(String(k0)).is_empty():
+			named += 1
+	var pool_named := 0
+	for kp in (Game.run.world_npcs as Dictionary).keys():
+		if not Game.chronicle_of(String(kp)).is_empty():
+			pool_named += 1
+	var scene_n := 0
+	for e in GameState.chronicle:
+		if String(e.text).contains("坊市一景: 【"):
+			scene_n += 1
+	_chk("侧写行按月入纪事(≥18/24月)", scene_n >= 18)
+	_chk("纪事提及多名 NPC(≥3 人有故事)", named >= 3)
+	_chk("世界池未识随机 NPC 亦有纪事(≥1 人)", pool_named >= 1)
+	# ---- 检索语义(合成注入, 确定性) ----
 	Game.new_game()
 	var key := "jianshu"
 	var nm := Game.npc_name(key)

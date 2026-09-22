@@ -18,13 +18,15 @@ const DAIREN := ["xinruan", "manre", "zilaishu"]
 const XINGSHI := ["qinkuai", "lansan", "jiaozhen"]
 const DONGXIN := ["zhiqui", "kouyan", "xishui"]
 ## 外观部件: 部件目录 catalog.json 为单一数据源(见下方目录 API), 由
-## assets/portraits/import_chara_parts.py 从 CharaGraphicMaker 脸C/脸D 套件生成(GDD §10)。
+## assets/portraits/import_chara_parts.py 从 CharaGraphicMaker 脸C/脸D(青年, 含脸B少年追加件)与脸A(幼儿)套件生成(GDD §10)。
 ## 气质仍走常量池(不出图, 作头像背景色)。
 const AURAS := ["疏懒", "清冷", "热络", "拘谨", "悠然"]
 
 ## —— 部件目录 API ——
-## catalog.json: {"male"/"female": {slot: [{id,name,n,back,back_only,color,skin,base?,src}]}}
-## slot ∈ SLOTS; 文件约定 res://assets/portraits/<slot>/<n>{m|f}.png(+_back.png 背面层)。
+## catalog.json: {"male"/"female"/"kid": {slot: [{id,name,n,back,back_only,color,skin,base?,src}]}}
+## slot ∈ SLOTS; 文件约定 res://assets/portraits/<slot>/<n>{m|f|k}.png(+_back.png 背面层)。
+## 主 API 按套件字符串取件(kit ∈ KITS); 旧的 bool(男/女)包装保留给既有调用方。
+## 幼儿(未成年)用 "kid"(脸A), 成年按性别走 "male"/"female" —— 见 Game.npc_kit。
 const CATALOG_PATH := "res://assets/portraits/catalog.json"
 const PORTRAIT_ROOT := "res://assets/portraits/"
 ## 槽位表层深度(底→顶, 与素材 Setting.txt 实测一致; $ 背面层深度见 BACK_DEPTH)
@@ -48,105 +50,150 @@ static func catalog() -> Dictionary:
 	return _cat
 
 
-static func options(male: bool, slot: String) -> Array:
-	var g := "male" if male else "female"
-	return (catalog().get(g, {}) as Dictionary).get(slot, [])
+## ---- 套件主 API(kit = "male"/"female"/"kid") ----
+
+const KIT_SFX := {"male": "m", "female": "f", "kid": "k"}
 
 
-static func entry(male: bool, slot: String, id: String) -> Dictionary:
-	for e in options(male, slot):
+static func kit_of(male: bool) -> String:
+	return "male" if male else "female"
+
+
+static func options_kit(kit: String, slot: String) -> Array:
+	return (catalog().get(kit, {}) as Dictionary).get(slot, [])
+
+
+static func entry_kit(kit: String, slot: String, id: String) -> Dictionary:
+	for e in options_kit(kit, slot):
 		if String((e as Dictionary).get("id", "")) == id:
 			return e
 	return {}
 
 
-static func default_id(male: bool, slot: String) -> String:
-	var arr := options(male, slot)
+static func default_id_kit(kit: String, slot: String) -> String:
+	var arr := options_kit(kit, slot)
 	return String((arr[0] as Dictionary).get("id", "")) if not arr.is_empty() else ""
 
 
-## 外观字典 → 归一化目录外观: 旧版中文名/缺槽落默认(可空槽落「无」), 耳朵随脸型肤色换同形件。
-## 兼容旧版单发槽 key「hair」→「hair_front」。
-static func resolve_look(ap: Dictionary, male: bool) -> Dictionary:
+## 外观字典 → 归一化目录外观(套件版): 旧值/缺槽落默认, 耳朵随脸型肤色换同形件。
+static func resolve_look_kit(ap: Dictionary, kit: String) -> Dictionary:
 	var look := {}
 	for slot in SLOTS:
 		var v := String(ap.get(slot, ""))
 		if slot == "hair_front" and v == "":
 			v = String(ap.get("hair", ""))
-		if v == "" or entry(male, slot, v).is_empty():
-			v = "" if slot in OPTIONAL_SLOTS else default_id(male, slot)
+		if v == "" or entry_kit(kit, slot, v).is_empty():
+			v = "" if slot in OPTIONAL_SLOTS else default_id_kit(kit, slot)
 		look[slot] = v
-	look["ears"] = _ear_for_face(male, String(look["face"]), String(look["ears"]))
+	look["ears"] = _ear_for_face_kit(kit, String(look["face"]), String(look["ears"]))
 	look.merge(COLOR_IDENTITY)   # 缺调色键的旧档 → identity
 	return look
 
 
-## 各槽位取默认的全新外观(可空槽为「无」；调色为 identity=原色)。
-static func default_look(male: bool) -> Dictionary:
+## 各槽位取默认的全新外观(套件版; 可空槽为「无」, 调色 identity=原色)。
+static func default_look_kit(kit: String) -> Dictionary:
 	var look := {}
 	for slot in SLOTS:
-		look[slot] = "" if slot in OPTIONAL_SLOTS else default_id(male, slot)
+		look[slot] = "" if slot in OPTIONAL_SLOTS else default_id_kit(kit, slot)
 	look.merge(COLOR_IDENTITY)
 	return look
+
+
+## ---- 旧 bool(男/女) 包装: 既有调用方与测试不动 ----
+
+static func options(male: bool, slot: String) -> Array:
+	return options_kit(kit_of(male), slot)
+
+
+static func entry(male: bool, slot: String, id: String) -> Dictionary:
+	return entry_kit(kit_of(male), slot, id)
+
+
+static func default_id(male: bool, slot: String) -> String:
+	return default_id_kit(kit_of(male), slot)
+
+
+## 外观字典 → 归一化目录外观: 旧版中文名/缺槽落默认(可空槽落「无」), 耳朵随脸型肤色换同形件。
+## 兼容旧版单发槽 key「hair」→「hair_front」。
+static func resolve_look(ap: Dictionary, male: bool) -> Dictionary:
+	return resolve_look_kit(ap, kit_of(male))
+
+
+## 各槽位取默认的全新外观(可空槽为「无」；调色为 identity=原色)。
+static func default_look(male: bool) -> Dictionary:
+	return default_look_kit(kit_of(male))
 
 
 ## 调色 identity(0°/100%) 与随机权重(仿原版 GraphicMaker 色相·彩度)
 const COLOR_IDENTITY := {"hair_hue": 0, "hair_sat": 100, "eye_hue": 0, "eye_sat": 100}
 
 
-## 随机拼装一套外观(GDD §7.3): 前后发同色优先, 耳朵随脸型肤色, 饰品/底饰五成空。
-static func random_look(rng, male: bool) -> Dictionary:
+## 随机拼装一套外观(套件版, GDD §7.3): 前后发同色优先, 耳朵随脸型肤色, 可空槽五成空。
+static func random_look_kit(rng, kit: String) -> Dictionary:
 	var look := {}
 	for slot in SLOTS:
-		var arr := options(male, slot)
+		var arr := options_kit(kit, slot)
 		if arr.is_empty():
 			look[slot] = ""
 		elif slot == "ears":
-			look[slot] = default_id(male, slot)   # 耳朵不作选择: 固定默认人耳(肤色随后随脸型配对)
+			look[slot] = default_id_kit(kit, slot)   # 耳朵不作选择: 固定默认人耳(肤色随后随脸型配对)
 		elif slot in OPTIONAL_SLOTS and rng.randf() < 0.5:
 			look[slot] = ""
 		else:
 			look[slot] = String((arr[rng.randi_range(0, arr.size() - 1)] as Dictionary).get("id", ""))
-	var hf := entry(male, "hair_front", String(look["hair_front"]))
+	var hf := entry_kit(kit, "hair_front", String(look["hair_front"]))
 	if not hf.is_empty():
-		var same: Array = options(male, "hair_back").filter(
+		var same: Array = options_kit(kit, "hair_back").filter(
 			func(e): return String((e as Dictionary).get("color", "")) == String(hf.get("color", "")))
 		if not same.is_empty():
 			look["hair_back"] = String((same[rng.randi_range(0, same.size() - 1)] as Dictionary).get("id", ""))
-	look["ears"] = _ear_for_face(male, String(look["face"]), String(look["ears"]))
-	# 调色随机: 五成(瞳六成)守原色, 彩度收敛防过艳
-	look["hair_hue"] = 0 if rng.randf() < 0.5 else rng.randi_range(0, 359)
+	look["ears"] = _ear_for_face_kit(kit, String(look["face"]), String(look["ears"]))
+	# 调色随机: 发只棕系(色相守原棕不重染, 深浅彩度随机); 瞳六成守原色, 彩度收敛防过艳
+	look["hair_hue"] = 0
 	look["hair_sat"] = rng.randi_range(17, 23) * 5
 	look["eye_hue"] = 0 if rng.randf() < 0.6 else rng.randi_range(0, 359)
 	look["eye_sat"] = rng.randi_range(18, 22) * 5
 	return look
 
 
-## 耳朵肤色联动(素材「基础层,耳朵」同色组): 所选耳朵与脸型肤色不符时, 换同形异肤版本。
-static func _ear_for_face(male: bool, face_id: String, ear_id: String) -> String:
-	var face := entry(male, "face", face_id)
-	var ear := entry(male, "ears", ear_id)
+## 随机拼装一套外观(GDD §7.3): 前后发同色优先, 耳朵随脸型肤色, 饰品/底饰五成空。
+static func random_look(rng, male: bool) -> Dictionary:
+	return random_look_kit(rng, kit_of(male))
+
+
+## 耳朵肤色联动(套件版; 素材「基础层,耳朵」同色组): 所选耳朵与脸型肤色不符时, 换同形异肤版本。
+static func _ear_for_face_kit(kit: String, face_id: String, ear_id: String) -> String:
+	var face := entry_kit(kit, "face", face_id)
+	var ear := entry_kit(kit, "ears", ear_id)
 	if face.is_empty() or ear.is_empty() or String(face.get("skin", "")) == String(ear.get("skin", "")):
 		return ear_id
-	for e in options(male, "ears"):
+	for e in options_kit(kit, "ears"):
 		if String((e as Dictionary).get("base", "")) == String(ear.get("base", "")) \
 				and String((e as Dictionary).get("skin", "")) == String(face.get("skin", "")):
 			return String((e as Dictionary).get("id", ""))
 	return ear_id
 
 
-## appearance 槽位 → 实际叠绘 [depth, path] 列表(含背面层;空件返回 [])。
-static func layer_paths(look: Dictionary, slot: String, male: bool) -> Array:
+static func _ear_for_face(male: bool, face_id: String, ear_id: String) -> String:
+	return _ear_for_face_kit(kit_of(male), face_id, ear_id)
+
+
+## appearance 槽位 → 实际叠绘 [depth, path] 列表(套件版; 含背面层, 空件返回 [])。
+static func layer_paths_kit(look: Dictionary, slot: String, kit: String) -> Array:
 	var out := []
-	var e := entry(male, slot, String(look.get(slot, "")))
+	var e := entry_kit(kit, slot, String(look.get(slot, "")))
 	if e.is_empty():
 		return out
-	var sfx := "m" if male else "f"
+	var sfx := String(KIT_SFX.get(kit, "f"))
 	if not bool(e.get("back_only", false)):
 		out.append([int(SLOT_DEPTH.get(slot, 1)), "%s%s/%d%s.png" % [PORTRAIT_ROOT, slot, int(e["n"]), sfx]])
 	if bool(e.get("back", false)) or bool(e.get("back_only", false)):
 		out.append([int(BACK_DEPTH.get(slot, 0)), "%s%s/%d%s_back.png" % [PORTRAIT_ROOT, slot, int(e["n"]), sfx]])
 	return out
+
+
+static func layer_paths(look: Dictionary, slot: String, male: bool) -> Array:
+	return layer_paths_kit(look, slot, kit_of(male))
 
 
 ## 名字生成池: 真名式(姓×名) 程序化拼名(组合 240+, 防重重试+序号兜底); 诨名池降级为「人称」别号(alias)
@@ -255,6 +302,7 @@ func _inherit_sat(rng, s_a: int, s_b: int) -> int:
 
 ## 孩子快照: 双亲(pa=父姓来源)混出 —— 槽位/色/气质/性格逐位遗传, 收尾 resolve_look 修三约束。
 ## 姓名=父姓+随机名(在册去重); identity 随父母之一; 口味双层先验照 generate 旧规。
+## appearance 是成年相(性别套); 另掷一套幼儿相 kid_look(脸A 套), 未成年期间渲染用, 成年礼后弃用。
 func breed_child(rng, pa: Dictionary, pb: Dictionary, existing: Dictionary) -> Dictionary:
 	var child_male: bool = rng.randf() < 0.5
 	var a: Dictionary = pa.get("appearance", {})
@@ -310,6 +358,7 @@ func breed_child(rng, pa: Dictionary, pb: Dictionary, existing: Dictionary) -> D
 		"persona": persona,
 		"moe": "各家有各忙的娃",
 		"appearance": ap,
+		"kid_look": random_look_kit(rng, "kid"),
 		"alias": generate_epithet(rng),
 		"taste_base": base,
 		"taste_final": final,

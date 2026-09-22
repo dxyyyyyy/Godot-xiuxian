@@ -693,5 +693,255 @@
   ],
   "op_extra": null,
   "report_line": "壁上有人帖: {a}与{b}又起了争执"
+ },
+ {
+  "id": "wall_030",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_seed"
+  },
+  "title": "【吃瓜】新开赌局: {a}与{b}是不是有事",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "茶摊新卦: {a}近来总往{b}那头凑, 一个递水一个接, 眉眼都活了。老规矩, 开盘: 三个月内有人先开口, 买定离手。"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "三个月太多, 我赌一壶茶的功夫他俩就自己承认了。"
+   },
+   {
+	"poster_id": "青梧城城西烤串的",
+	"text": "赌注记我一份, 我的串摊就是他俩的约会现场。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}与{b}有了心思"
+ },
+ {
+  "id": "wall_031",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_seed"
+  },
+  "title": "【日经】坊市又一对「顺路」",
+  "op": {
+   "poster_id": "不周山看门的",
+   "text": "{a}与{b}最近同进同出, 问就是顺路。顺了半个月了, 一条路硬是顺出了花。"
+  },
+  "replies": [
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "顺路顺到同一家糖水铺, 好巧。"
+   },
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "年轻真好, 连顺路都脸红。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}与{b}越走越近"
+ },
+ {
+  "id": "wall_032",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_xindong"
+  },
+  "title": "【磕糖】{a}来改衣裳, 开口要「好看」",
+  "op": {
+   "poster_id": "茶摊隔壁裁缝",
+   "text": "{a}一个常年只穿耐洗旧袍的人, 今日问我哪种料子好看。诸位, 心里没人的, 不问好看。"
+  },
+  "replies": [
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "坊市今天发糖, 我鱼摊上都飘着甜味。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "蹲一个当事人回应, 蹲不到明天再蹲。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}心里有人了"
+ },
+ {
+  "id": "wall_033",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_xindong"
+  },
+  "title": "【吃瓜】{a}把{b}的摊子包圆了",
+  "op": {
+   "poster_id": "坊市瓜贩",
+   "text": "{a}今日把{b}的货全包了, 转头分了一半送街坊。这是买货吗? 这是买一个名正言顺搭话的机会。"
+  },
+  "replies": [
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "买的是货吗, 是见面理由。"
+   },
+   {
+	"poster_id": "青梧城城西烤串的",
+	"text": "酸了, 我的道侣还在路上吗。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}对{b}有意思, 瞒不住了"
+ },
+ {
+  "id": "wall_034",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_xianglian"
+  },
+  "title": "【实锤】{a}与{b}, 这回不装了",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "亲见: 巷口{b}鞋带散了, {a}二话不说蹲下帮着系, 系完俩人谁也没走。一坊的人都看见了, 这回没法再「道友」了。"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "嗑了半年, 今日转正, 哭了。"
+   },
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "我司关系档已同步更新: 「在一起」。"
+   }
+  ],
+  "op_extra": "两人事后牵手出坊, 未见辩解。本帖作为实锤存档, 欢迎打脸。",
+  "report_line": "壁上有人帖: {a}与{b}在一起了"
+ },
+ {
+  "id": "wall_035",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_xianglian"
+  },
+  "title": "【贺】{a}与{b}成了, 一坊同喜",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "茶摊今日改庆功局: {a}与{b}相恋实锤。我做东, 凡来道贺的串儿半价 —— 这瓜我从第一口吃到熟。"
+  },
+  "replies": [
+   {
+	"poster_id": "不周山看门的",
+	"text": "萌芽那场的赌注赢了, 现转押他俩百年好合。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "庆功局留座, 瓜是我先种的。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}与{b}相恋, 一坊同喜"
+ },
+ {
+  "id": "wall_036",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_nao"
+  },
+  "title": "【唏嘘】{a}与{b}今日没同路",
+  "op": {
+   "poster_id": "不周山看门的",
+   "text": "看了半月同进同出, 今日俩人一前一后隔着十步, 谁也不理谁。茶摊气氛比腊月还冷, 赌局全部暂停。"
+  },
+  "replies": [
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "递个台阶就下吧, 别硬撑, 看着都着急。"
+   },
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "赌局公告: 暂停开盘, 静候回暖。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}与{b}闹别扭了"
+ },
+ {
+  "id": "wall_037",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_nao"
+  },
+  "title": "【观察】{b}买了双份茶点, 又退了一份",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "亲见: {b}习惯性买了双份茶点, 站了半天, 又退一份。得, 别扭还没和好。诸位, 面子先递还是里子先递, 总得挑一样。"
+  },
+  "replies": [
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "凉一半而已, 热起来也快, 我看着呢。"
+   },
+   {
+	"poster_id": "巡山司查水表的",
+	"text": "巡山司提醒: 闹别扭归闹别扭, 不许在照壁上互相@。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}与{b}还赌着气呢"
+ },
+ {
+  "id": "wall_038",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_divorce"
+  },
+  "title": "【唏嘘】{a}与{b}, 和离了",
+  "op": {
+   "poster_id": "百话楼说书人",
+   "text": "那对人人押注的, 昨夜把话说明白了, 分得体面, 没吵没闹。一坊人嘴上叹缘薄, 心里都记下了: 好聚好散也是情义。"
+  },
+  "replies": [
+   {
+	"poster_id": "东海卖鱼的",
+	"text": "灶还是那口灶, 饭还是那口饭, 散了也别亏待胃。"
+   },
+   {
+	"poster_id": "炼气三层不敢说话",
+	"text": "不嗑了, 心碎, 但尊重。下壶茶敬二位。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {a}与{b}和离了"
+ },
+ {
+  "id": "wall_039",
+  "family": "npc",
+  "trigger": {
+   "type": "event",
+   "event": "npc_divorce"
+  },
+  "title": "【闲话】{a}搬走了, {b}那头灯照旧点",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "{a}的东西一早搬完了, 街坊愣是没听见一句重话。{b}那头夜里灯照旧点。成年人办事, 都懂, 不多问。"
+  },
+  "replies": [
+   {
+	"poster_id": "不周山看门的",
+	"text": "灯留着, 许是习惯, 许的不只是习惯。"
+   },
+   {
+	"poster_id": "某不愿透露籍贯的金丹",
+	"text": "下一卦谁接? 旧事重提那场, 我押半成。"
+   }
+  ],
+  "op_extra": "说书人按: 此段收录进《坊市长卷》, 后续有变, 加更。",
+  "report_line": "壁上有人帖: {a}与{b}好聚好散了"
  }
 ]

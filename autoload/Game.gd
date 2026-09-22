@@ -6,7 +6,7 @@ extends Node
 ## 铁律(§12): 时速档只改 tick 频率、不改结算逻辑 —— 一切结算都在 tick_month() 唯一入口。
 ## 数值锚点沿用 v1.1 标定: 寿元九档、30 小层 100×1.55^(n−1)、境界基数、道韵/结局表。
 
-signal logged(text: String)
+signal logged(text: String, day: String)   # day=纪事时间戳: 月报行传「刚过去月」, 其余空→calendar()
 signal changed
 signal ended(summary: Dictionary)
 signal interrupted(event: Dictionary)   # {title,text,options:Array,kind,data}
@@ -195,6 +195,12 @@ func calendar() -> String:
 	var m := (int(run.age_m) - START_AGE_M) % 12 + 1
 	return "第%d世 · 第%d年 · %d月" % [run.life, y, m]
 
+
+## 「刚过去月」(0 基序号)的月历标签: tick 开头已把 age_m 前拨, 月报纪事若用 calendar() 会整体早一个月
+## (腊月线落进下一年卷) —— 纪事日戳须按结算月计, 与 _emit_month_note 的 idx 同一口径。
+func calendar_idx(idx: int) -> String:
+	return "第%d世 · 第%d年 · %d月" % [run.life, idx / 12 + 1, idx % 12 + 1]
+
 ## —— 气质(aura)修正: 主角取 run.look.aura, NPC 取原型/存档的 appearance.aura; 量级克制(±2~3%/10%)
 ## self 键: cult=月修为乘项 insight=顿悟pp break=冲关率加项 aff=好感增速乘项 event=机缘概率乘项
 ## npc  键: aff=他人追这位 NPC 时的好感增速乘项
@@ -243,8 +249,12 @@ func relation_between(a: String, b: String) -> Dictionary:
 		for e in run.get("world_rels", []):
 			var ea2 := String(e.get("a", ""))
 			var eb2 := String(e.get("b", ""))
-			if (ea2 == a and eb2 == b) or (ea2 == b and eb2 == a):
+			if ea2 == a and eb2 == b:
 				base = {"peer": b, "tag": String(e.get("tag", "新识")), "val": float(e.get("val", 0.0)), "note": String(e.get("note", ""))}
+				break
+			if ea2 == b and eb2 == a:
+				# 动态边同静态边一样支持方向称谓(亲子边 tag=娃视角, r_tag=长辈视角)
+				base = {"peer": b, "tag": String(e.get("r_tag", e.get("tag", "新识"))), "val": float(e.get("val", 0.0)), "note": String(e.get("r_note", e.get("note", "")))}
 				break
 	var r: Dictionary = run.get("npc_romance", {}).get(_pair_key(a, b), {})
 	if not r.is_empty():
@@ -558,8 +568,8 @@ func _friendship_drift() -> void:
 	var step_min := int(tune("friend_drift_step_min", 1))
 	var step_max := int(tune("friend_drift_step_max", 3))
 	for e in run.get("world_rels", []):
-		if String(e.get("tag", "")) == "亲子":
-			continue
+		if _is_kin(String(e.get("tag", ""))) or _is_kin(String(e.get("r_tag", ""))):
+			continue   # 血亲不漂(方向称谓任一侧落亲族词即算)
 		var v := float(e.get("val", 0.0))
 		if v == 0.0:   # 陌生休眠: 不掷随机, 杜绝 0→有 的无来由翻转
 			continue
@@ -601,9 +611,22 @@ func _world_churn() -> void:
 ## 逐月涨好、按 aff_thresholds 六段升段(相识→相熟→心动→相恋), 满段成婚写 spouse;
 ## 争风扣好可降段退婚; 婚后按率添丁, 孩子遗传双亲容貌、满 npc_adult_years 成年入修炼。
 ## 玩家道侣位/玩家好感线与此完全隔离(红线: 只动 NPC 互好)。
+## 互好 aff/stage/married 只允许 _npc_romance_tick(月度随机掷)与开局婚配播种写入, 任何玩家操作路径不得触碰。
 
 func _pair_key(a: String, b: String) -> String:
 	return a + "|" + b if a < b else b + "|" + a
+
+## 亲族称谓集: 新边用方向词(娃看长辈=父/母亲, 长辈看娃=儿/女儿), 旧档遗留的「亲子」一并认。
+const FAMILY_TAGS := ["亲子", "父亲", "母亲", "儿子", "女儿"]
+
+func _is_kin(tag: String) -> bool:
+	return tag in FAMILY_TAGS
+
+## 亲族并提对词(茶摊/帖面用): 长辈头衔+孩子排行 → 父子/父女/母子/母女。
+func _kin_pair(parent_key: String, child_key: String) -> String:
+	var p := "父" if npc_male(parent_key) else "母"
+	var c := "子" if String(_npc_entry(child_key).get("gender", "male")) == "male" else "女"
+	return p + c
 
 
 ## NPC 生效字典(名录或世界池, 均为存档内引用, 可直接改)。
@@ -625,6 +648,11 @@ func _npc_age_years(key: String) -> int:
 func _npc_is_minor(key: String) -> bool:
 	var e := _npc_entry(key)
 	return e.has("born_m") and _npc_age_years(key) < int(tune("npc_adult_years", 12))
+
+
+## 容貌渲染套件: 未成年用幼儿套(脸A kid), 成年按性别走男/女套 —— Portrait 与幼儿捏脸共用此一口径。
+func npc_kit(key: String) -> String:
+	return "kid" if _npc_is_minor(key) else ("male" if npc_male(key) else "female")
 
 
 func _rom_stage(aff: float) -> int:
@@ -659,6 +687,10 @@ func _npc_romance_tick() -> void:
 				_marry(a, b, r)
 			else:
 				_report("坊市都道: 【%s】与【%s】%s" % [npc_name(a), npc_name(b), String(names[clampi(int(r.stage), 0, 5)])])
+				if int(r.stage) == 3:
+					_queue_wall_event("npc_xindong", {"a": npc_name(a), "b": npc_name(b)})   # 闲话壁: NPC 心动磕糖帖(延迟 1 月)
+				elif int(r.stage) == 4:
+					_queue_wall_event("npc_xianglian", {"a": npc_name(a), "b": npc_name(b)})   # 闲话壁: NPC 相恋实锤帖
 	# 2) 新恋情物化: 从亲密边里挑一对未婚成年异性(且双方都未在别段恋爱中)
 	if rng.randf() < float(tune("npc_court_seed_rate", 0.15)):
 		var cands: Array = []
@@ -676,6 +708,7 @@ func _npc_romance_tick() -> void:
 			var seed := clampf(float(pick.get("val", 0.0)) * 10.0, 0.0, 800.0)
 			rom[_pair_key(pa, pb)] = {"aff": seed, "stage": _rom_stage(seed), "married": false}
 			_report("坊市闲话: 听说【%s】与【%s】越走越近, 有了心思" % [npc_name(pa), npc_name(pb)])
+			_queue_wall_event("npc_seed", {"a": npc_name(pa), "b": npc_name(pb)})   # 闲话壁: 新恋情萌芽帖(延迟 1 月)
 	# 3) 争风吃醋: 随机挑一条恋爱扣好, 已婚者可能降段退婚
 	if not rom.is_empty() and rng.randf() < float(tune("worldsim_rival_rate", 0.04)):
 		var keys: Array = rom.keys()
@@ -689,6 +722,7 @@ func _npc_romance_tick() -> void:
 				_divorce(String(jp[0]), String(jp[1]), jr)
 			else:
 				_report("茶摊闲话: 【%s】与【%s】闹了别扭, 凉了半截" % [npc_name(String(jp[0])), npc_name(String(jp[1]))])
+				_queue_wall_event("npc_nao", {"a": npc_name(String(jp[0])), "b": npc_name(String(jp[1]))})   # 闲话壁: 闹别扭观察帖(延迟 1 月)
 		jr.stage = js
 
 
@@ -717,7 +751,7 @@ func _rom_eligible(a: String, b: String) -> bool:
 	if npc_male(a) == npc_male(b):
 		return false
 	var rel := relation_between(a, b)
-	return String(rel.get("tag", "")) != "亲子"
+	return not _is_kin(String(rel.get("tag", "")))   # 血亲不恋爱(方向称谓任一视角落亲族词即算)
 
 
 ## 全部关系边(静态+动态)一览。
@@ -750,6 +784,7 @@ func _divorce(a: String, b: String, r: Dictionary) -> void:
 	if String(eb.get("spouse", "")) == a:
 		eb.spouse = ""
 	_report("◆ 可惜: 【%s】与【%s】缘尽于此, 婚约作废" % [npc_name(a), npc_name(b)])
+	_queue_wall_event("npc_divorce", {"a": npc_name(a), "b": npc_name(b)})   # 闲话壁: 和离唏嘘帖(延迟 1 月)
 
 
 ## 添丁: 遍历已婚对按率造娃(遗传双亲), 双亲皆入册则孩子进名录、否则进世界池; 补亲子边。
@@ -794,13 +829,22 @@ func _birth_child(fa: String, mo: String, ef: Dictionary, em: Dictionary) -> voi
 	(em.children as Array).append(kid_key)
 	_try_world_edge(kid_key, fa, {})
 	_try_world_edge(kid_key, mo, {})
-	# 亲子边固定 tag/val(覆盖随机模板)
+	# 亲子边固定方向称谓+val(覆盖随机模板): 娃看长辈=父亲/母亲, 长辈看娃=儿子/女儿
+	# 注意: 婚配边按字典序拆 fa|mo, 首位未必是男 —— 称谓一律按性别现取
+	var kid_word := "儿子" if String(kid.get("gender", "")) == "male" else "女儿"
+	var fa_word := "父亲" if npc_male(fa) else "母亲"
+	var mo_word := "父亲" if npc_male(mo) else "母亲"
 	for e in run.world_rels:
-		if (String(e.get("a", "")) == kid_key and String(e.get("b", "")) == fa) or (String(e.get("b", "")) == kid_key and String(e.get("a", "")) == fa):
-			e.tag = "亲子"; e.val = 70.0; e.note = "%s是%s的娃 —— 眉眼像爹, 脾气像娘" % [npc_name(kid_key), npc_name(fa)]
-		if (String(e.get("a", "")) == kid_key and String(e.get("b", "")) == mo) or (String(e.get("b", "")) == kid_key and String(e.get("a", "")) == mo):
-			e.tag = "亲子"; e.val = 70.0; e.note = "%s是%s的娃 —— 眉眼像爹, 脾气像娘" % [npc_name(kid_key), npc_name(mo)]
-	_report("◆ 添丁: 【%s】家喜得%s【%s】" % [npc_name(fa), "麟儿" if String(kid.get("gender", "")) == "male" else "千金", npc_name(kid_key)])
+		var ea := String(e.get("a", "")); var eb := String(e.get("b", ""))
+		if (ea == kid_key and eb == fa) or (ea == fa and eb == kid_key):
+			e.tag = fa_word if ea == kid_key else kid_word
+			e.r_tag = kid_word if ea == kid_key else fa_word
+			e.val = 70.0; e.note = "%s是%s的%s —— 眉眼像爹, 脾气像娘" % [npc_name(kid_key), npc_name(fa), kid_word]
+		if (ea == kid_key and eb == mo) or (ea == mo and eb == kid_key):
+			e.tag = mo_word if ea == kid_key else kid_word
+			e.r_tag = kid_word if ea == kid_key else mo_word
+			e.val = 70.0; e.note = "%s是%s的%s —— 眉眼像爹, 脾气像娘" % [npc_name(kid_key), npc_name(mo), kid_word]
+	_report("◆ 添丁: 【%s】家喜得%s【%s】" % [npc_name(fa), kid_word, npc_name(kid_key)])
 	changed.emit()
 
 
@@ -1364,7 +1408,7 @@ func _emit_month_note() -> void:
 	if month_notes.is_empty():
 		return
 	var idx := maxi(0, int(run.age_m) - START_AGE_M - 1)   # 刚过去月份的 0 基序号
-	_log("第%d年·%d月 · %s" % [idx / 12 + 1, idx % 12 + 1, (" · ").join(month_notes)])
+	_log("第%d年·%d月 · %s" % [idx / 12 + 1, idx % 12 + 1, (" · ").join(month_notes)], calendar_idx(idx))
 	month_notes.clear()
 
 # ---------------------------------------------------------------- 模拟(灰盒节奏仪)
@@ -1527,7 +1571,7 @@ func _tick_core() -> void:
 	if recover_months() > 0:   # 闭关将养倒计时: 心魔同步逐月消散, 两载圆满自解封锁
 		run.recover = recover_months() - 1
 		if recover_months() <= 0:
-			_log("◆ 将养出关 —— 闭关两载功行圆满, 方案解禁。")
+			_report("◆ 将养出关 —— 闭关两载功行圆满, 方案解禁。")   # 走月报线入纪事(tick 内直发 _log 会早标一月)
 	if int(run.age_m) >= lifespan_cap_years() * 12:
 		_ending("寿尽坐化")
 		changed.emit()
@@ -2634,9 +2678,8 @@ func _focus_mile_check() -> bool:
 
 ## NPC 修行: 与主角完全同构 —— 修为逐月积累(主角节奏 ×npc_cult_mult), 圆满自动冲关,
 ## 冲关率与主角同源(境界 break_prob ± npc_break_bonus), 失败散三成修为; 上限渡劫后期; 无境界者(书页)不参与。
-## 月报只呈现「特别关注对象」的突破/失手, 其余 NPC 静默修行(境界照常推进, 名录可见)。
+## 破境/失手全员入月报→纪事(2026-09-22 拍板: 世间事不因未关注而不留痕; 旧口径只记特别关注对象)。
 func _npc_cultivation() -> void:
-	var fk := _explicit_focus()
 	for key in run.npcs:
 		var npc: Dictionary = run.npcs[key]
 		if not bool(npc.get("met", false)):
@@ -2665,8 +2708,7 @@ func _npc_cultivation() -> void:
 				need = float(tune("layer_need_base", 100.0)) * pow(float(tune("layer_growth", 1.55)), float(DataManager.layer_offset(ord) + nlayer))
 			else:
 				npc.cult = float(npc.cult) * float(econ("npc_fail_keep", 0.7))
-				if String(key) == fk:
-					_report("【%s】小层冲关失手, 修为散去三成" % npc_name(String(key)))
+				_report("【%s】小层冲关失手, 修为散去三成" % npc_name(String(key)))
 				break
 		# 末层圆满 → 大境界冲关(同一突破率)
 		if nlayer >= layers - 1 and float(npc.cult) >= need:
@@ -2675,12 +2717,10 @@ func _npc_cultivation() -> void:
 				npc.nlayer = 0
 				npc.realm_ord = ord + 1
 				npc.realm = String(DataManager.realm(ord + 1).get("name", "?"))
-				if String(key) == fk:
-					_report("【%s】冲关成功 —— 破境「%s」!" % [npc_name(String(key)), String(npc.realm)])
+				_report("【%s】冲关成功 —— 破境「%s」!" % [npc_name(String(key)), String(npc.realm)])
 			else:
 				npc.cult = float(npc.cult) * float(econ("npc_fail_keep", 0.7))
-				if String(key) == fk:
-					_report("【%s】大境界冲关失手, 修为散去三成" % npc_name(String(key)))
+				_report("【%s】大境界冲关失手, 修为散去三成" % npc_name(String(key)))
 
 ## 口味先验: 固定 NPC 读档案双层先验的 base 味; 随机 NPC 读 run 侧快照
 func npc_taste_base(key: String) -> String:
@@ -3099,6 +3139,55 @@ func _introduce_friend(introducer: String) -> bool:
 	], "friend_meet", {"npc": npc, "favor": favor, "introducer": introducer})
 	return true
 
+## 人物侧写文案池(纪事人均覆盖): 此前 NPC 进纪事只有 10%/月的茶摊传言(至多提两人)与玩家互动线,
+## 未被互动也未卷入事件者一世零纪事 —— 2026-09-21 拍板: 每月为一位坊间人物写一行小景。
+## 候选两档加权: 主角团(入册已识+未遇固定)为主, 世界池未识者为辅(名录灰显关系区可见, 纪事人人可看)。
+## 只入月报不上壁(不占闲话壁每月一帖; 上壁仍须有事件出处)。
+const SIDE_SCENES := {
+	"baimenzong": ["在灶房试新方, 半条街都闻着香", "挑了食盒去灵田, 说是给菜们听听人话", "把昨夜的剩饭翻成了新点心, 一点没浪费", "对着灶火发呆, 说这把火今天有点闹脾气", "给巡夜的同门留了碗热汤在灶边"],
+	"tongming": ["在论道会上把一件旧事讲了三遍, 回回都有人听", "替仙门抄公文, 抄到笔头开叉", "清晨在演武场站桩, 站得比石狮子还稳", "被师弟缠着讲当年, 讲到一半忘了词", "下山采买, 顺手捎了半条街的零碎"],
+	"jianpai": ["在剑炉前蹲了一日, 出来时头发都是直的", "劈柴劈得比谁都齐, 说是练腕", "背着剑走过长街, 影子都比人横", "替人押了一趟货, 货没事人瘦了一圈", "把赊的串钱还了, 摊主愣了半天"],
+	"yoududao": ["背着旧剑从山道走过, 谁也没搭话", "在城根下晒太阳, 剑横在膝上打盹", "替人追回一只惊跑的驴, 转身就没影", "半夜坐在坊市墙头, 被巡山司记了一笔", "买了两个馒头, 转手给了一个要饭的"],
+	"shanshen": ["在山神庙扫了一整日落叶, 谁来都递碗热茶", "给庙前那盏灯添了油, 说是照晚归的人", "坐在庙檐下听雨, 说山神爱听这个", "把香客落下的物件收进木匣, 等人来认", "修庙门的活计做三天歇一天, 一点不急"],
+	"huizu": ["在货摊支起批南边来的稀罕货, 围了里三层", "笑吟吟给老主顾塞了一包桂花糖", "跟客人讨价还价, 赢了还倒贴一串铜铃", "把摊子挪到城门口, 说要迎八方客", "打烊前给街角的小乞儿留了个糖人"],
+	"wenmai": ["茶摊开了新书, 满座没人肯走", "把昨日的坊市闲话编进了新段子", "在照壁前抄帖, 抄一句笑一声", "给孩子们讲前朝旧事, 讲到一半自己先笑场", "说书说到嗓子哑, 含着枚话梅接着说"],
+	"fangshi": ["在坊市替人看了一上午铺子, 分文不取", "把货摊擦得能照出人影, 就是没人问价", "蹲在摊后扒拉午饭, 扒拉得比卖货还认真", "替街坊写了半日书信, 字比人稳重", "收摊时顺手把邻摊的幌子扶正了"],
+}
+const SIDE_SCENES_KID := ["在巷口追鸡, 摔了一身泥还在笑", "蹲在灶房门口偷看, 被塞了块刚出锅的点心", "攒了一兜石子, 说要拿去换糖", "跟着大人逛坊市, 回来学了一嘴新鲜词"]
+
+func _side_scene_tick() -> void:
+	if is_ended() or run.npcs.is_empty():
+		return
+	var keys: Array = []
+	for k in run.npcs:
+		if bool(run.npcs[k].get("met", false)):
+			keys.append(String(k))
+	for n in DataManager.npcs:
+		var fk := String(n.key)
+		if not run.npcs.has(fk) and not (run.has("world_npcs") and (run.world_npcs as Dictionary).has(fk)):
+			keys.append(fk)   # 未遇固定者也在坊间过日子 —— 纪事口径「世间事不因未见而不发生」
+	var pool: Array = []
+	for k in run.get("world_npcs", {}):
+		pool.append(String(k))   # 世界池未识者: 名录关系区灰显可见、纪事人人可看, 坊间也得有他们的日子
+	if keys.is_empty() and pool.is_empty():
+		return
+	# 两档加权: 主角团(入册+未遇固定)为主, 池内陌生人为辅 —— 不让几十张生脸稀释熟人的戏份
+	var k := ""
+	if pool.is_empty() or (not keys.is_empty() and rng.randf() < float(tune("side_scene_main_bias", 0.7))):
+		k = String(keys[rng.randi_range(0, keys.size() - 1)])
+	else:
+		k = String(pool[rng.randi_range(0, pool.size() - 1)])
+	var line := ""
+	if _npc_is_minor(k):
+		line = String(SIDE_SCENES_KID[rng.randi_range(0, SIDE_SCENES_KID.size() - 1)])
+	else:
+		var e := _npc_entry(k)
+		var idt := String(e.get("identity", npc_arch(k).get("identity", "fangshi")))
+		var scenes: Array = SIDE_SCENES.get(idt, SIDE_SCENES["fangshi"])
+		line = String(scenes[rng.randi_range(0, scenes.size() - 1)])
+	_report("坊市一景: 【%s】%s" % [npc_name(k), line])
+
+
 ## WorldSim 关系网月度 tick(§4.3): 成交好/拌嘴 → 月报一行(≤40 字为宜) + 延迟上壁。
 ## v2.4 起传言优先命中 relations.json 的预设关系(GDD §4.3「NPC 关系网」口径): 有出处才有人味,
 ## 命中不了(随机 NPC 或未写关系的两人)再退回纯随机 —— 月报一行 + 延迟上壁，节奏与旧口径一致。
@@ -3115,6 +3204,7 @@ func _worldsim_tick() -> void:
 			met.append(String(k))
 	if met.size() < 2:
 		return
+	_side_scene_tick()   # 每月一位入册者的坊市侧写: 纪事不再只落在被互动/卷入事件者头上
 	if rng.randf() < float(tune("worldsim_pair_rate", 0.06)):
 		var pk := _gossip_pair(met, false)
 		if pk.is_empty():
@@ -3162,6 +3252,11 @@ func _gossip_line(a: String, b: String, negative: bool) -> String:
 	var rel := relation_between(a, b)
 	if not rel.is_empty():
 		var tag := String(rel.get("tag", "旧识"))
+		# 亲族方向词并提时归对词(「A与B是「父亲」」不通 → 「A与B是「父子」」): 按孩子性别定子/女
+		if tag == "父亲" or tag == "母亲":
+			tag = _kin_pair(b, a)   # b 是 a 的长辈
+		elif tag == "儿子" or tag == "女儿":
+			tag = _kin_pair(a, b)   # b 是 a 的小辈
 		_queue_wall_event("relation_bad" if negative else "relation", {"a": npc_name(a), "b": npc_name(b), "tag": tag})
 		if negative:
 			return "茶摊闲话: 【%s】与【%s】那点「%s」又发作了 —— %s" % [npc_name(a), npc_name(b), tag, String(rel.get("note", ""))]
@@ -3528,14 +3623,14 @@ func _recover_guard(what: String) -> bool:
 func _report(text: String) -> void:
 	month_notes.append(text)
 
-func _log(text: String) -> void:
+func _log(text: String, day := "") -> void:
 	if muted:
 		for p in MUTE_PASS:
 			if text.begins_with(p):
-				logged.emit(text)
+				logged.emit(text, day if day != "" else calendar())
 				return
 		return
-	logged.emit(text)
+	logged.emit(text, day if day != "" else calendar())
 
 static func _fmt(n: float) -> String:
 	var a := absf(n)

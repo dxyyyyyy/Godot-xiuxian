@@ -1,7 +1,8 @@
 extends "res://scripts/apps/app_base.gd"
-## 幼儿/老年捏脸（测试页入口，共用本脚本，按 app_id 分模式）：选人 → 改部件/配色 → 应用到该人快照。
+## 幼儿捏脸（测试页入口）：选人 → 改部件/配色 → 应用到该人幼儿相 kid_look（脸A 幼儿套，未成年期间渲染用）。
 ## 与「捏脸·他人」（改 npcs.json 跨世）不同：本编辑只写本世 run 字典（名录/池中），一世位、转世即散。
-## 幼儿 = born_m 且未满 npc_adult_years；老年 = born_m 且 ≥60 岁，或境界 ≥化神(realm_ord≥5) 的老世辈。
+## 成年相 appearance 不受影响：孩子成年礼后自动换回性别套。
+## 幼儿 = born_m 且未满 npc_adult_years。
 
 const Portrait := preload("res://scripts/portrait.gd")
 const NG := preload("res://sim/NpcGenerator.gd")
@@ -13,19 +14,17 @@ var _content: VBoxContainer
 var _rebuild_pending := false
 var _stage := "pick"          # pick=选人 / edit=编辑
 var _key := ""
-var _work := {}               # 容貌工作台(appearance 形状)
-var _orig := {}               # 进入编辑时的原快照(复原用)
+var _work := {}               # 容貌工作台(kid_look 形状)
 var _val_labels := {}
 var _preview_box: CenterContainer
-var _kid_mode := false
+var _rng := RandomNumberGenerator.new()
 
 
 func _build_content(vb: VBoxContainer) -> void:
-	_kid_mode = app_id == "kidface"
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 8)
-	head.add_child(UiKit.label("幼儿捏脸" if _kid_mode else "老年捏脸", 18, UiKit.PINK_600, 600))
-	head.add_child(UiKit.label("本世快照 · 一世位" if _kid_mode else "老世辈 · 本世快照", 11, UiKit.PINK_400))
+	head.add_child(UiKit.label("幼儿捏脸", 18, UiKit.PINK_600, 600))
+	head.add_child(UiKit.label("本世快照 · 一世位", 11, UiKit.PINK_400))
 	var hw := UiKit.margin_wrap(head, 16)
 	hw.add_theme_constant_override("margin_top", 8)
 	hw.add_theme_constant_override("margin_bottom", 4)
@@ -48,7 +47,7 @@ func _schedule_rebuild() -> void:
 	_rebuild.call_deferred()
 
 
-## 可编辑对象: 名录+世界池合览, 按模式过滤。
+## 可编辑对象: 名录+世界池合览, 只留幼儿。
 func _candidates() -> Array:
 	var out: Array = []
 	if Game.run.is_empty():
@@ -57,15 +56,8 @@ func _candidates() -> Array:
 	all.merge(Game.run.world_npcs, true)
 	for k in all:
 		var e: Dictionary = all[k]
-		var minor: bool = e.has("born_m") and Game._npc_age_years(String(k)) < int(Game.tune("npc_adult_years", 12))
-		if _kid_mode:
-			if minor:
-				out.append(String(k))
-		else:
-			var old_age: bool = e.has("born_m") and Game._npc_age_years(String(k)) >= 60
-			var ord := int(e.get("realm_ord", Game.npc_arch(String(k)).get("realm_ord", -1)))
-			if not minor and (old_age or ord >= 5):
-				out.append(String(k))
+		if e.has("born_m") and Game._npc_age_years(String(k)) < int(Game.tune("npc_adult_years", 12)):
+			out.append(String(k))
 	return out
 
 
@@ -86,7 +78,7 @@ func _rebuild() -> void:
 func _build_pick() -> void:
 	var cands := _candidates()
 	if cands.is_empty():
-		var hint := UiKit.label("暂无符合条件的人（幼儿=本世未满 12 岁的孩子；老年=花甲之年或化神以上老世辈）。" if _kid_mode else "暂无老人（孩子满 60 岁、或化神以上境界者入列）。", 12, UiKit.PINK_400)
+		var hint := UiKit.label("暂无符合条件的人（幼儿=本世未满 12 岁的孩子）。", 12, UiKit.PINK_400)
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_content.add_child(hint)
 		return
@@ -107,19 +99,15 @@ func _build_pick() -> void:
 
 func _enter_edit(key: String) -> void:
 	_key = key
+	_rng.randomize()
 	var e := Game._npc_entry(key)
-	_orig = (e.get("appearance", {}) as Dictionary).duplicate(true)
-	_work = (e.get("appearance", {}) as Dictionary).duplicate(true)
-	_work["aura"] = String(_work.get("aura", NG.AURAS[0]))
+	_work = (e.get("kid_look", {}) as Dictionary).duplicate(true)
+	_work["aura"] = String((e.get("appearance", {}) as Dictionary).get("aura", NG.AURAS[0]))
 	_stage = "edit"
 	_rebuild()
 
 
 # ---- 编辑页 ----
-
-func _male() -> bool:
-	return Game.npc_male(_key)
-
 
 func _build_edit() -> void:
 	var preview := CenterContainer.new()
@@ -142,16 +130,23 @@ func _build_edit() -> void:
 		_key = ""
 		_rebuild()
 	))
-	acts.add_child(_sec_button("复原", func() -> void:
-		_work = _orig.duplicate(true)
-		_rebuild()
-	))
+	acts.add_child(_sec_button("随机", _randomize_look))
 	acts.add_child(_big_button("应用容貌", _apply))
 	_content.add_child(acts)
 
 
+## 随机：全槽部件 + 调色重掷，气质保留(与捏脸工坊同规)
+func _randomize_look() -> void:
+	var look := NG.random_look_kit(_rng, "kid")
+	for k in NG.SLOTS:
+		_work[k] = look[k]
+	for k in NG.COLOR_IDENTITY:
+		_work[k] = look[k]
+	_rebuild()
+
+
 func _preview_frame() -> Control:
-	return UiKit.jade_frame(Portrait.build_from(_work, 132, _male()), UiKit.aura_tint(String(_work.get("aura", ""))))
+	return UiKit.jade_frame(Portrait.build_from_kit(_work, 132, "kid"), UiKit.aura_tint(String(_work.get("aura", ""))))
 
 
 func _refresh_preview() -> void:
@@ -164,7 +159,7 @@ func _refresh_preview() -> void:
 
 
 func _cycle(field: String, dir: int) -> void:
-	var opts: Array = NG.options(_male(), field)
+	var opts: Array = NG.options_kit("kid", field)
 	if opts.is_empty():
 		return
 	var ids: Array = []
@@ -174,8 +169,8 @@ func _cycle(field: String, dir: int) -> void:
 	_work[field] = String(ids[posmod(i + dir, ids.size())])
 	if field == "hair_front":
 		# 前后发同色约束: 前发换色标时, 后发重挑同色标者(与 random_look 同规)
-		var fc := String(NG.entry(_male(), "hair_front", String(_work[field])).get("color", ""))
-		for o in NG.options(_male(), "hair_back"):
+		var fc := String(NG.entry_kit("kid", "hair_front", String(_work[field])).get("color", ""))
+		for o in NG.options_kit("kid", "hair_back"):
 			if String((o as Dictionary).get("color", "")) == fc:
 				_work["hair_back"] = String((o as Dictionary).get("id", ""))
 				break
@@ -195,7 +190,7 @@ func _disp(field: String) -> String:
 	if field == "aura":
 		return String(_work.get("aura", ""))
 	var id := String(_work.get(field, ""))
-	var e: Dictionary = NG.entry(_male(), field, id)
+	var e: Dictionary = NG.entry_kit("kid", field, id)
 	return String(e.get("name", id)) if not e.is_empty() else "无"
 
 
@@ -261,9 +256,9 @@ func _apply() -> void:
 	var e := Game._npc_entry(_key)
 	if e.is_empty():
 		return
-	var ap: Dictionary = e.get("appearance", {}) as Dictionary
-	ap.merge(_work, true)
-	e.appearance = ap
+	var kl: Dictionary = e.get("kid_look", {}) as Dictionary
+	kl.merge(_work, true)
+	e.kid_look = kl
 	Game.changed.emit()
 	_stage = "pick"
 	_key = ""
