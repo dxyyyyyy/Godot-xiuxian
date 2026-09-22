@@ -1,5 +1,5 @@
 extends "res://scripts/apps/app_base.gd"
-## 幼儿捏脸（测试页入口）：选人 → 改部件/配色 → 应用到该人幼儿相 kid_look（脸A 幼儿套，未成年期间渲染用）。
+## 幼儿捏脸（玉牌桌面 app）：选人 → 改部件/配色 → 应用到该人幼儿相 kid_look（脸A 幼儿套，未成年期间渲染用）。
 ## 与「捏脸·他人」（改 npcs.json 跨世）不同：本编辑只写本世 run 字典（名录/池中），一世位、转世即散。
 ## 成年相 appearance 不受影响：孩子成年礼后自动换回性别套。
 ## 幼儿 = born_m 且未满 npc_adult_years。
@@ -47,7 +47,7 @@ func _schedule_rebuild() -> void:
 	_rebuild.call_deferred()
 
 
-## 可编辑对象: 名录+世界池合览, 只留幼儿。
+## 可编辑对象: 名录+世界池合览, 只留幼儿(与渲染同一口径 _npc_is_minor)。
 func _candidates() -> Array:
 	var out: Array = []
 	if Game.run.is_empty():
@@ -55,8 +55,7 @@ func _candidates() -> Array:
 	var all: Dictionary = Game.run.npcs.duplicate()
 	all.merge(Game.run.world_npcs, true)
 	for k in all:
-		var e: Dictionary = all[k]
-		if e.has("born_m") and Game._npc_age_years(String(k)) < int(Game.tune("npc_adult_years", 12)):
+		if Game._npc_is_minor(String(k)):
 			out.append(String(k))
 	return out
 
@@ -78,7 +77,7 @@ func _rebuild() -> void:
 func _build_pick() -> void:
 	var cands := _candidates()
 	if cands.is_empty():
-		var hint := UiKit.label("暂无符合条件的人（幼儿=本世未满 12 岁的孩子）。", 12, UiKit.PINK_400)
+		var hint := UiKit.label("暂无符合条件的人（幼儿=本世未满 %d 岁的孩子）。" % int(Game.tune("npc_adult_years", 16)), 12, UiKit.PINK_400)
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_content.add_child(hint)
 		return

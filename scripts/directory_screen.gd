@@ -1,5 +1,6 @@
 extends "res://scripts/screen_base.gd"
-## 名录页：缘分名册 —— 头像网格（一行四个：分层纸娃娃头像/名字/身份/境界/好感），
+## 名录页：缘分名册 —— 按派系(identity)折叠分组，每组一行四个：
+## 分层纸娃娃头像/名字/身份/境界/好感，点标题行收起/展开；
 ## 点击头像弹出详情弹层（性格/口味/外观/萌点/冷却 + 专注/解契）。
 ## 灰盒六态好感(陌生→道侣 · 0-1000)、首遇制；未相逢者留白「传闻中的面孔」。
 
@@ -12,8 +13,10 @@ var _content: VBoxContainer
 var _rebuild_pending := false
 var _detail: Node             # 详情弹层（CanvasLayer 全屏对话框）
 var _detail_chron: Button     # 详情弹层里的「纪事」按钮（纪事子层开着时置蓝）
+var _follow_warn := ""        # 关注名单满员提示（渲染一次即清）
 var _npc_chron: Node          # 纪事子弹层（从详情打开, 叠在详情之上）
 var _open_key := ""           # 当前弹层展示的 NPC（重建后保持）
+var _folded := {}             # 派系折叠状态（跨重建保持）: identity -> bool
 
 
 func _notification(what: int) -> void:
@@ -62,14 +65,31 @@ func _rebuild() -> void:
 		if String(k).begins_with("rand_"):
 			ordered.append(String(k))
 
-	var grid := GridContainer.new()
-	grid.columns = 4
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 12)
+	# 按派系(identity)分组: 组序随首现次序, 组内保持上面的入册次序
+	var groups: Dictionary = {}
+	var gorder: Array = []
 	for k in ordered:
-		grid.add_child(_npc_tile(String(k), Game.run.npcs[k]))
-	_content.add_child(grid)
+		var fac := String(Game._npc_faction(String(k)))
+		if not groups.has(fac):
+			groups[fac] = []
+			gorder.append(fac)
+		groups[fac].append(String(k))
+
+	for fac in gorder:
+		var keys: Array = groups[fac]
+		var grid := GridContainer.new()
+		grid.columns = 4
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_theme_constant_override("h_separation", 8)
+		grid.add_theme_constant_override("v_separation", 12)
+		var met_in := 0
+		for k in keys:
+			if bool(Game.run.npcs[String(k)].get("met", false)):
+				met_in += 1
+			grid.add_child(_npc_tile(String(k), Game.run.npcs[String(k)]))
+		var rumor_in: int = keys.size() - met_in
+		var badge := "%d 人" % keys.size() if rumor_in == 0 else "相识 %d · 传闻 %d" % [met_in, rumor_in]
+		_content.add_child(_fold_section(_faction_title(String(fac)), String(fac), grid, badge))
 
 	var met_n := 0
 	var rumor_n := 0
@@ -84,6 +104,53 @@ func _rebuild() -> void:
 
 	if _open_key != "" and Game.run.npcs.has(_open_key):
 		_open_detail(_open_key)
+
+
+# ================= 派系折叠区块 =================
+
+## 派系展示名: 沿用身份中文表(散修(来历不明)等), 无表可查的旧档/新派系露出原键, 空身份归「无门无派」。
+func _faction_title(fac: String) -> String:
+	if fac == "":
+		return "无门无派"
+	return String(ID_NAME_FALLBACK.get(fac, fac))
+
+
+## 可折叠派系区块: 标题行整行可点收起/展开(状态记在 _folded, 跨重建保持)。
+func _fold_section(title: String, key: String, body: Control, badge := "") -> PanelContainer:
+	var c := UiKit.card()
+	var cv := VBoxContainer.new()
+	cv.add_theme_constant_override("separation", 6)
+	var folded: bool = bool(_folded.get(key, false))
+	body.visible = not folded
+
+	var header := Button.new()
+	header.focus_mode = Control.FOCUS_NONE
+	header.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	header.custom_minimum_size = Vector2(0, 28)
+	for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+		header.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	var hb := HBoxContainer.new()
+	hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hb.add_child(UiKit.label(title, 15, UiKit.PINK_700, 700))
+	hb.add_child(UiKit.expander())
+	if badge != "":
+		hb.add_child(UiKit.label(badge, 11, UiKit.PINK_400, 500))
+		hb.add_child(UiKit.hspace(6))
+	var chevron := UiKit.icon_rect("chevron-down", 15, UiKit.PINK_500)
+	chevron.flip_v = not folded   # 展开时箭头朝上
+	hb.add_child(chevron)
+	hb.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	header.add_child(hb)
+	header.pressed.connect(func() -> void:
+		var now: bool = not bool(_folded.get(key, false))
+		_folded[key] = now
+		body.visible = not now
+		chevron.flip_v = not now
+	)
+	cv.add_child(header)
+	cv.add_child(body)
+	c.add_child(UiKit.margin_wrap(cv, 10))
+	return c
 
 
 # ================= 头像瓦片 =================
@@ -129,13 +196,15 @@ func _npc_tile(key: String, npc: Dictionary) -> Control:
 		avatar_wrap.add_child(ring)
 	vb.add_child(avatar_wrap)
 
-	# 名字行(特别关注的 NPC 名旁带 ♥)
+	# 名字行(「喜欢」的 NPC 名旁带 ♥, 仅关注的带 👁)
 	var name_row := HBoxContainer.new()
 	name_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	name_row.add_theme_constant_override("separation", 3)
 	name_row.add_child(UiKit.label(display_name, 13, UiKit.PINK_700, 600, HORIZONTAL_ALIGNMENT_CENTER))
 	if String(Game.run.get("focus", "")) == key:
 		name_row.add_child(UiKit.icon_rect("heart_filled", 13, UiKit.RED_400))
+	elif Game.is_followed(key):
+		name_row.add_child(UiKit.icon_rect("eye", 13, UiKit.PINK_500))
 	vb.add_child(name_row)
 	var id_lb := UiKit.label(_identity_name(key, npc), 10, UiKit.PINK_400, 400, HORIZONTAL_ALIGNMENT_CENTER)
 	id_lb.clip_text = true
@@ -228,7 +297,7 @@ func _open_detail(key: String) -> void:
 	var stage := int(npc.get("stage", 0))
 	var stage_name := String(Game.tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])[clampi(stage, 0, 5)])
 
-	# 头部：头像 + 名字(♥=特别关注) + 身份 + 性别/段位
+	# 头部：头像 + 名字(♥=喜欢 👁=关注) + 身份 + 性别/段位
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 12)
 	top.add_child(Portrait.build_for(key, 52))
@@ -241,6 +310,8 @@ func _open_detail(key: String) -> void:
 	name_row.add_child(UiKit.label(Game.npc_name(key), 17, UiKit.PINK_700, 600))
 	if String(Game.run.get("focus", "")) == key:
 		name_row.add_child(UiKit.icon_rect("heart_filled", 15, UiKit.RED_400))
+	elif Game.is_followed(key):
+		name_row.add_child(UiKit.icon_rect("eye", 15, UiKit.PINK_500))
 	name_vb.add_child(name_row)
 	var sub := PackedStringArray()
 	if key.begins_with("rand_") and String(npc.get("alias", "")) != "":
@@ -314,17 +385,27 @@ func _open_detail(key: String) -> void:
 	cv.add_child(_relation_box(key))
 
 	if String(Game.run.get("focus", "")) == key:
-		cv.add_child(UiKit.label("♥ 特别关注中 —— 他人好感将随岁月转淡，留意故人心思", 12, UiKit.RED_400))
+		cv.add_child(UiKit.label("♥ 喜欢中 —— 他人好感将随岁月转淡，留意故人心思", 12, UiKit.RED_400))
+	elif Game.is_followed(key):
+		cv.add_child(UiKit.label("👁 已关注 —— Ta 的事会记上日程页「一世纪事」", 12, UiKit.PINK_500))
 
-	# 操作栏(特别关注/解契仅入册者 · 纪事人人可看 —— 世间事不因未见而不发生)
+	# 操作栏(喜欢/关注/解契仅入册者 · 纪事人人可看 —— 世间事不因未见而不发生)
 	var acts := HBoxContainer.new()
 	acts.add_theme_constant_override("separation", 6)
 	var focused := String(Game.run.get("focus", "")) == key
+	var followed := Game.is_followed(key)
 	_detail_chron = _mini_button("纪事", func() -> void: _open_npc_chron(key))
 	acts.add_child(_detail_chron)
 	if not pool_view:
-		acts.add_child(_mini_button("取消特别关注" if focused else "特别关注", func() -> void:
+		acts.add_child(_mini_button("取消喜欢" if focused else "喜欢", func() -> void:
 			Game.set_focus("" if focused else key)
+			_open_detail(key)
+		))
+		acts.add_child(_mini_button("取消关注" if followed else "关注", func() -> void:
+			if followed:
+				Game.set_follow(key, false)
+			elif not Game.set_follow(key, true):
+				_follow_warn = "关注已满(%d/%d) —— 先取消一位再关注" % [Game.follows().size(), Game.FOLLOW_MAX]
 			_open_detail(key)
 		))
 		if bool(npc.get("dao_lu", false)):
@@ -335,6 +416,9 @@ func _open_detail(key: String) -> void:
 	acts.add_child(UiKit.expander())
 	acts.add_child(_mini_button("关闭", _close_detail))
 	cv.add_child(acts)
+	if _follow_warn != "":
+		cv.add_child(UiKit.label(_follow_warn, 12, UiKit.RED_400))
+		_follow_warn = ""   # 只提示一次
 
 
 func _close_detail() -> void:

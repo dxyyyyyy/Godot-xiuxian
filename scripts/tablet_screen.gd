@@ -10,7 +10,7 @@ const APPS := [
 	{"id": "lifestone", "title": "三生石", "icon": "heart"},
 	{"id": "face", "title": "捏脸", "icon": "users", "hidden": true},
 	{"id": "npcface", "title": "捏脸 · 他人", "icon": "users", "hidden": true},
-	{"id": "kidface", "title": "幼儿捏脸", "icon": "users", "hidden": true},
+	{"id": "kidface", "title": "幼儿捏脸", "icon": "users"},
 	{"id": "storage", "title": "库房", "icon": "package"},
 	{"id": "cave", "title": "洞府", "icon": "home"},
 	{"id": "market", "title": "坊市", "icon": "coins"},

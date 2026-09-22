@@ -224,16 +224,6 @@
     "src": "前发/3普通刘海[棕]"
    },
    {
-    "id": "3波波头刘海",
-    "name": "波波头刘海",
-    "n": 6,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "前发/3波波头刘海"
-   },
-   {
     "id": "3蓬松[棕]",
     "name": "蓬松[棕]",
     "n": 7,
@@ -264,36 +254,6 @@
     "src": "前发/4卷发刘海"
    },
    {
-    "id": "4油头前1",
-    "name": "油头前1",
-    "n": 10,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "前发/4油头前1"
-   },
-   {
-    "id": "4油头前2",
-    "name": "油头前2",
-    "n": 11,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "前发/4油头前2"
-   },
-   {
-    "id": "4油头前3",
-    "name": "油头前3",
-    "n": 12,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "前发/4油头前3"
-   },
-   {
     "id": "4长发刘海",
     "name": "长发刘海",
     "n": 13,
@@ -322,72 +282,6 @@
     "color": "",
     "skin": "white",
     "src": "前发/C独眼长发"
-   },
-   {
-    "id": "2刘海下竖",
-    "name": "刘海下竖(少年)",
-    "n": 16,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "前发/2刘海下竖",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "2卷发[棕]",
-    "name": "卷发[棕](少年)",
-    "n": 17,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "前发/2卷发[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3刘海_三分[棕]",
-    "name": "刘海_三分[棕](少年)",
-    "n": 18,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "前发/3刘海_三分[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3直发[棕]",
-    "name": "直发[棕](少年)",
-    "n": 19,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "前发/3直发[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3软绵绵[棕]",
-    "name": "软绵绵[棕](少年)",
-    "n": 20,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "前发/3软绵绵[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4波波头风鬓角[棕]",
-    "name": "波波头风鬓角[棕](少年)",
-    "n": 21,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "前发/4波波头风鬓角[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "hair_back": [
@@ -440,16 +334,6 @@
     "color": "",
     "skin": "white",
     "src": "后发/2柔顺短发"
-   },
-   {
-    "id": "2油头后1",
-    "name": "油头后1",
-    "n": 6,
-    "back": true,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "后发/2油头后1"
    },
    {
     "id": "2蘑菇头",
@@ -512,16 +396,6 @@
     "src": "后发/4长直发"
    },
    {
-    "id": "5横向发束",
-    "name": "横向发束",
-    "n": 13,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "后发/5横向发束"
-   },
-   {
     "id": "C外翘",
     "name": "外翘",
     "n": 14,
@@ -530,138 +404,6 @@
     "color": "",
     "skin": "white",
     "src": "后发/C外翘"
-   },
-   {
-    "id": "1少女·后发超短发",
-    "name": "少女·后发超短发(少年)",
-    "n": 15,
-    "back": true,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "后发/1少女·后发超短发",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "2卷发[棕]",
-    "name": "卷发[棕](少年)",
-    "n": 16,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/2卷发[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "2短发卷发",
-    "name": "短发卷发(少年)",
-    "n": 17,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "后发/2短发卷发",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3外翘长发[棕]",
-    "name": "外翘长发[棕](少年)",
-    "n": 18,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/3外翘长发[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3软绵绵[棕]",
-    "name": "软绵绵[棕](少年)",
-    "n": 19,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/3软绵绵[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3马尾辫[棕]",
-    "name": "马尾辫[棕](少年)",
-    "n": 20,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/3马尾辫[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4卷发双马尾[棕]",
-    "name": "卷发双马尾[棕](少年)",
-    "n": 21,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4卷发双马尾[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4双马尾[棕]",
-    "name": "双马尾[棕](少年)",
-    "n": 22,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4双马尾[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4蓬松侧马尾01[棕]",
-    "name": "蓬松侧马尾01[棕](少年)",
-    "n": 23,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4蓬松侧马尾01[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4蓬松侧马尾02[棕]",
-    "name": "蓬松侧马尾02[棕](少年)",
-    "n": 24,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4蓬松侧马尾02[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4蓬松双马尾[棕]",
-    "name": "蓬松双马尾[棕](少年)",
-    "n": 25,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4蓬松双马尾[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4蓬松长发[棕]",
-    "name": "蓬松长发[棕](少年)",
-    "n": 26,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4蓬松长发[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "brows": [
@@ -1629,17 +1371,6 @@
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
-    "id": "2＞＜",
-    "name": "2＞＜(少年)",
-    "n": 36,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/2＞＜",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "3冷酷眼",
     "name": "冷酷眼(少年)",
     "n": 37,
@@ -1781,28 +1512,6 @@
     "skin": "white",
     "src": "眼睛/少年爱心眼(noise)(Level2)",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "少年闭眼",
-    "name": "少年闭眼(少年)",
-    "n": 50,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/少年闭眼",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "青年女_爱心眼",
-    "name": "青年女_爱心眼(少年)",
-    "n": 51,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/青年女_爱心眼",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "mouth": [
@@ -1937,16 +1646,6 @@
     "src": "嘴巴/3青年男栗形嘴"
    },
    {
-    "id": "4八字嘴",
-    "name": "八字嘴",
-    "n": 14,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/4八字嘴"
-   },
-   {
     "id": "4反派嘴",
     "name": "反派嘴",
     "n": 15,
@@ -1987,17 +1686,6 @@
     "src": "嘴巴/青年男线嘴"
    },
    {
-    "id": "2八字嘴",
-    "name": "八字嘴(少年)",
-    "n": 19,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/2八字嘴",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "2少年口水",
     "name": "少年口水(少年)",
     "n": 20,
@@ -2006,17 +1694,6 @@
     "color": "",
     "skin": "white",
     "src": "嘴巴/2少年口水",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3吐舌",
-    "name": "吐舌(少年)",
-    "n": 21,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/3吐舌",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
@@ -2086,17 +1763,6 @@
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
-    "id": "4大闭嘴",
-    "name": "大闭嘴(少年)",
-    "n": 28,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/4大闭嘴",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "4少年张嘴",
     "name": "少年张嘴(少年)",
     "n": 29,
@@ -2105,17 +1771,6 @@
     "color": "",
     "skin": "white",
     "src": "嘴巴/4少年张嘴",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4少年栗形嘴",
-    "name": "少年栗形嘴(少年)",
-    "n": 30,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/4少年栗形嘴",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
@@ -2572,16 +2227,6 @@
     "src": "前发/2偏短刘海1[棕]"
    },
    {
-    "id": "2刘海〔竖立〕",
-    "name": "刘海〔竖立〕",
-    "n": 3,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "前发/2刘海〔竖立〕"
-   },
-   {
     "id": "2斜分[棕]",
     "name": "斜分[棕]",
     "n": 4,
@@ -2602,16 +2247,6 @@
     "src": "前发/3刘海[棕]"
    },
    {
-    "id": "3圆髻刘海[棕]",
-    "name": "圆髻刘海[棕]",
-    "n": 6,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "前发/3圆髻刘海[棕]"
-   },
-   {
     "id": "3左右分〔棕〕",
     "name": "左右分〔棕〕",
     "n": 7,
@@ -2630,16 +2265,6 @@
     "color": "",
     "skin": "white",
     "src": "前发/3带鬓角"
-   },
-   {
-    "id": "3波波头",
-    "name": "波波头",
-    "n": 9,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "前发/3波波头"
    },
    {
     "id": "3蓬松分",
@@ -2732,28 +2357,6 @@
     "src": "前发/S带发带"
    },
    {
-    "id": "2刘海下竖",
-    "name": "刘海下竖(少年)",
-    "n": 19,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "前发/2刘海下竖",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "2卷发[棕]",
-    "name": "卷发[棕](少年)",
-    "n": 20,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "前发/2卷发[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "3刘海_三分[棕]",
     "name": "刘海_三分[棕](少年)",
     "n": 21,
@@ -2762,17 +2365,6 @@
     "color": "棕",
     "skin": "white",
     "src": "前发/3刘海_三分[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3直发[棕]",
-    "name": "直发[棕](少年)",
-    "n": 22,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "前发/3直发[棕]",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
@@ -2808,56 +2400,6 @@
     "color": "",
     "skin": "white",
     "src": "后发/2后发〔短小尾巴〕"
-   },
-   {
-    "id": "2后发〔编发〕",
-    "name": "后发〔编发〕",
-    "n": 2,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "后发/2后发〔编发〕"
-   },
-   {
-    "id": "2后发〔蓬蓬短发〕",
-    "name": "后发〔蓬蓬短发〕",
-    "n": 3,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "后发/2后发〔蓬蓬短发〕"
-   },
-   {
-    "id": "2圆髻后发[棕]",
-    "name": "圆髻后发[棕]",
-    "n": 4,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/2圆髻后发[棕]"
-   },
-   {
-    "id": "2细马尾",
-    "name": "细马尾",
-    "n": 5,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "后发/2细马尾"
-   },
-   {
-    "id": "2超短发[棕]",
-    "name": "超短发[棕]",
-    "n": 6,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/2超短发[棕]"
    },
    {
     "id": "2青年女短发[棕]",
@@ -3032,17 +2574,6 @@
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
-    "id": "2短发卷发",
-    "name": "短发卷发(少年)",
-    "n": 24,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "后发/2短发卷发",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "3外翘长发[棕]",
     "name": "外翘长发[棕](少年)",
     "n": 25,
@@ -3076,17 +2607,6 @@
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
-    "id": "4卷发双马尾[棕]",
-    "name": "卷发双马尾[棕](少年)",
-    "n": 28,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4卷发双马尾[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "4双马尾[棕]",
     "name": "双马尾[棕](少年)",
     "n": 29,
@@ -3095,39 +2615,6 @@
     "color": "棕",
     "skin": "white",
     "src": "后发/4双马尾[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4蓬松侧马尾01[棕]",
-    "name": "蓬松侧马尾01[棕](少年)",
-    "n": 30,
-    "back": false,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4蓬松侧马尾01[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4蓬松侧马尾02[棕]",
-    "name": "蓬松侧马尾02[棕](少年)",
-    "n": 31,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4蓬松侧马尾02[棕]",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4蓬松双马尾[棕]",
-    "name": "蓬松双马尾[棕](少年)",
-    "n": 32,
-    "back": true,
-    "back_only": false,
-    "color": "棕",
-    "skin": "white",
-    "src": "后发/4蓬松双马尾[棕]",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
@@ -3944,26 +3431,6 @@
     "src": "眼睛/4偏大〔绿〕"
    },
    {
-    "id": "4大的眼",
-    "name": "大的眼",
-    "n": 20,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/4大的眼"
-   },
-   {
-    "id": "4大的眼[柔光]",
-    "name": "大的眼[柔光]",
-    "n": 21,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/4大的眼[柔光]"
-   },
-   {
     "id": "4大的眼[蓝]",
     "name": "大的眼[蓝]",
     "n": 22,
@@ -4004,17 +3471,6 @@
     "src": "眼睛/D温和睫毛笑"
    },
    {
-    "id": "2三白眼",
-    "name": "三白眼(少年)",
-    "n": 26,
-    "back": true,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/2三白眼",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "2偏小",
     "name": "偏小(少年)",
     "n": 27,
@@ -4045,17 +3501,6 @@
     "color": "",
     "skin": "white",
     "src": "眼睛/2欢快",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "2＞＜",
-    "name": "2＞＜(少年)",
-    "n": 30,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/2＞＜",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
@@ -4189,41 +3634,9 @@
     "skin": "white",
     "src": "眼睛/少年爱心眼(noise)(Level2)",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "少年闭眼",
-    "name": "少年闭眼(少年)",
-    "n": 43,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/少年闭眼",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "青年女_爱心眼",
-    "name": "青年女_爱心眼(少年)",
-    "n": 44,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "眼睛/青年女_爱心眼",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    }
   ],
   "mouth": [
-   {
-    "id": "1八字嘴",
-    "name": "八字嘴",
-    "n": 1,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/1八字嘴"
-   },
    {
     "id": "1小嘴 微笑",
     "name": "小嘴 微笑",
@@ -4485,17 +3898,6 @@
     "src": "嘴巴/4开口"
    },
    {
-    "id": "2八字嘴",
-    "name": "八字嘴(少年)",
-    "n": 28,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/2八字嘴",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "2少年口水",
     "name": "少年口水(少年)",
     "n": 29,
@@ -4504,17 +3906,6 @@
     "color": "",
     "skin": "white",
     "src": "嘴巴/2少年口水",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "3吐舌",
-    "name": "吐舌(少年)",
-    "n": 30,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/3吐舌",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
@@ -4584,17 +3975,6 @@
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {
-    "id": "4大闭嘴",
-    "name": "大闭嘴(少年)",
-    "n": 37,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/4大闭嘴",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
     "id": "4少年张嘴",
     "name": "少年张嘴(少年)",
     "n": 38,
@@ -4603,17 +3983,6 @@
     "color": "",
     "skin": "white",
     "src": "嘴巴/4少年张嘴",
-    "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
-   },
-   {
-    "id": "4少年栗形嘴",
-    "name": "少年栗形嘴(少年)",
-    "n": 39,
-    "back": false,
-    "back_only": false,
-    "color": "",
-    "skin": "white",
-    "src": "嘴巴/4少年栗形嘴",
     "kit_src": "脸B[少年192x192]（キタカライ老师底稿）"
    },
    {

@@ -45,7 +45,7 @@ func _rebuild() -> void:
 		return
 	_content.add_child(_face_card())      # 捏脸入口(桌面无阵纹, 自测试页进)
 	_content.add_child(_npc_face_card())  # 他人捏脸: 固定 NPC 容貌编辑
-	_content.add_child(_age_face_card("kidface", "幼儿捏脸", "编辑本世孩子的容貌（born_m 且未满 12 岁）。写入本世快照，一世位、转世即散。"))
+	_content.add_child(_age_face_card("kidface", "幼儿捏脸", "编辑本世孩子的容貌（born_m 且未满 %d 岁）。写入本世快照，一世位、转世即散。" % int(Game.tune("npc_adult_years", 16))))
 	_content.add_child(_npcs_card())
 	_content.add_child(_speed_card())
 	_content.add_child(_cheat_card())

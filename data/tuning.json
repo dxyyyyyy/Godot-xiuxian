@@ -119,7 +119,8 @@
  "npc_court_gain_min": 4,
  "npc_court_gain_max": 12,
  "npc_court_seed_rate": 0.15,
- "npc_baby_rate": 0.04,
+ "npc_conceive_rate": 0.02,
+ "npc_gestation_years": 5,
  "npc_kids_max": 2,
- "npc_adult_years": 12
+ "npc_adult_years": 16
 }

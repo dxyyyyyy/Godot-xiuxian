@@ -6,6 +6,9 @@ const Portrait := preload("res://scripts/portrait.gd")
 
 var _fails := 0
 var _broke_seen := 0   # 全程 logged 里 NPC 破境行数(纪事 200 条滚动上限会挤掉早年线, 故计数而非查窗)
+var _preg_seen := 0    # 喜脉(受孕)行数
+var _first_preg_m := -1
+var _first_birth_m := -1
 
 
 func _chk(name: String, ok: bool) -> void:
@@ -17,6 +20,12 @@ func _chk(name: String, ok: bool) -> void:
 func _on_logged(t: String, _d: String) -> void:
 	if t.contains("破境「"):
 		_broke_seen += 1
+	if t.contains("喜脉"):
+		_preg_seen += 1
+		if _first_preg_m < 0:
+			_first_preg_m = int(Game.run.age_m)
+	if t.contains("◆ 添丁") and _first_birth_m < 0:
+		_first_birth_m = int(Game.run.age_m)
 
 
 func _ready() -> void:
@@ -89,6 +98,19 @@ func _ready() -> void:
 					kid_ok = false
 	_chk("有孩子出生", kids > 0)
 	_chk("孩子亲缘互指+容貌目录合法(成年相+kid_look)", kid_ok)
+	# 怀胎五年: 有喜脉纪事, 且首胎临盆距首孕不早于整孕期(添丁未必出自首孕母, 但全局首添必≥全局首孕+孕期)
+	_chk("有喜脉纪事(按率受孕)", _preg_seen >= 1)
+	var ges_ok := _first_preg_m >= 0 and _first_birth_m >= 0
+	if ges_ok:
+		ges_ok = _first_birth_m - _first_preg_m >= int(Game.tune("npc_gestation_years", 5)) * 12
+	_chk("临盆距受孕≥孕期", ges_ok)
+	# 孕期守卫: 在册/池中没有过期未产或凭空挂着的产期(要么未到期、要么当月至多一人补上)
+	var preg_ok := true
+	for k in all:
+		var d: int = int((all[k] as Dictionary).get("preg_due_m", 0))
+		if d > 0 and int(Game.run.age_m) >= d:
+			preg_ok = false   # 家族 tick 先于本检查跑, 到期还挂着=结算漏了
+	_chk("到期产期均已结算", preg_ok)
 	# 未成年: 不修炼(cult 无/0)、未恋爱(无 spouse)、无 grown 标
 	var minor_ok := true
 	for k in all:
@@ -107,9 +129,18 @@ func _ready() -> void:
 				grown_kit_ok = false
 			if sample == "":
 				sample = String(k)
+	# 成年礼: 有孩子满 npc_adult_years 岁则 grown=true(须在下面自造幼儿清空 grown 标记之前查)
+	var any_adult := false
+	for k in all:
+		var e3: Dictionary = all[k]
+		if e3.has("born_m") and bool(e3.get("grown", false)):
+			any_adult = true
+	_chk("有孩子成年入轨(400月足够)", any_adult)
 	var kid_face_ok := false
 	if sample != "":
-		(Game._npc_entry(sample) as Dictionary).born_m = int(Game.run.age_m) - 24
+		var se: Dictionary = Game._npc_entry(sample)
+		se.grown = false   # grown 守卫: 已成年者不回退, 自造幼儿需先清成年礼标记
+		se.born_m = int(Game.run.age_m) - 24   # 拨回 24 个月大 → 重新未成年
 		var pc := Portrait.build_for(sample, 44)
 		kid_face_ok = Game.npc_kit(sample) == "kid" and pc != null and pc.get_child_count() >= 4
 	_chk("未成年上幼儿脸(脸A 套)", kid_face_ok)
@@ -146,13 +177,6 @@ func _ready() -> void:
 		if pc2 == null or pc2.get_child_count() < 4:
 			app_ok = false
 		_chk("幼儿捏脸: 轮换+应用写回 kid_look", app_ok)
-	# 成年礼: 有孩子满 12 岁则 grown=true
-	var any_adult := false
-	for k in all:
-		var e3: Dictionary = all[k]
-		if e3.has("born_m") and bool(e3.get("grown", false)):
-			any_adult = true
-	_chk("有孩子成年入轨(400月足够)", any_adult)
 	# 未关注 NPC 特殊事件入纪事(2026-09-22): 全程未设 focus → 破境行必须入纪事。
 	# 固定 NPC 境界高(渡劫/元婴/化神), 400 月内到不了末层圆满 → 把开局在册的季忘川拨回炼气八层, 再 tick 逼出破境。
 	var js: Dictionary = Game.run.npcs["jianshu"]

@@ -109,6 +109,13 @@ func _ensure_run() -> void:
 		_seed_world()   # 老档补一次世界池(只补这一次; 后加的固定 NPC 不追溯, 新世自然生效)
 	if not run.has("npc_romance"):
 		run.npc_romance = {}
+	if not run.has("follows"):
+		# 老档补关注列表: 已设「喜欢」(原特别关注)者默认在册; 不 bump SCHEMA
+		var f_old := String(run.get("focus", ""))
+		if f_old != "" and bool((run.get("npcs", {}) as Dictionary).get(f_old, {}).get("met", false)):
+			run.follows = [f_old]
+		else:
+			run.follows = []
 	if not run.farm.has("yaodan"):
 		run.farm.yaodan = 0   # 妖丹计数(伏妖战功, 老档补 0, 不 bump SCHEMA)
 	for key in run.get("npcs", {}):   # NPC 档迁移: 旧 5 态 0-100 量程 → 新 6 态 0-1000(陌生态插入), 全员视作已入册
@@ -609,7 +616,7 @@ func _world_churn() -> void:
 
 ## NPC 之间的感情与玩家恋爱同规格: 恋爱边存 run.npc_romance{"a|b"→{aff,stage,married}},
 ## 逐月涨好、按 aff_thresholds 六段升段(相识→相熟→心动→相恋), 满段成婚写 spouse;
-## 争风扣好可降段退婚; 婚后按率添丁, 孩子遗传双亲容貌、满 npc_adult_years 成年入修炼。
+## 争风扣好可降段退婚; 婚后按率受孕、怀胎五年添丁, 孩子遗传双亲容貌、满 npc_adult_years 成年入修炼。
 ## 玩家道侣位/玩家好感线与此完全隔离(红线: 只动 NPC 互好)。
 ## 互好 aff/stage/married 只允许 _npc_romance_tick(月度随机掷)与开局婚配播种写入, 任何玩家操作路径不得触碰。
 
@@ -647,7 +654,8 @@ func _npc_age_years(key: String) -> int:
 
 func _npc_is_minor(key: String) -> bool:
 	var e := _npc_entry(key)
-	return e.has("born_m") and _npc_age_years(key) < int(tune("npc_adult_years", 12))
+	# grown 守卫: 已行过成年礼者永不回退幼年 —— 阈值上调后, 老档里 12-15 岁已成年的孩子不回落幼儿脸、修炼不断
+	return e.has("born_m") and not bool(e.get("grown", false)) and _npc_age_years(key) < int(tune("npc_adult_years", 16))
 
 
 ## 容貌渲染套件: 未成年用幼儿套(脸A kid), 成年按性别走男/女套 —— Portrait 与幼儿捏脸共用此一口径。
@@ -787,23 +795,48 @@ func _divorce(a: String, b: String, r: Dictionary) -> void:
 	_queue_wall_event("npc_divorce", {"a": npc_name(a), "b": npc_name(b)})   # 闲话壁: 和离唏嘘帖(延迟 1 月)
 
 
-## 添丁: 遍历已婚对按率造娃(遗传双亲), 双亲皆入册则孩子进名录、否则进世界池; 补亲子边。
+## 添丁: 已婚未孕之妻按率受孕(npc_conceive_rate), 修仙者怀胎 npc_gestation_years 年方临盆。
+## 产期与生父挂在母亲档案(preg_due_m/preg_fa, 随档保存): 婚变乃至恋爱边作废都不吞胎儿, 到月生给生父。
 func _npc_family_tick() -> void:
+	# 1) 待产结算: 名录与世界池合览, 到产期的先落地
+	for pool in [run.npcs, run.get("world_npcs", {})]:
+		var pl: Dictionary = pool if pool is Dictionary else {}
+		for key in pl.keys():
+			var mom: Dictionary = pl[key]
+			var due := int(mom.get("preg_due_m", 0))
+			if due <= 0 or int(run.age_m) < due:
+				continue
+			var fa := String(mom.get("preg_fa", ""))
+			mom.erase("preg_due_m")
+			mom.erase("preg_fa")
+			var ef := _npc_entry(fa)
+			if ef.is_empty():
+				continue   # 生父档案缺失(理论上走不到) —— 静默, 不留无父胎记录
+			_birth_child(fa, String(key), ef, mom)
+	# 2) 掷孕: 一夫一妻已婚对, 未怀、未超生 → 按率有喜
 	var rom: Dictionary = run.get("npc_romance", {})
 	for pk in rom.keys():
 		var r: Dictionary = rom[pk]
 		if not bool(r.get("married", false)):
 			continue
 		var parts: PackedStringArray = String(pk).split("|")
-		var fa := String(parts[0]); var mo := String(parts[1])
-		var ef := _npc_entry(fa); var em := _npc_entry(mo)
-		if ef.is_empty() or em.is_empty():
+		var a := String(parts[0]); var b := String(parts[1])
+		var ea := _npc_entry(a); var eb := _npc_entry(b)
+		if ea.is_empty() or eb.is_empty():
 			continue
-		if int(ef.get("children", []).size()) >= int(tune("npc_kids_max", 2)):
+		if int(ea.get("children", []).size()) >= int(tune("npc_kids_max", 2)):
 			continue
-		if rng.randf() >= float(tune("npc_baby_rate", 0.04)):
+		# 恋爱资格保证一男一女: 妻=女方, fa/mo 位仅是字典序拆键, 称谓在 _birth_child 按性别现取
+		var wife_key := b if npc_male(a) else a
+		var husband := a if npc_male(a) else b
+		var wife: Dictionary = eb if npc_male(a) else ea
+		if int(wife.get("preg_due_m", 0)) > 0:
 			continue
-		_birth_child(fa, mo, ef, em)
+		if rng.randf() >= float(tune("npc_conceive_rate", 0.02)):
+			continue
+		wife.preg_due_m = int(run.age_m) + int(tune("npc_gestation_years", 5)) * 12
+		wife.preg_fa = husband
+		_report("◆ 喜脉: 【%s】有了身孕 —— 修行之人怀胎五年, 坊间掰着指头待添丁" % npc_name(wife_key))
 
 
 func _birth_child(fa: String, mo: String, ef: Dictionary, em: Dictionary) -> void:
@@ -861,7 +894,7 @@ func _growth_check(key: String) -> void:
 	var e := _npc_entry(key)
 	if e.is_empty() or not e.has("born_m") or bool(e.get("grown", false)):
 		return
-	if _npc_age_years(key) < int(tune("npc_adult_years", 12)):
+	if _npc_age_years(key) < int(tune("npc_adult_years", 16)):
 		return
 	e.grown = true
 	_report("◇ 岁月催人: 【%s】家孩子长大成人, 开始修行" % npc_name(key))
@@ -1203,12 +1236,53 @@ func set_plan(id: String) -> void:
 func set_focus(key: String) -> void:
 	if key != "":
 		if not run.npcs.has(key) or not bool(run.npcs[key].get("met", false)):
-			return   # 专注对象仅限已首遇 NPC(§5)
-		_log("◇ 特别关注: %s" % String(npc_name(key)))
+			return   # 喜欢对象仅限已首遇 NPC(§5)
+		run.focus = key
+		var f := follows()
+		if not f.has(key) and f.size() < FOLLOW_MAX:
+			f.append(key)   # 「喜欢」的 NPC 默认为关注
+		_log("◇ 喜欢: %s" % String(npc_name(key)))
 	else:
-		_log("◇ 取消特别关注")
-	run.focus = key
+		_log("◇ 取消喜欢")
+		run.focus = ""
 	changed.emit()
+
+## 关注名单上限(「喜欢」对象自动入册, 亦占名额)
+const FOLLOW_MAX := 10
+
+## 关注列表(本世 run.follows, 元素为 NPC key): 只有被关注 NPC 的事会出现在日程页「一世纪事」
+func follows() -> Array:
+	if not run.has("follows"):
+		run.follows = []
+	return run.follows
+
+## 是否已关注: 「喜欢」对象恒视为关注(即便列表满员未入册)
+func is_followed(key: String) -> bool:
+	return String(run.get("focus", "")) == key or follows().has(key)
+
+## 添加/取消关注: 添加仅限已入册 NPC 且名单未满; 取关「喜欢」对象时顺带一并取消喜欢。
+## 返回 false = 被拒(未入册/名单满), 由 UI 给提示。
+func set_follow(key: String, on: bool) -> bool:
+	var f := follows()
+	if on:
+		if not run.npcs.has(key) or not bool(run.npcs[key].get("met", false)):
+			return false
+		if f.has(key):
+			return true
+		if f.size() >= FOLLOW_MAX:
+			return false
+		f.append(key)
+		_log("◇ 关注【%s】" % String(npc_name(key)))
+	else:
+		if not f.has(key) and String(run.get("focus", "")) != key:
+			return true   # 本就不在关注之列
+		if f.has(key):
+			f.erase(key)
+		_log("◇ 取消关注【%s】" % String(npc_name(key)))
+		if String(run.get("focus", "")) == key:
+			run.focus = ""   # 喜欢 ⊆ 关注: 取关一并取消喜欢
+	changed.emit()
+	return true
 
 ## 主角容貌（捏脸）：存于本世 run.look；无则用默认
 func player_look() -> Dictionary:
@@ -1313,9 +1387,10 @@ func resolve_option(i: int) -> void:
 				var wave := -float(rng.randi_range(int(tune("aff_drift", [2, 10])[0]) + 8, int(tune("aff_drift", [2, 10])[1]) + 20))
 				_bump_aff(nk, wave, ntrack)
 				_log("◇ 抉择「%s」—— 话没接住, %s %.0f(这道闸顺延, 来日再提)" % [choice, nunit, wave])
+		# 2026-09-22 拍板: 遇见 NPC 不再弹「是否攀谈」框, 命中即直接入册 —— 以下三个分支仅为旧存档中未响应的弹框兜底
 		"met_note":
 			if i == 0:
-				_first_meet(String(pending.data.key))   # 攀谈才入册(2026-09-13 修: 选择前不入册)
+				_first_meet(String(pending.data.key))
 			else:
 				_log("◇ 你把这张脸记在心里 —— 有缘自会再见(缘分页仍为传闻中的面孔)。")
 		"travel_meet":
@@ -1587,15 +1662,15 @@ func _tick_core() -> void:
 		for key in run.npcs:
 			run.npcs[key].talk_q = 0
 			run.npcs[key].gift_q = 0
-	_first_meet_roll()   # 被动首遇检定: 命中弹「初遇」选择框, 攀谈才入册(2026-09-13 修: 拒绝不入册)
+	_first_meet_roll()   # 被动首遇检定: 命中直接入册(2026-09-22 拍板: 不再弹框询问攀谈)
 	_worldsim_tick()
 	if rng.randf() < float(tune("world_npc_churn", 0.02)):
 		_world_churn()   # 世界脉动: 偶有新客搬来, 顺手攀一条交情
 	_aff_drift()
 	_favor_gift_tick()      # 好感厚礼: 心动段及以上 NPC 按主角境界差人送菜/送灵植(每月至多一份)
 	_npc_cultivation()      # NPC 修行: 各自周期到点破境(上限渡劫, 话本成精等无境界者不参与)
-	_focus_neglect_tick()   # 特别关注的代价: 他人好感每月 -1, 冷落累计触发「故人心思」事件
-	# 6) 打断判定(优先级: 好感节点/烙印 > 特别关注心动时分 > 他人冷落 > 机缘) —— 命中即自动暂停
+	_focus_neglect_tick()   # 喜欢的代价: 他人好感每月 -1, 冷落累计触发「故人心思」事件
+	# 6) 打断判定(优先级: 好感节点/烙印 > 喜欢心动时分 > 他人冷落 > 机缘) —— 命中即自动暂停
 	if _npc_prompt_check():
 		changed.emit()
 		return
@@ -1634,7 +1709,7 @@ func _execute_plan() -> void:
 				var npc: Dictionary = run.npcs[key]
 				if not bool(npc.get("met", false)):
 					continue
-				# 交谈: 陌生段起唯一涨好感渠道 —— 每对象 3 月冷却 + 每季 ≤4 次(§1.2); 获取动率不随特别关注变化
+				# 交谈: 陌生段起唯一涨好感渠道 —— 每对象 3 月冷却 + 每季 ≤4 次(§1.2); 获取动率不随喜欢变化
 				npc.talk_cd = int(npc.get("talk_cd", 0)) - 1
 				if int(npc.talk_cd) <= 0 and int(npc.get("talk_q", 0)) < int(tune("talk_quarter_cap", 4)):
 					npc.talk_cd = int(tune("talk_cd", 3))
@@ -2603,6 +2678,30 @@ func chronicle_of(key: String) -> Array:
 	out.reverse()
 	return out
 
+
+## 日程预览「一世纪事」的关注过滤: 提及未关注 NPC(未入册者亦算未关注; 「喜欢」恒算已关注)的条目隐去。
+## 月报大行(「第X年·M月 · 条 · 条…」)按 " · " 拆段, 逐段滤除后重拼; 普通行命中即整条丢弃;
+## 与在册 NPC 无关的条目(修炼/方案/突破等)原样返回。返回空串 = 整条不显示。
+func filter_chronicle_for_follows(text: String) -> String:
+	var tags: PackedStringArray = []
+	for key in run.get("npcs", {}):
+		if not is_followed(String(key)):
+			tags.append("【%s】" % npc_name(String(key)))
+	if tags.is_empty():
+		return text
+	var mentions := func(s: String) -> bool:
+		for tg in tags:
+			if s.contains(tg):
+				return true
+		return false
+	if text.begins_with("第") and text.contains(" · "):
+		var segs: PackedStringArray = []
+		for s in text.split(" · "):
+			if not mentions.call(String(s)):
+				segs.append(String(s))
+		return " · ".join(segs)
+	return "" if mentions.call(text) else text
+
 ## 专注对象仅限已首遇 NPC(§5); 未设则默认好感最高者
 func _focus_key() -> String:
 	var f := String(run.get("focus", ""))
@@ -2619,14 +2718,14 @@ func _focus_key() -> String:
 			best = String(key)
 	return best
 
-## 显式设置的特别关注(区别于 _focus_key 的最高好感兜底)
+## 显式设置的喜欢(区别于 _focus_key 的最高好感兜底)
 func _explicit_focus() -> String:
 	var f := String(run.get("focus", ""))
 	if f != "" and run.npcs.has(f) and bool(run.npcs[f].get("met", false)):
 		return f
 	return ""
 
-## 特别关注的代价: 他人好感每月 -1(focus_drain), 累计冷落 focus_neglect_months 个月后可触发「故人心思」
+## 喜欢的代价: 他人好感每月 -1(focus_drain), 累计冷落 focus_neglect_months 个月后可触发「故人心思」
 func _focus_neglect_tick() -> void:
 	var fk := _explicit_focus()
 	if fk == "":
@@ -2658,7 +2757,7 @@ func _neglect_check() -> bool:
 			return true
 	return false
 
-## 特别关注的甜头: 好感每跨过一道 100 的坎, 触发一次「心动时分」小事件(仅对象)
+## 喜欢的甜头: 好感每跨过一道 100 的坎, 触发一次「心动时分」小事件(仅对象)
 func _focus_mile_check() -> bool:
 	var fk := _explicit_focus()
 	if fk == "" or not run.npcs.has(fk):
@@ -2783,7 +2882,7 @@ func _bump_aff(key: String, v: float, track := "friend") -> void:
 		npc.aff = maxf(0.0, na)
 	else:
 		npc.love = maxf(0.0, na)
-	# 特别关注里程碑: 好感每跨过一道 100 的坎, 记一次待触发的「心动时分」(⑥ 打断判定统一弹出)
+	# 喜欢里程碑: 好感每跨过一道 100 的坎, 记一次待触发的「心动时分」(⑥ 打断判定统一弹出)
 	if key == _explicit_focus():
 		var m := int(float(npc.aff if track == "friend" else npc.get("love", 0.0)) / 100.0)
 		if m > int(npc.get("mile", 0)):
@@ -3077,14 +3176,15 @@ func _travel_tick() -> void:
 		if pool_key != "":
 			npc = run.world_npcs[pool_key]
 		else:
-			npc = npc_generator.generate(rng, run.npcs, info.ids)   # 池空回退: 当场造人(不入池, 拒绝即散)
+			npc = npc_generator.generate(rng, run.npcs, info.ids)   # 池空回退: 当场造人(不入池, 入册即用)
 		if npc.is_empty():
 			_report("游历%s: 人潮里没遇见新鲜面孔" % String(info.name))
 			return
-		_fire_interrupt("游历初遇 · %s" % String(info.name), "行至%s, 你与【%s】(%s)打了个照面 —— %s。相逢自是有缘, 是否攀谈?(相遇不加好感; 入册后可交谈/赠礼/约会)" % [String(info.name), String(npc.name), String(npc.get("id_name", "")), String(npc.get("moe", ""))], [
-			{"t": "攀谈几句(入册)", "need": "无", "result": "入册缘分页: 可交谈/赠礼/约会"},
-			{"t": "记在心里", "need": "无", "result": ("不入册 · 这张脸还在世上, 换个去处自会再遇" if pool_key != "" else "不入册 · 换个去处自会遇见别的缘分")},
-		], "travel_meet", {"npc": npc, "pool_key": pool_key})
+		if pool_key != "":
+			_enroll_pool_npc(pool_key)
+		else:
+			_enroll_npc(npc)
+		_report("游历%s: 遇见【%s】(%s) —— %s, 攀谈几句, 入册缘分页(可交谈/赠礼/约会)" % [String(info.name), String(npc.name), String(npc.get("id_name", "")), String(npc.get("moe", ""))])
 		return
 	if roll < fm + float(tune("travel_encounter", 0.30)) * mult:
 		var met_rands: Array = []
@@ -3105,7 +3205,7 @@ func _travel_tick() -> void:
 		return
 	_report("游历%s: %s" % [String(info.name), String(info.scene)])
 
-## 入册(游历/好友介绍共用): 快照合并默认结构; 相遇不加好感(红线); 游历拍板=入册不弹框
+## 入册(游历/好友介绍共用): 快照合并默认结构; 相遇不加好感(红线); 游历首遇=直接入册不弹框(2026-09-22)
 func _enroll_npc(npc: Dictionary) -> void:
 	var base := _npc_init()
 	base.merge(npc, true)
@@ -3266,8 +3366,8 @@ func _gossip_line(a: String, b: String, negative: bool) -> String:
 		return "茶摊都说: 【%s】与【%s】起了口角, 怕要出话本" % [npc_name(a), npc_name(b)]
 	return "坊市传言: 【%s】与【%s】走得近了" % [npc_name(a), npc_name(b)]
 
-## 被动首遇检定(§1.7): 概率 roll(恒定消费, deterministic 不短路) → 弹「初遇」选择框;
-## **攀谈才入册, 拒绝不入册可再遇**(2026-09-13 修)。候选为固定六人中未入册者。
+## 被动首遇检定(§1.7): 概率 roll(恒定消费, deterministic 不短路) → 命中直接入册(2026-09-22 拍板: 不再弹「是否攀谈」框)。
+## 候选为固定六人中未入册者。
 func _first_meet_roll() -> void:
 	if is_ended():
 		return
@@ -3281,11 +3381,7 @@ func _first_meet_roll() -> void:
 	if candidates.is_empty():
 		return
 	var pick := String(candidates[rng.randi_range(0, candidates.size() - 1)])
-	var arch := npc_arch(pick)
-	_fire_interrupt("初遇 · %s" % String(arch.get("scene", "")), "山道拐角, 你撞见了【%s】—— %s。相逢自是有缘, 是否上前攀谈?(相遇不加好感; 入册后可交谈/赠礼/约会)" % [npc_name(pick), String(arch.get("blurb", ""))], [
-		{"t": "攀谈几句(入册)", "need": "无", "result": "入册缘分页: 可交谈/赠礼/约会"},
-		{"t": "记在心里", "need": "无", "result": "不入册 · 缘到自会再遇"},
-	], "met_note", {"key": pick})
+	_first_meet(pick, "山道拐角打了个照面, 攀谈几句")
 ## 好感微幅波动 ±2-10/月(全段, 静默): 恋爱系统 §1.2 表「月报微幅波动」通道
 func _aff_drift() -> void:
 	var met: Array = []
@@ -3417,7 +3513,7 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 		"element": String(roots[0]),
 		"age_m": START_AGE_M,
 		"realm": 0, "layer": 0, "cult": 0.0,
-		"plan": "pure", "focus": "", "pity": 0,
+		"plan": "pure", "focus": "", "follows": [], "pity": 0,
 			"inner": 0, "secret": 0, "recover": 0,
 			"buffs": {}, "qi": 100, "aptitude": 0.0, "life_bonus": 0, "luck": 0, "break_bonus": 0.0,
 			"facilities": {"julingzhen": 0, "lingquan": 0, "cangjingge": 0, "daiketingyuan": 0},

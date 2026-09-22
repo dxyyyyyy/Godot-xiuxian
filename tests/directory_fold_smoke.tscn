@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bkdirfoldsmoke"]
+
+[ext_resource type="Script" path="res://tests/directory_fold_smoke.gd" id="1_df"]
+
+[node name="DirectoryFoldSmoke" type="Node"]
+script = ExtResource("1_df")

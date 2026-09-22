@@ -356,7 +356,7 @@ func _chronicle_card() -> PanelContainer:
 	head.add_child(UiKit.icon_rect("bell", 14, UiKit.PINK_500))
 	head.add_child(UiKit.label("一世纪事", 13, UiKit.PINK_700, 600))
 	head.add_child(UiKit.expander())
-	head.add_child(UiKit.label("全文见玉牌 · 纪事", 10, UiKit.PINK_400))
+	head.add_child(UiKit.label("只叙关注之人 · 全文见玉牌 · 纪事", 10, UiKit.PINK_400))
 	cv.add_child(head)
 
 	if GameState.chronicle.is_empty():
@@ -367,7 +367,10 @@ func _chronicle_card() -> PanelContainer:
 		var idx := GameState.chronicle.size() - 1
 		while idx >= 0 and shown.size() < 14:
 			var e: Dictionary = GameState.chronicle[idx]
-			var t := String(e.text)
+			var t := Game.filter_chronicle_for_follows(String(e.text))   # 未关注 NPC 的事不上日程页(玉牌纪事仍有全文)
+			if t == "":
+				idx -= 1
+				continue
 			if t.begins_with("◇ 抉择「"):
 				var cut := t.find("」")
 				t = "" if cut == -1 else t.substr(cut + 1).strip_edges()
