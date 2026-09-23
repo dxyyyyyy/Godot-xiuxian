@@ -1,6 +1,6 @@
 extends Node
 ## 关注冒烟: 关注名单上限 10 / 「喜欢」默认入关注 / 取关「喜欢」联动清喜欢 /
-## 老档 follows 迁移 / 日程「一世纪事」关注过滤(月报拆段/单行整滤/无关条目保留)。
+## 老档 follows 迁移 / 日程「一世纪事」关注过滤(月报拆段/单行整滤/池内未入册者亦滤/无关条目保留)。
 ## 运行: Godot --headless --path . res://tests/follow_smoke.tscn
 
 var _fails := 0
@@ -61,20 +61,29 @@ func _ready() -> void:
 	Game._ensure_run()
 	_check(Game.follows().is_empty(), "老档喜欢指向不存在者 → 空名单")
 
-	# 5) 日程过滤: keys[0..1] 已关注; keys[10] 在册未关注; 与 NPC 无关条目原样
+	# 5) 日程过滤: keys[0..1] 已关注; keys[10] 在册未关注; 池内未入册者亦算未关注; 与 NPC 无关条目原样
 	Game.run.focus = ""
 	Game.run.follows = [keys[0], keys[1]]
 	var a := String(Game.npc_name(keys[0]))
 	var b := String(Game.npc_name(keys[10]))
+	var wp := Game._npc_init()
+	wp.name = "测池A"
+	Game.run.world_npcs["rand_w00"] = wp
+	var w := "测池A"
 	var month := "第1年·3月 · 【%s】突破炼气 · 【%s】下山采买 · 垦了半亩灵田" % [a, b]
 	_check(Game.filter_chronicle_for_follows(month) == "第1年·3月 · 【%s】突破炼气 · 垦了半亩灵田" % a,
 		"月报拆段: 未关注者的段被滤, 其余保留")
 	_check(Game.filter_chronicle_for_follows("◇ 方案切换: 闭关") == "◇ 方案切换: 闭关", "与 NPC 无关条目原样保留")
 	_check(Game.filter_chronicle_for_follows("◆ 初遇【%s】于山道" % b) == "", "单行提未关注者整条滤除")
 	_check(Game.filter_chronicle_for_follows("◆ 初遇【%s】于山道" % a) == "◆ 初遇【%s】于山道" % a, "单行提已关注者保留")
+	_check(Game.filter_chronicle_for_follows("◆ 坊市一景: 【%s】在巷口追鸡" % w) == "", "单行提未入册池人整条滤除")
+	_check(Game.filter_chronicle_for_follows("第1年·4月 · 【%s】突破炼气 · 【%s】结为夫妻 · 垦了半亩灵田" % [a, w])
+		== "第1年·4月 · 【%s】突破炼气 · 垦了半亩灵田" % a,
+		"月报拆段: 未入册池人的段被滤")
 	Game.run.follows = []
 	_check(Game.filter_chronicle_for_follows("◇ 引气入体") == "◇ 引气入体", "空名单下无关条目仍显示")
 	_check(Game.filter_chronicle_for_follows("【%s】送来了新茶" % a) == "", "空名单下在册未关注者条目滤除")
+	_check(Game.filter_chronicle_for_follows("◆ 讣闻: 【%s】寿元耗尽" % w) == "", "空名单下池人条目仍滤除")
 
 	print("== follow_smoke: %s (%d FAIL) ==" % ["PASS" if _fails == 0 else "FAIL", _fails])
 	get_tree().quit(1 if _fails > 0 else 0)

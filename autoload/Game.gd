@@ -2910,6 +2910,9 @@ func filter_chronicle_for_follows(text: String) -> String:
 	for key in run.get("npcs", {}):
 		if not is_followed(String(key)):
 			tags.append("【%s】" % npc_name(String(key)))
+	for key in run.get("world_npcs", {}):   # 未入册者亦算未关注: 坊市闲话/婚丧添丁等池人纪事不上日程页(玉牌仍有全文)
+		if not is_followed(String(key)):
+			tags.append("【%s】" % npc_name(String(key)))
 	if tags.is_empty():
 		return text
 	var mentions := func(s: String) -> bool:
