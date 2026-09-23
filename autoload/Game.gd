@@ -2821,6 +2821,7 @@ func npc_name(key: String) -> String:
 ## 某人相关的纪事(名录·详情「纪事」页用): 扫 GameState.chronicle, 认「【Ta】」的写法 ——
 ## 日志出口(_report/_log)都以【名】括人名, 姓名在册+池内防重, 【】括住即可唯一定位。
 ## 月末汇总行(「第X年·M月 · 条目 · 条目…」)按条拆开, 只留提及 Ta 的条; 返回最新在前 [{day,text}]。
+## 一条真纪事都没有时(旧档补池的陌生脸/刚入册还没留痕者), 以坊间传闻兜底 —— 纪事人人可看(2026-09-23)。
 func chronicle_of(key: String) -> Array:
 	var tag := "【%s】" % npc_name(key)
 	var out: Array = []
@@ -2839,7 +2840,66 @@ func chronicle_of(key: String) -> Array:
 			text = " · ".join(segs)
 		out.append({"day": day, "text": text})
 	out.reverse()
+	if out.is_empty():
+		out = _rumor_chronicle(key)
 	return out
+
+
+## 坊间传闻兜底纪事(2026-09-23 拍板): 名录灰显的传闻脸与刚入册者常常一条真纪事都没有,
+## 点开空白违背「纪事人人可看, 世间事不因未见而不发生」—— 从世界池真实状态(档案/配偶/动态边/家眷)
+## 拼出传闻小料: 素材全是世界生成的真事实, 没查到就不编; 不落结算日志、不造日期, 期号一律「坊间传闻」。
+func _rumor_chronicle(key: String) -> Array:
+	var e: Dictionary = _npc_entry(key)
+	if e.is_empty():
+		e = npc_arch(key)
+	if e.is_empty():
+		return []
+	var nm := npc_name(key)
+	var dead := bool(e.get("dead", false))
+	var day := "旧闻" if dead else "坊间传闻"
+	var out: Array = []
+	var sc := String(e.get("scene", ""))
+	var idn := String(e.get("id_name", String(e.get("identity", ""))))
+	var alias := String(e.get("alias", ""))
+	var head := "市井耳目: 【%s】%s" % [nm, ("(已故) " if dead else "")]
+	var marks: Array = []
+	for s2 in [sc, idn]:
+		if String(s2) != "":
+			marks.append(String(s2))
+	if not marks.is_empty():
+		head += "(%s)" % "·".join(marks)
+	if alias != "":
+		head += " —— 坊间唤作「%s」" % alias
+	elif String(e.get("moe", "")) != "":
+		head += " —— %s" % String(e.get("moe", ""))
+	out.append({"day": day, "text": head})
+	var sp := String(e.get("spouse", ""))
+	if sp != "":
+		out.append({"day": day, "text": "茶摊都说: 【%s】与【%s】是结发夫妻 —— 这桩喜事当年坊间是随过份子的" % [nm, npc_name(sp)]})
+	var used := 0
+	for ed in run.get("world_rels", []):
+		if used >= 2:
+			break
+		var a := String(ed.get("a", ""))
+		var b := String(ed.get("b", ""))
+		var peer := ""
+		if a == key:
+			peer = b
+		elif b == key:
+			peer = a
+		else:
+			continue
+		if peer == sp or String(ed.get("tag", "")) in ["夫妻", "父亲", "母亲", "儿子", "女儿"]:
+			continue   # 婚配由 spouse 行代述; 亲缘方向词并提不通顺(「是「父亲」」), 子嗣行已覆盖
+		out.append({"day": day, "text": "茶摊闲话: 【%s】与【%s】是「%s」—— %s" % [nm, npc_name(peer), String(ed.get("tag", "旧识")), String(ed.get("note", ""))]})
+		used += 1
+	var kids: Array = e.get("children", [])
+	if not kids.is_empty():
+		var kn: Array = []
+		for kid in kids.slice(0, 3):
+			kn.append("【%s】" % npc_name(String(kid)))
+		out.append({"day": day, "text": "坊间都道: 【%s】膝下有 %d 个孩子 —— %s" % [nm, kids.size(), "、".join(kn)]})
+	return out.slice(0, 5)
 
 
 ## 日程预览「一世纪事」的关注过滤: 提及未关注 NPC(未入册者亦算未关注; 「喜欢」恒算已关注)的条目隐去。

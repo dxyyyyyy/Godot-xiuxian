@@ -50,5 +50,21 @@ func _ready() -> void:
 			if not bool(Game.run.npcs[key].get("met", false)):
 				ok_state = false
 	_chk("入册者 met=true", ok_state)
+	# 4) 纪事兜底(2026-09-23): 真纪事没留痕的池内传闻脸, chronicle_of 不得为空 —— 坊间传闻补位
+	var rumor_ok := true
+	var rumor_n := 0
+	for k in Game.run.world_npcs:
+		var ks := String(k)
+		var nm := Game.npc_name(ks)
+		var es: Array = Game.chronicle_of(ks)
+		if es.is_empty():
+			rumor_ok = false
+		elif not String(es[0].get("text", "")).contains("【%s】" % nm):
+			rumor_ok = false
+		rumor_n += 1
+		if rumor_n >= 10:
+			break
+	_chk("池内传闻脸纪事非空(坊间传闻兜底)", rumor_ok)
+	_chk("已入册者首条仍从真纪事/兜底可查", not Game.chronicle_of(String((Game.run.npcs as Dictionary).keys()[0])).is_empty())
 	print("MEET_AUTOENROLL_SMOKE ", "PASS" if _fails == 0 else "FAIL(%d)" % _fails)
 	get_tree().quit(0 if _fails == 0 else 1)

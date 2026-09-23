@@ -52,7 +52,7 @@ func _rebuild() -> void:
 	head.add_theme_constant_override("separation", 8)
 	head.add_child(UiKit.label("名录 · 缘分", 24, UiKit.PINK_600, 700))
 	head.add_child(UiKit.expander())
-	head.add_child(UiKit.label("相识不加好感，攀谈才入册", 12, UiKit.PINK_400))
+	head.add_child(UiKit.label("相逢即入册，相遇不加好感", 12, UiKit.PINK_400))
 	_content.add_child(head)
 
 	# 固定 NPC 按档案序、随机 NPC 按入册序 —— 坐化者不入名录(详情仍可从纪事回看)
