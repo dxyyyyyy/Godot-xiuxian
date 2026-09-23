@@ -11,6 +11,17 @@ var _fails := 0
 func _ready() -> void:
 	if NG.catalog().is_empty():
 		_fail("catalog.json 未加载")
+	# 目录自洽: 目录返回的每件必需图必在盘上(图被删的条目应已被 catalog() 剪掉, 不再出现在选项里)
+	var cat_total := 0
+	for kit in ["male", "female", "kid"]:
+		for slot in NG.SLOTS:
+			for e in NG.options_kit(kit, slot):
+				cat_total += 1
+				var id := String((e as Dictionary).get("id", ""))
+				for p in NG.layer_paths_kit({slot: id}, slot, kit):
+					if not ResourceLoader.exists(String(p[1])):
+						_fail("缺图未剪: %s/%s id=%s %s" % [kit, slot, id, String(p[1])])
+	print("CATALOG_CONSISTENT 目录在册部件 %d 件, 必需图全存在" % cat_total)
 	for male in [false, true]:
 		_check("default %s" % ("m" if male else "f"), Portrait.build_from(Portrait.default_look(male), 64, male))
 	# 旧档兼容: 旧版中文名 + 旧单发槽 key「hair」→ 全落默认件

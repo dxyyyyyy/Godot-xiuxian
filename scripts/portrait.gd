@@ -57,6 +57,8 @@ static func build_from_kit(ap: Dictionary, px: float, kit := "female") -> Contro
 		for p in NG.layer_paths_kit(look, slot, kit):
 			layers.append([p[0], seq, p[1], slot])
 			seq += 1
+	# 防线: 兜底跳过盘上/pck 里缺图的层(正常路径已被 NpcGenerator.catalog 剪枝, 此处防绕过目录直达的 appearance)
+	layers = layers.filter(func(lay): return ResourceLoader.exists(String(lay[2])))
 	if layers.is_empty():
 		return _fallback(px)
 	layers.sort_custom(func(a, b): return a[0] < b[0] if a[0] != b[0] else a[1] < b[1])

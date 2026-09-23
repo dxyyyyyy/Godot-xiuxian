@@ -46,8 +46,48 @@ static func catalog() -> Dictionary:
 		if f:
 			var v: Variant = JSON.parse_string(f.get_as_text())
 			if v is Dictionary:
-				_cat = v
+				_cat = _prune_missing(v)
 	return _cat
+
+
+## 剪掉图已被删的部件: 任一必需图(主图; back/back_only 时含背图)不在盘上/pck 即整件剔除,
+## 删 PNG 后捏脸不再能选到其名(旧档引用被删 id 走 resolve_look 落默认)。
+## 对刚解析的局部副本过滤后再赋 _cat —— 避免过滤中经 entry_kit 重入 catalog()。
+static func _prune_missing(raw: Dictionary) -> Dictionary:
+	for kit in raw.keys():
+		var slots: Variant = raw[kit]
+		if not (slots is Dictionary):
+			continue
+		for slot in (slots as Dictionary).keys():
+			var arr: Variant = (slots as Dictionary)[slot]
+			if not (arr is Array):
+				continue
+			var kept: Array = []
+			for e in (arr as Array):
+				if not (e is Dictionary):
+					continue
+				var paths := _paths_for(String(slot), e, String(kit))
+				var ok := not paths.is_empty()
+				for p in paths:
+					if not _file_present(String(p[1])):
+						ok = false
+						break
+				if ok:
+					kept.append(e)
+			(slots as Dictionary)[slot] = kept
+	return raw
+
+
+## 从源码目录(非导出包)运行? 此时原始 png 在盘上才是硬标准: 手工删图后
+## 陈旧 remap(.import/.ctex 残留)会让 ResourceLoader.exists 对已删图仍报 true。
+static var _from_source := DirAccess.open("res://.godot") != null
+
+
+## 部件图存在性判定: 源码运行先验原始文件, 导出包内验 pck 重映射, 两边各取所长。
+static func _file_present(path: String) -> bool:
+	if _from_source and not FileAccess.file_exists(path):
+		return false
+	return ResourceLoader.exists(path)
 
 
 ## ---- 套件主 API(kit = "male"/"female"/"kid") ----
@@ -180,10 +220,13 @@ static func _ear_for_face(male: bool, face_id: String, ear_id: String) -> String
 
 ## appearance 槽位 → 实际叠绘 [depth, path] 列表(套件版; 含背面层, 空件返回 [])。
 static func layer_paths_kit(look: Dictionary, slot: String, kit: String) -> Array:
-	var out := []
 	var e := entry_kit(kit, slot, String(look.get(slot, "")))
-	if e.is_empty():
-		return out
+	return _paths_for(slot, e, kit) if not e.is_empty() else []
+
+
+## 条目 → 必需图 [depth, path] 列表(目录剪枝与叠绘共用; 主图/背图按 back, back_only 定)。
+static func _paths_for(slot: String, e: Dictionary, kit: String) -> Array:
+	var out := []
 	var sfx := String(KIT_SFX.get(kit, "f"))
 	if not bool(e.get("back_only", false)):
 		out.append([int(SLOT_DEPTH.get(slot, 1)), "%s%s/%d%s.png" % [PORTRAIT_ROOT, slot, int(e["n"]), sfx]])
