@@ -189,7 +189,7 @@ func _app_tile(app: Dictionary) -> Button:
 	vb.add_theme_constant_override("separation", 6)
 	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# 阵纹图标：白玉圆底 + 金色阵纹 + 细玉环，红点角标叠右上
+	# 阵纹图标：白玉圆底 + 金色阵纹 + 细玉环，鎏金角标叠右上
 	var icon_wrap := Control.new()
 	icon_wrap.custom_minimum_size = Vector2(66, 66)
 	icon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -207,16 +207,10 @@ func _app_tile(app: Dictionary) -> Button:
 	disc.add_child(tc)
 	icon_wrap.add_child(disc)
 
-	var badge := PanelContainer.new()
-	badge.add_theme_stylebox_override("panel", UiKit.stylebox(UiKit.RED_400, 999))
-	badge.custom_minimum_size = Vector2(18, 18)
-	badge.position = Vector2(48, -2)
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var bl := UiKit.label("", 10, UiKit.WHITE, 700, HORIZONTAL_ALIGNMENT_CENTER)
-	bl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	badge.add_child(bl)
-	icon_wrap.add_child(badge)
-	_badges[app.id] = {"panel": badge, "label": bl}
+	var badge := UiKit.make_badge()
+	badge.panel.position = Vector2(48, -2)
+	icon_wrap.add_child(badge.panel)
+	_badges[app.id] = badge
 
 	vb.add_child(icon_wrap)
 	var lb := UiKit.label(app.title, 13, UiKit.INK, 500, HORIZONTAL_ALIGNMENT_CENTER)
@@ -232,10 +226,7 @@ func _refresh_badges() -> void:
 		if not _badges.has(app.id):
 			continue   # 隐藏入口的 app 没有桌面阵纹
 		var n: int = GameState.app_unread(String(app.id))
-		var badge: PanelContainer = _badges[app.id].panel
-		var bl: Label = _badges[app.id].label
-		badge.visible = n > 0
-		bl.text = "9+" if n > 9 else str(n)
+		UiKit.badge_set(_badges[app.id], n)
 
 
 # ---- app 页（常驻实例，显隐切换）----

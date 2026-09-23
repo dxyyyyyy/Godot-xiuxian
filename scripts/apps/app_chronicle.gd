@@ -4,6 +4,7 @@ extends "res://scripts/apps/app_base.gd"
 
 var _list_vb: VBoxContainer
 var _folded := {}   # 年份卷标 -> 是否收起（跨重建保持，仅本会话）
+var _name_keys := {}   # 姓名 -> npc key，反查表见 UiKit.npc_name_keys
 
 
 func _build_content(vb: VBoxContainer) -> void:
@@ -27,6 +28,7 @@ func _schedule_rebuild() -> void:
 
 func _rebuild() -> void:
 	_rebuild_pending = false
+	_name_keys = UiKit.npc_name_keys()
 	for c in _list_vb.get_children():
 		_list_vb.remove_child(c)
 		c.queue_free()
@@ -74,10 +76,7 @@ func _year_card(year: String, lines: Array) -> PanelContainer:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		row.add_child(UiKit.label("·", 14, UiKit.PINK_300, 700))
-		var lb := UiKit.label(String(line), 14, UiKit.PINK_700)
-		lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(lb)
+		row.add_child(UiKit.chronicle_line(String(line), _name_keys))
 		lines_vb.add_child(row)
 
 	# 年卷头部（整行可点,收起/展开）

@@ -46,6 +46,7 @@ const GOLD_700 := Color("b45309")
 const INK := Color("1f2937")
 
 static var _font_cache := {}
+static var _bracket_re := RegEx.create_from_string("【[^【】]+】")
 
 
 ## 系统中文字体（发布到其他平台时建议换成打包的字体文件）
@@ -279,6 +280,105 @@ static func pill(text: String, text_color: Color, bg: Color, size := 12, weight 
 	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return p
+
+
+## 未读消息角标（鎏金阵纹风）：金底(GOLD_400, 引擎 stylebox 不支持渐变故取平涂) + 青玉描边 + 轻投影，
+## 墨色数字，胶囊随"999+"撑开。返回 {"panel": PanelContainer, "label": Label}，
+## 由调用方绝对定位叠在图标右上；用 badge_set() 更新。
+static func make_badge() -> Dictionary:
+	var panel := PanelContainer.new()
+	var sb := stylebox(GOLD_400, 999, true)
+	sb.set_border_width_all(2)
+	sb.border_color = JADE_300
+	sb.border_blend = true
+	sb.content_margin_left = 4
+	sb.content_margin_right = 4
+	panel.add_theme_stylebox_override("panel", sb)
+	panel.custom_minimum_size = Vector2(18, 18)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.visible = false
+	var l := label("", 10, INK, 700, HORIZONTAL_ALIGNMENT_CENTER)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	panel.add_child(l)
+	panel.pivot_offset = panel.custom_minimum_size / 2.0
+	panel.resized.connect(func() -> void: panel.pivot_offset = panel.size / 2.0)
+	return {"panel": panel, "label": l}
+
+
+## 更新角标数字（封顶"999+"）：由隐藏到出现时弹性弹出，已显示时数字变化轻跳一下，静止不动——只提示不催促。
+static func badge_set(badge: Dictionary, n: int) -> void:
+	var panel: PanelContainer = badge.panel
+	var l: Label = badge.label
+	var text := "999+" if n > 999 else str(n)
+	var was_visible := panel.visible
+	var changed: bool = l.text != text
+	panel.visible = n > 0
+	l.text = text
+	if not panel.is_inside_tree():
+		return
+	if badge.has("tween") and badge.tween is Tween and (badge.tween as Tween).is_valid():
+		badge.tween.kill()
+		panel.scale = Vector2.ONE   # 杀在飞动画必落终态: 否则同帧连发时弹入被杀, scale 滞留 0 = 角标不可见
+	if not panel.visible:
+		panel.scale = Vector2.ONE
+		return
+	if not was_visible:
+		panel.scale = Vector2(0.0, 0.0)
+		var tw := panel.create_tween()
+		badge["tween"] = tw
+		tw.tween_property(panel, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	elif changed:
+		var tw := panel.create_tween()
+		badge["tween"] = tw
+		tw.tween_property(panel, "scale", Vector2(1.15, 1.15), 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw.tween_property(panel, "scale", Vector2.ONE, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+
+
+## 姓名→key 反查表（纪事人名按惯例以【】括起，见 Game.chronicle_of 同款约定）:
+## 在册名册 + 世界池(传闻脸) + 固定名册档案；同名先到先得。调用方按重建周期缓存。
+static func npc_name_keys() -> Dictionary:
+	var m := {}
+	var keys: Array = []
+	keys.append_array((Game.run.get("npcs", {}) as Dictionary).keys())
+	keys.append_array((Game.run.get("world_npcs", {}) as Dictionary).keys())
+	for n in DataManager.npcs:
+		keys.append(String(n.key))
+	for k in keys:
+		var nm := Game.npc_name(String(k))
+		if nm != "" and not m.has(nm):
+			m[nm] = String(k)
+	return m
+
+
+## 纪事行 → 可点 RichTextLabel: 命中名册的【人名】成链接(下划线+PINK_500)，点击弹 NPC 详情
+## (GameState.request_npc_detail → 名录弹层, 不切屏)；其余【】(地名/境界等)原样。
+static func chronicle_line(line: String, name_keys: Dictionary, size := 14, color := PINK_700) -> RichTextLabel:
+	var rt := RichTextLabel.new()
+	rt.bbcode_enabled = true
+	rt.fit_content = true
+	rt.scroll_active = false
+	rt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rt.add_theme_color_override("default_color", color)
+	rt.add_theme_color_override("link_color", PINK_500)
+	rt.add_theme_font_size_override("normal_font_size", size)
+	rt.meta_clicked.connect(func(meta: Variant) -> void: GameState.request_npc_detail(String(meta)))
+	var out := ""
+	var pos := 0
+	var m := _bracket_re.search(line)
+	while m != null:
+		var s := m.get_start()
+		var e := m.get_end()
+		out += line.substr(pos, s - pos)
+		var tag := line.substr(s, e - s)
+		var nm := tag.substr(1, tag.length() - 2)
+		if name_keys.has(nm):
+			out += "[url=%s][u]%s[/u][/url]" % [String(name_keys[nm]), tag]
+		else:
+			out += tag
+		pos = e
+		m = _bracket_re.search(line, pos)
+	rt.append_text(out + line.substr(pos))
+	return rt
 
 
 ## 细进度条（h-2 rounded-full）

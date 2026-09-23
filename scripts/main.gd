@@ -143,28 +143,19 @@ func _make_nav_button(item: Dictionary) -> Button:
 	return b
 
 
-## 玉牌按钮角标：任一 app 有未读即亮，数字封顶 9+（玉牌界面文档 §6）。
+## 玉牌按钮角标：任一 app 有未读即亮，数字封顶 999+（玉牌界面文档 §6）。鎏金阵纹风见 UiKit.make_badge。
 func _make_badge() -> PanelContainer:
-	var badge := PanelContainer.new()
-	badge.add_theme_stylebox_override("panel", UiKit.stylebox(UiKit.RED_400, 999))
-	badge.custom_minimum_size = Vector2(18, 18)
-	badge.position = Vector2(16, -6)
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var bl := UiKit.label("", 10, UiKit.WHITE, 700, HORIZONTAL_ALIGNMENT_CENTER)
-	bl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	badge.add_child(bl)
-	badge.visible = false
-	_nav_refs["tablet_badge"] = {"panel": badge, "label": bl}
-	return badge
+	var badge := UiKit.make_badge()
+	badge.panel.position = Vector2(16, -6)
+	_nav_refs["tablet_badge"] = badge
+	return badge.panel
 
 
 func _refresh_tablet_badge() -> void:
 	var badge: Dictionary = _nav_refs.get("tablet_badge", {})
 	if badge.is_empty():
 		return
-	var total := GameState.unread_total()
-	badge.panel.visible = total > 0
-	badge.label.text = "9+" if total > 9 else str(total)
+	UiKit.badge_set(badge, GameState.unread_total())
 
 
 func _switch_to(id: String) -> void:

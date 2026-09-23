@@ -382,6 +382,7 @@ func _chronicle_card() -> PanelContainer:
 				shown.push_front({"day": String(e.day), "text": t})
 			idx -= 1
 		# 列表装进卡内滚动容器: 卡片吃满剩余屏幕, 条目超高时滚轮滚列表, 页面本身不滚
+		var name_keys := UiKit.npc_name_keys()   # 【人名】链接反查表(每轮重建一次)
 		var scroll := ScrollContainer.new()
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -404,10 +405,7 @@ func _chronicle_card() -> PanelContainer:
 			tag.size_flags_vertical = Control.SIZE_SHRINK_BEGIN   # 长文本换行时, 日期钉在第一行
 			tag.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 			row.add_child(tag)
-			var lb := UiKit.label(String(e.text), 12, UiKit.PINK_600)
-			lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # 长事件完整换行显示, 超出卡片高度由卡内滚轮查看
-			lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_child(lb)
+			row.add_child(UiKit.chronicle_line(String(e.text), name_keys, 12, UiKit.PINK_600))   # 长事件完整换行显示, 超出卡片高度由卡内滚轮查看; 【人名】可点开详情
 			list.add_child(row)
 			last_day = day
 			first_row = false

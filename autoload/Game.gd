@@ -2818,13 +2818,17 @@ func npc_name(key: String) -> String:
 	return key
 
 
-## 某人相关的纪事(名录·详情「纪事」页用): 扫 GameState.chronicle, 认「【Ta】」的写法 ——
-## 日志出口(_report/_log)都以【名】括人名, 姓名在册+池内防重, 【】括住即可唯一定位。
-## 月末汇总行(「第X年·M月 · 条目 · 条目…」)按条拆开, 只留提及 Ta 的条; 返回最新在前 [{day,text}]。
-## 一条真纪事都没有时(旧档补池的陌生脸/刚入册还没留痕者), 以坊间传闻兜底 —— 纪事人人可看(2026-09-23)。
+## 某人相关的纪事(名录·详情「纪事」页用): 两路合并, 返回最新在前 [{day,text}] ——
+## 1) 日志: 扫 GameState.chronicle 认「【Ta】」写法(日志出口都以【名】括人名, 姓名在册+池内防重);
+##    月末汇总行(「第X年·M月 · 条目 · 条目…」)按条拆开, 只留提及 Ta 的条。
+## 2) 照壁: 世界戏剧(NPC 心动/相恋/成婚/闹别扭)多上壁少入日志, 未入册者尤甚 —— 帖标题经
+##    sub 代入后含 Ta 名即算一条, 标「上壁 · 第X年 · M月」。两路按(年,月)倒序合并。
+## 两路皆空时(旧档补池的陌生脸/刚入册还没留痕者), 以坊间传闻兜底 —— 纪事人人可看(2026-09-23)。
 func chronicle_of(key: String) -> Array:
-	var tag := "【%s】" % npc_name(key)
-	var out: Array = []
+	var nm := npc_name(key)
+	var tag := "【%s】" % nm
+	var dated: Array = []   # [{ym, seq, day, text}]; ym=年*12+月, 解析失败 -1 垫底
+	var seq := 0
 	for e in GameState.chronicle:
 		var text := String(e.get("text", ""))
 		if not text.contains(tag):
@@ -2838,11 +2842,40 @@ func chronicle_of(key: String) -> Array:
 			if segs.is_empty():
 				continue
 			text = " · ".join(segs)
-		out.append({"day": day, "text": text})
-	out.reverse()
+		dated.append({"ym": _chron_ym(day), "seq": seq, "day": day, "text": text})
+		seq += 1
+	if run.has("wall"):
+		for p in Array(run.wall.get("posts", [])):
+			var post: Dictionary = DataManager.wall_post(String((p as Dictionary).get("id", "")))
+			if post.is_empty():
+				continue
+			var sv: Variant = (p as Dictionary).get("sub", {})
+			var sub: Dictionary = sv if sv is Dictionary else {}
+			var title := _wall_sub(String(post.get("title", "")), sub)
+			if title == "" or not title.contains(nm):
+				continue
+			var y := int((p as Dictionary).get("year", 0))
+			var m := int((p as Dictionary).get("month", 1))
+			dated.append({"ym": y * 12 + m, "seq": seq, "day": "上壁 · 第%d年 · %d月" % [y, m], "text": "照壁: %s" % title})
+			seq += 1
+	dated.sort_custom(func(a, b): return int(a.ym) > int(b.ym) if int(a.ym) != int(b.ym) else int(a.seq) > int(b.seq))
+	var out: Array = []
+	for d in dated:
+		out.append({"day": String((d as Dictionary).day), "text": String((d as Dictionary).text)})
 	if out.is_empty():
 		out = _rumor_chronicle(key)
 	return out
+
+
+## 纪事 day 标签(「第X世 · 第Y年 · M月」)取年月 → ym 可排序键; 解析失败(旧档「旧岁·N」等)回 -1。
+var _chron_ym_re := RegEx.create_from_string("第(\\d+)年[^第]*?(\\d+)月")
+
+
+func _chron_ym(day: String) -> int:
+	var m := _chron_ym_re.search(day)
+	if m == null:
+		return -1
+	return int(m.get_string(1)) * 12 + int(m.get_string(2))
 
 
 ## 坊间传闻兜底纪事(2026-09-23 拍板): 名录灰显的传闻脸与刚入册者常常一条真纪事都没有,

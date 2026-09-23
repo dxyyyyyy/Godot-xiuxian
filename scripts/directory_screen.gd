@@ -504,8 +504,8 @@ func _open_npc_chron(key: String) -> void:
 			est += 20.0 + ceilf(float(String((e as Dictionary).get("text", "")).length()) / 18.0) * 18.0
 		scroll.add_child(sv)
 		var cap := float(get_viewport_rect().size.y) * 0.55
-		if est > cap:
-			scroll.custom_minimum_size = Vector2(0, cap)
+		# 纵向可滚的 ScrollContainer 最小高恒 0, 会被父 VBox 压没 —— 不论长短都要显式给高: 取内容与限高的小者(Android 同款坑, 名录纪事弹窗)
+		scroll.custom_minimum_size = Vector2(0, minf(est, cap))
 		cv.add_child(scroll)
 
 	var acts := HBoxContainer.new()
