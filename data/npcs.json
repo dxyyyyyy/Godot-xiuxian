@@ -34,7 +34,10 @@
   "blurb": "守山门千年却记性很差 —— 山门留饭的旗, 一插九百年(开局在册)",
   "gender": "male",
   "realm": "渡劫后期",
-  "realm_ord": 7
+  "realm_ord": 7,
+  "roots": [
+   "水"
+  ]
  },
  {
   "key": "yaoshi",
@@ -71,7 +74,11 @@
   "blurb": "嘴毒心软的坊市药师 —— 只认药膳, 灵石先付(初逛坊市相遇)",
   "gender": "male",
   "realm": "金丹",
-  "realm_ord": 2
+  "realm_ord": 2,
+  "roots": [
+   "木",
+   "土"
+  ]
  },
  {
   "key": "shanjun",
@@ -108,7 +115,12 @@
   "blurb": "来历劫的下任山君 —— 火候分毫不差, 一锅素斋斋了三百年(入山相遇)",
   "gender": "male",
   "realm": "元婴圆满",
-  "realm_ord": 3
+  "realm_ord": 3,
+  "roots": [
+   "金",
+   "水",
+   "土"
+  ]
  },
  {
   "key": "moxiu",
@@ -145,7 +157,11 @@
   "blurb": "你洞府隔壁的佛系散修 —— 黑暗料理的正式买家(开局首月自动首遇)",
   "gender": "male",
   "realm": "元婴圆满",
-  "realm_ord": 3
+  "realm_ord": 3,
+  "roots": [
+   "火",
+   "木"
+  ]
  },
  {
   "key": "shushu",
@@ -182,7 +198,14 @@
   "blurb": "话本成精的说书人 —— 茶摊头一回客席, 八卦网活体节点(茶摊相遇)",
   "gender": "male",
   "realm": "话本成精",
-  "realm_ord": -1
+  "realm_ord": -1,
+  "roots": [
+   "金",
+   "木",
+   "水",
+   "火",
+   "土"
+  ]
  },
  {
   "key": "huzhu",
@@ -219,6 +242,10 @@
   "blurb": "狐族酒坊掌柜 —— 封坛不卖的那坛, 是替谁存的?(初逛坊市相遇)",
   "gender": "male",
   "realm": "化神后期",
-  "realm_ord": 4
+  "realm_ord": 4,
+  "roots": [
+   "火",
+   "土"
+  ]
  }
 ]

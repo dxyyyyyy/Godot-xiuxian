@@ -55,14 +55,14 @@ func _rebuild() -> void:
 	head.add_child(UiKit.label("相识不加好感，攀谈才入册", 12, UiKit.PINK_400))
 	_content.add_child(head)
 
-	# 固定 NPC 按档案序、随机 NPC 按入册序
+	# 固定 NPC 按档案序、随机 NPC 按入册序 —— 坐化者不入名录(详情仍可从纪事回看)
 	var ordered: Array = []
 	for n in DataManager.npcs:
 		var k := String(n.key)
-		if Game.run.npcs.has(k):
+		if Game.run.npcs.has(k) and not bool(Game.run.npcs[k].get("dead", false)):
 			ordered.append(k)
 	for k in Game.run.npcs:
-		if String(k).begins_with("rand_"):
+		if String(k).begins_with("rand_") and not bool(Game.run.npcs[k].get("dead", false)):
 			ordered.append(String(k))
 
 	# 按派系(identity)分组: 组序随首现次序, 组内保持上面的入册次序
@@ -363,19 +363,30 @@ func _open_detail(key: String) -> void:
 	var brk := Game.npc_break_chance(key)
 	if brk >= 0.0:
 		realm_line += " · 突破率 %d%%" % int(round(brk * 100.0))
+	# 四柱(与主角同口径): 灵根 · 气血 · 寿元 · 武力 —— 未入册固定者无生辰, 年岁标「不详」
+	var age := Game._npc_age_years(key)
+	var four_line := "四柱：%s · 气血 %d/%d · 寿元 %s · 武力 %.1f" % [
+		Game.npc_roots_display(key), Game.npc_qi(key), Game.npc_qi_max(key),
+		"不详" if age >= 999 else "%d/%d 年" % [age, Game.npc_lifespan_cap(key)],
+		Game.npc_wu_li(key),
+	]
 	var detail := UiKit.pink_box()
 	var dv := VBoxContainer.new()
 	dv.add_theme_constant_override("separation", 4)
-	for line in [
+	var lines: Array = [
 		"性格：%s" % ptxt,
 		"口味：%s（投喜菜谱好感翻倍）" % Game.npc_taste_base(key),
 		realm_line,
+		four_line,
 		"缘分：%s" % ("可谈恋爱 · 可结道侣" if Game.npc_male(key) else "红颜知己 · 止步相熟"),
 		"外观：%s · %s · %s%s" % [String(appr.get("face", "—")), String(appr.get("hair", "—")), String(appr.get("aura", "—")), Game.aura_npc_hint(key)],
 		"萌点：%s" % String(arch.get("moe", npc.get("moe", "—"))),
 		"交谈冷却 %d 月 · 赠礼本季 %d 次 · 时光闸 %d 月" % [int(npc.get("talk_cd", 0)), int(npc.get("gift_q", 0)), int(npc.get("gate", 0))],
 		String(arch.get("blurb", npc.get("blurb", ""))),
-	]:
+	]
+	if bool(npc.get("dead", false)):
+		lines.push_front("讣闻：寿元已尽，坐化而去 —— 音容留于此世，不复更新")
+	for line in lines:
 		var lb := UiKit.label(String(line), 12, UiKit.PINK_600)
 		lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		dv.add_child(lb)

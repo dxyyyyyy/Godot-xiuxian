@@ -141,6 +141,10 @@ func _ensure_run() -> void:
 				used_names[String(run.npcs[k2].get("name", ""))] = true
 			npc.name = npc_generator.generate_name(rng, used_names)
 			npc.alias = npc_generator.generate_epithet(rng)
+	# 人生档案回填(四柱·寿元): 在册/池内老人补生辰/灵根/气血; 掷到成年者顺带 grown, 不误触成年礼报闻
+	for pool in [run.npcs, run.get("world_npcs", {})]:
+		for key in (pool as Dictionary).keys():
+			_npc_vitals_backfill((pool as Dictionary)[key], String(key))
 
 func _process(delta: float) -> void:
 	if speed <= 0 or not run.has("age_m") or is_ended() or not pending.is_empty():
@@ -458,6 +462,7 @@ func _seed_world() -> void:
 		if npc.is_empty():
 			break
 		run.world_npcs[String(npc.key)] = npc
+		_npc_vitals_backfill(npc, String(npc.key))
 	var world_keys: Array = (run.world_npcs as Dictionary).keys()
 	var all_keys := world_keys.duplicate()
 	for nd in DataManager.npcs:
@@ -523,9 +528,11 @@ func _seed_start_couples() -> void:
 		want -= 1
 
 
-func _try_world_edge(a: String, b: String, pairs: Dictionary) -> void:
+func _try_world_edge(a: String, b: String, pairs: Dictionary, allow_dead := false) -> void:
 	if a == "" or b == "" or a == b:
 		return
+	if not allow_dead and (npc_is_dead(a) or npc_is_dead(b)):
+		return   # 故者与生人不结新交(旧边保留作纪念); 亲子边例外 —— 血脉名分不因死而断
 	var pair := a + "|" + b if a < b else b + "|" + a
 	if pairs.has(pair) or not relation_between(a, b).is_empty():
 		return
@@ -537,7 +544,12 @@ func _try_world_edge(a: String, b: String, pairs: Dictionary) -> void:
 func _pick_pool_npc() -> String:
 	if not run.has("world_npcs") or (run.world_npcs as Dictionary).is_empty():
 		return ""
-	var keys: Array = (run.world_npcs as Dictionary).keys()
+	var keys: Array = []
+	for k in (run.world_npcs as Dictionary).keys():
+		if not bool(((run.world_npcs as Dictionary)[k] as Dictionary).get("dead", false)):
+			keys.append(String(k))   # 坐化者退出生抽: 缘不再牵给故纸堆
+	if keys.is_empty():
+		return ""
 	if rng.randf() < float(tune("world_pool_prefer_met", 0.6)):
 		var connected: Array = []
 		for k in keys:
@@ -599,12 +611,19 @@ func _friendship_drift() -> void:
 
 ## 世界脉动: 偶尔补一位新客入池, 顺手牵一条边 —— 市井本该有人搬来, 有人攀上交情。
 func _world_churn() -> void:
-	if not run.has("world_npcs") or (run.world_npcs as Dictionary).size() >= int(tune("world_npc_count", 50)):
+	if not run.has("world_npcs"):
+		return
+	var alive := 0   # 空位看活人: 坐化者占册不占坑, 市井总得有人搬来
+	for e in (run.world_npcs as Dictionary).values():
+		if not bool((e as Dictionary).get("dead", false)):
+			alive += 1
+	if alive >= int(tune("world_npc_count", 50)):
 		return
 	var npc := npc_generator.generate(rng, _world_existing())
 	if npc.is_empty():
 		return
 	run.world_npcs[String(npc.key)] = npc
+	_npc_vitals_backfill(npc, String(npc.key))
 	var all_keys: Array = (run.world_npcs as Dictionary).keys()
 	for nd in DataManager.npcs:
 		all_keys.append(String(nd.key))
@@ -687,6 +706,9 @@ func _npc_romance_tick() -> void:
 		if ea.is_empty() or eb.is_empty() or String(ea.get("spouse", "")) != "" or String(eb.get("spouse", "")) != "":
 			rom.erase(pk)   # 一方已嫁娶(被抢婚/旧档残留) —— 此缘作废
 			continue
+		if bool(ea.get("dead", false)) or bool(eb.get("dead", false)):
+			rom.erase(pk)   # 一方坐化 —— 此缘作古(正常在 _npc_death 已清, 防御旧档残留)
+			continue
 		r.aff = float(r.get("aff", 0.0)) + float(rng.randi_range(int(tune("npc_court_gain_min", 4)), int(tune("npc_court_gain_max", 12))))
 		var old_stage := int(r.get("stage", 0))
 		r.stage = _rom_stage(float(r.aff))
@@ -750,6 +772,8 @@ func _rom_eligible(a: String, b: String) -> bool:
 	var ea := _npc_entry(a); var eb := _npc_entry(b)
 	if ea.is_empty() or eb.is_empty():
 		return false
+	if bool(ea.get("dead", false)) or bool(eb.get("dead", false)):
+		return false   # 亡者不续缘
 	if _npc_is_minor(a) or _npc_is_minor(b):
 		return false
 	if String(ea.get("spouse", "")) != "" or String(eb.get("spouse", "")) != "":
@@ -824,6 +848,8 @@ func _npc_family_tick() -> void:
 		var ea := _npc_entry(a); var eb := _npc_entry(b)
 		if ea.is_empty() or eb.is_empty():
 			continue
+		if bool(ea.get("dead", false)) or bool(eb.get("dead", false)):
+			continue   # 已婚对一方已故(边未清干净时兜底): 不再掷孕
 		if int(ea.get("children", []).size()) >= int(tune("npc_kids_max", 2)):
 			continue
 		# 恋爱资格保证一男一女: 妻=女方, fa/mo 位仅是字典序拆键, 称谓在 _birth_child 按性别现取
@@ -860,8 +886,8 @@ func _birth_child(fa: String, mo: String, ef: Dictionary, em: Dictionary) -> voi
 		em.children = []
 	(ef.children as Array).append(kid_key)
 	(em.children as Array).append(kid_key)
-	_try_world_edge(kid_key, fa, {})
-	_try_world_edge(kid_key, mo, {})
+	_try_world_edge(kid_key, fa, {}, true)
+	_try_world_edge(kid_key, mo, {}, true)
 	# 亲子边固定方向称谓+val(覆盖随机模板): 娃看长辈=父亲/母亲, 长辈看娃=儿子/女儿
 	# 注意: 婚配边按字典序拆 fa|mo, 首位未必是男 —— 称谓一律按性别现取
 	var kid_word := "儿子" if String(kid.get("gender", "")) == "male" else "女儿"
@@ -892,12 +918,149 @@ func _npc_growth_tick() -> void:
 
 func _growth_check(key: String) -> void:
 	var e := _npc_entry(key)
-	if e.is_empty() or not e.has("born_m") or bool(e.get("grown", false)):
+	if e.is_empty() or not e.has("born_m") or bool(e.get("grown", false)) or bool(e.get("dead", false)):
 		return
 	if _npc_age_years(key) < int(tune("npc_adult_years", 16)):
 		return
 	e.grown = true
 	_report("◇ 岁月催人: 【%s】家孩子长大成人, 开始修行" % npc_name(key))
+
+
+# ---------------------------------------------------------------- NPC 四柱·寿元(与主角同口径: 灵根/气血/武力/寿元)
+
+const ROOT_CN := {5: "五", 4: "四", 3: "三", 2: "二", 1: "单"}
+
+## 是否已坐化: 档案永留(亲缘/纪事不断线), 但不再吃月度结算、不结新缘、不入名录。
+func npc_is_dead(key: String) -> bool:
+	return bool(_npc_entry(key).get("dead", false))
+
+## 境界序(在册/池快照优先, 固定档案兜底) —— 与 _npc_cultivation / npc_break_chance 同一口径。
+func npc_realm_ord(key: String) -> int:
+	var e := _npc_entry(key)
+	var ord := int(e.get("realm_ord", -99))
+	if ord == -99:
+		ord = int(npc_arch(key).get("realm_ord", -1))
+	return ord
+
+## 灵根: 快照/固定档案优先; 有册无根的旧人掷一次轮盘落档(同世稳定)。未入册且档案无根者现掷不写档。
+func npc_roots(key: String) -> Array:
+	var e := _npc_entry(key)
+	var r: Array = e.get("roots", [])
+	if not r.is_empty():
+		return r
+	r = npc_arch(key).get("roots", [])
+	if r is Array and not (r as Array).is_empty():
+		if not e.is_empty():
+			e.roots = r   # 档案灵根落到本世册上, 后续读取免翻档
+		return r
+	if not e.is_empty():
+		e.roots = npc_generator.roll_roots(rng)
+		return e.roots
+	return npc_generator.roll_roots(rng)
+
+## 聚灵系数: 与玩家同表(ROOT_COUNT_COEF), 行数越多越钝 —— 直接乘进 _npc_cultivation 月增益。
+func npc_root_coef(key: String) -> float:
+	return float(ROOT_COUNT_COEF.get(clampi(npc_roots(key).size(), 1, 5), 0.65))
+
+func npc_roots_display(key: String) -> String:
+	var r := npc_roots(key)
+	return "%s灵根·%s" % [String(ROOT_CN.get(clampi(r.size(), 1, 5), "?")), "·".join(PackedStringArray(r))]
+
+## 气血上限: 同玩家公式 —— 基数 + 境界档×每境增量(无境界者按炼气档)。
+func npc_qi_max(key: String) -> int:
+	return int(econ("qi_max_base", 100)) + maxi(0, npc_realm_ord(key)) * int(econ("qi_max_per_realm", 50))
+
+## 当前气血: 缺值首次读即落满(惰性初始化, 老档免迁移)。
+func npc_qi(key: String) -> int:
+	var e := _npc_entry(key)
+	if e.is_empty():
+		return npc_qi_max(key)
+	if not e.has("qi"):
+		e.qi = npc_qi_max(key)
+	return int(e.qi)
+
+## 武力(灰盒口径, 同 wu_li 化简): 境界基数×(1+本层进度) × (1+灵根超额加成) × 气血心情; 死者归零。
+func npc_wu_li(key: String) -> float:
+	if npc_is_dead(key):
+		return 0.0
+	var e := _npc_entry(key)
+	var ord := clampi(npc_realm_ord(key), 0, DataManager.realms.size() - 1)
+	var re: Dictionary = DataManager.realm(ord)
+	var layers := maxi(1, int(re.get("layers", 3)))
+	var base := float(re.get("gain_base", 10)) * (1.0 + float(int(e.get("nlayer", 0))) / float(layers))
+	var gear := 1.0 + maxf(0.0, npc_root_coef(key) - 1.0)
+	var mood := 0.85 + 0.15 * clampf(float(npc_qi(key)) / float(maxi(1, npc_qi_max(key))), 0.0, 1.0)
+	return base * gear * mood
+
+## 寿元上限: 同玩家 —— 境界表 lifespan_cap(无境界凡人按炼气档 80)。
+func npc_lifespan_cap(key: String) -> int:
+	var ord := npc_realm_ord(key)
+	if ord < 0:
+		return int(DataManager.realm(0).get("lifespan_cap", 80))
+	return int(DataManager.realm(clampi(ord, 0, DataManager.realms.size() - 1)).get("lifespan_cap", 80))
+
+## 人生档案首填: 有册者补生辰(按境界适龄掷龄)、灵根、气血; 掷到成年者顺带置 grown —— 不误触成年礼报闻。
+func _npc_vitals_backfill(e: Dictionary, key: String) -> void:
+	if e.is_empty():
+		return
+	if not e.has("born_m"):
+		var ord := npc_realm_ord(key)
+		var cap := int(DataManager.realm(clampi(maxi(0, ord), 0, DataManager.realms.size() - 1)).get("lifespan_cap", 80))
+		var age := rng.randi_range(18, maxi(19, cap - 15))
+		e.born_m = int(run.age_m) - age * 12
+		if age >= int(tune("npc_adult_years", 16)):
+			e.grown = true
+	if not e.has("roots"):
+		npc_roots(key)   # 惰性掷根并落档(轮盘见 NpcGenerator.roll_roots)
+	if not e.has("qi"):
+		e.qi = npc_qi_max(key)
+
+## 气血与寿元月度: 活人按制回气; 尘世凡人(rand_*)寿数过界即坐化 ——
+## 固定档案(掌门/贤邻等)道行深不可测, 不受此限(故事不因讣闻断线)。
+func _npc_mortality_tick() -> void:
+	var regen := int(econ("qi_regen", 5))
+	for pool in [run.npcs, run.get("world_npcs", {})]:
+		for key in (pool as Dictionary).keys():
+			var ks := String(key)
+			var e: Dictionary = (pool as Dictionary)[key]
+			if bool(e.get("dead", false)) or not e.has("born_m"):
+				continue
+			e.qi = mini(npc_qi_max(ks), int(e.get("qi", npc_qi_max(ks))) + regen)
+			if not ks.begins_with("rand_") or _npc_age_years(ks) < npc_lifespan_cap(ks):
+				continue
+			_npc_death(ks)
+
+## 坐化: 档案标记 dead(亲子边与子女反指永久保留), 撤孕期, 解除婚姻与恋爱边(生者记新丧),
+## 清喜欢/关注 —— 纪事一行讣闻。不弹框、不入结局线。
+func _npc_death(key: String) -> void:
+	var e := _npc_entry(key)
+	if e.is_empty() or bool(e.get("dead", false)):
+		return
+	e.dead = true
+	e.erase("preg_due_m")
+	e.erase("preg_fa")
+	var other_sp := String(e.get("spouse", ""))
+	e.spouse = ""
+	var rom: Dictionary = run.get("npc_romance", {})
+	for pk in rom.keys().duplicate():
+		var ps: PackedStringArray = String(pk).split("|")
+		if String(ps[0]) != key and String(ps[1]) != key:
+			continue
+		rom.erase(pk)
+		var other := String(ps[1]) if String(ps[0]) == key else String(ps[0])
+		var eo := _npc_entry(other)
+		if not eo.is_empty() and String(eo.get("spouse", "")) == key:
+			eo.spouse = ""
+			if not bool(eo.get("dead", false)):
+				_report("◇ 【%s】新丧在礼 —— 从此形单影只" % npc_name(other))
+	var ord := npc_realm_ord(key)
+	var realm_txt := "凡人" if ord < 0 else String(DataManager.realm(ord).get("name", "?"))
+	_report("◇ 讣闻: 【%s】(%s·享年 %d 岁) 寿元耗尽, 坐化而去 —— 坊间叹一声来世再见" % [npc_name(key), realm_txt, _npc_age_years(key)])
+	if String(run.get("focus", "")) == key:
+		run.focus = ""
+	if (run.get("follows", []) as Array).has(key):
+		(run.follows as Array).erase(key)
+	changed.emit()
 
 
 ## 聚灵效率 = 境界基数 × 灵根系数 × 功法倍率 × 洞府聚灵阵 ×(1+资质)×(1+食修效率 buff)×(1+灵息体)×(1+气质)
@@ -2783,6 +2946,8 @@ func _npc_cultivation() -> void:
 		var npc: Dictionary = run.npcs[key]
 		if not bool(npc.get("met", false)):
 			continue
+		if bool(npc.get("dead", false)):
+			continue   # 坐化者功行盖棺, 不再结算
 		if _npc_is_minor(String(key)):
 			continue   # 幼年不修炼(成年礼后入轨)
 		var ord := int(npc.get("realm_ord", -99))
@@ -2795,7 +2960,7 @@ func _npc_cultivation() -> void:
 		var layers := maxi(1, int(re.get("layers", 3)))
 		var nlayer := int(npc.get("nlayer", 0))
 		var need: float = float(tune("layer_need_base", 100.0)) * pow(float(tune("layer_growth", 1.55)), float(DataManager.layer_offset(ord) + nlayer))
-		npc.cult = float(npc.get("cult", 0.0)) + float(re.get("gain_base", 10)) * float(re.get("max_ap", 1)) * float(tune("npc_cult_mult", 0.5))
+		npc.cult = float(npc.get("cult", 0.0)) + float(re.get("gain_base", 10)) * float(re.get("max_ap", 1)) * float(tune("npc_cult_mult", 0.5)) * npc_root_coef(String(key))
 		var chance: float = clampf(float(re.get("break_prob", 0.4)) + float(tune("npc_break_bonus", 0.0)), 0.05, 0.99)
 		var guard := 0
 		while float(npc.cult) >= need and nlayer < layers - 1 and guard < 8:
@@ -2856,6 +3021,7 @@ func _first_meet(key: String, reason := "") -> void:
 		npc.aff = 200.0
 		npc.stage = 1
 	run.npcs[key] = npc
+	_npc_vitals_backfill(npc, key)   # 固定档案也上生辰/灵根/气血(寿数只示人不坐化 —— mortality 豁免固定者)
 	_log("◆ 初遇【%s】(%s·%s)%s —— 缘分页已入册" % [npc_name(key), String(arch.get("identity", "")), String(arch.get("scene", "")), ("" if reason == "" else " —— " + reason)])
 	_gift_note(key)
 	changed.emit()
@@ -3260,7 +3426,7 @@ func _side_scene_tick() -> void:
 		return
 	var keys: Array = []
 	for k in run.npcs:
-		if bool(run.npcs[k].get("met", false)):
+		if bool(run.npcs[k].get("met", false)) and not bool(run.npcs[k].get("dead", false)):
 			keys.append(String(k))
 	for n in DataManager.npcs:
 		var fk := String(n.key)
@@ -3268,6 +3434,8 @@ func _side_scene_tick() -> void:
 			keys.append(fk)   # 未遇固定者也在坊间过日子 —— 纪事口径「世间事不因未见而不发生」
 	var pool: Array = []
 	for k in run.get("world_npcs", {}):
+		if bool(((run.world_npcs as Dictionary)[k] as Dictionary).get("dead", false)):
+			continue   # 故者不入坊间一景
 		pool.append(String(k))   # 世界池未识者: 名录关系区灰显可见、纪事人人可看, 坊间也得有他们的日子
 	if keys.is_empty() and pool.is_empty():
 		return
@@ -3296,8 +3464,9 @@ func _worldsim_tick() -> void:
 		return
 	_friendship_drift()    # 友情值(亲疏边)按月漂移: 先漂后恋, 新恋情挑的是当月的温度
 	_npc_romance_tick()    # NPC 恋爱六段推进/成婚/争风(全员含池内)
-	_npc_family_tick()     # 已婚添丁(遗传造娃)
-	_npc_growth_tick()     # 满 12 岁成年礼
+	_npc_family_tick()     # 已婚受孕、怀胎临盆(遗传造娃)
+	_npc_growth_tick()     # 满 npc_adult_years 岁成年礼
+	_npc_mortality_tick()  # 气血月回 + 凡人寿尽坐化(固定档案不受此限)
 	var met: Array = []
 	for k in run.npcs:
 		if bool(run.npcs[k].get("met", false)):

@@ -9,6 +9,7 @@ var _broke_seen := 0   # 全程 logged 里 NPC 破境行数(纪事 200 条滚动
 var _preg_seen := 0    # 喜脉(受孕)行数
 var _first_preg_m := -1
 var _first_birth_m := -1
+var _death_seen := 0   # 讣闻(坐化)行数
 
 
 func _chk(name: String, ok: bool) -> void:
@@ -26,6 +27,8 @@ func _on_logged(t: String, _d: String) -> void:
 			_first_preg_m = int(Game.run.age_m)
 	if t.contains("◆ 添丁") and _first_birth_m < 0:
 		_first_birth_m = int(Game.run.age_m)
+	if t.contains("讣闻"):
+		_death_seen += 1
 
 
 func _ready() -> void:
@@ -111,6 +114,21 @@ func _ready() -> void:
 		if d > 0 and int(Game.run.age_m) >= d:
 			preg_ok = false   # 家族 tick 先于本检查跑, 到期还挂着=结算漏了
 	_chk("到期产期均已结算", preg_ok)
+	# 四柱(与主角同口径): 全员灵根 1~5 行且皆五行字、气血在 [0, 上限]、寿元上限>0、武力非负
+	var pillars_ok := true
+	for k in all:
+		var r: Array = Game.npc_roots(String(k))
+		if r.is_empty() or r.size() > NG.ELEMENTS.size():
+			pillars_ok = false
+		for e in r:
+			if not (String(e) in NG.ELEMENTS):
+				pillars_ok = false
+		var qi := Game.npc_qi(String(k))
+		if qi < 0 or qi > Game.npc_qi_max(String(k)):
+			pillars_ok = false
+		if Game.npc_lifespan_cap(String(k)) <= 0 or Game.npc_wu_li(String(k)) < 0.0:
+			pillars_ok = false
+	_chk("全员四柱合法(灵根/气血/寿元/武力)", pillars_ok)
 	# 未成年: 不修炼(cult 无/0)、未恋爱(无 spouse)、无 grown 标
 	var minor_ok := true
 	for k in all:
@@ -177,6 +195,40 @@ func _ready() -> void:
 		if pc2 == null or pc2.get_child_count() < 4:
 			app_ok = false
 		_chk("幼儿捏脸: 轮换+应用写回 kid_look", app_ok)
+	# 坐化: 拨一位在世凡人(rand_)的生辰过寿限 → tick 两处 → dead 标、婚约/恋爱边清、修炼停、讣闻入纪事
+	var allnow: Dictionary = Game.run.npcs.duplicate()
+	allnow.merge(Game.run.world_npcs, true)
+	var vd := ""
+	for k in allnow:
+		if String(k).begins_with("rand_") and not bool((allnow[k] as Dictionary).get("dead", false)):
+			vd = String(k)
+			break
+	var dead_ok := false
+	if vd != "":
+		var ent: Dictionary = Game._npc_entry(vd)
+		var sp0 := String(ent.get("spouse", ""))
+		ent.born_m = int(Game.run.age_m) - (Game.npc_lifespan_cap(vd) + 2) * 12
+		var d0 := _death_seen
+		Game.tick_month()
+		while not Game.pending.is_empty():
+			Game.resolve_option(0)
+		var cult1 := float(Game._npc_entry(vd).get("cult", 0.0))
+		Game.tick_month()
+		while not Game.pending.is_empty():
+			Game.resolve_option(0)
+		var ed: Dictionary = Game._npc_entry(vd)
+		var rom_left := false
+		for pk in (Game.run.get("npc_romance", {}) as Dictionary).keys():
+			var ps: PackedStringArray = String(pk).split("|")
+			if String(ps[0]) == vd or String(ps[1]) == vd:
+				rom_left = true
+		dead_ok = bool(ed.get("dead", false)) and not rom_left and _death_seen > d0
+		dead_ok = dead_ok and float(ed.get("cult", 0.0)) == cult1   # 第二个 tick 不再涨修为
+		if sp0 != "":
+			dead_ok = dead_ok and String(ed.get("spouse", "")) == "" and String(Game._npc_entry(sp0).get("spouse", "")) != vd
+	else:
+		print("  NO rand_ sample for death test")
+	_chk("坐化: dead 标 · 婚约边清 · 修炼停 · 讣闻入纪事", dead_ok)
 	# 未关注 NPC 特殊事件入纪事(2026-09-22): 全程未设 focus → 破境行必须入纪事。
 	# 固定 NPC 境界高(渡劫/元婴/化神), 400 月内到不了末层圆满 → 把开局在册的季忘川拨回炼气八层, 再 tick 逼出破境。
 	var js: Dictionary = Game.run.npcs["jianshu"]
@@ -184,6 +236,7 @@ func _ready() -> void:
 	js.realm = "炼气"
 	js.nlayer = 8
 	js.cult = 3300.0
+	js.born_m = int(Game.run.age_m) - 30 * 12   # 四柱上线后必钉: 境界骤降则寿限骤降(80), 回填高龄会被坐化先收
 	for _m in 3:
 		Game.tick_month()
 		while not Game.pending.is_empty():

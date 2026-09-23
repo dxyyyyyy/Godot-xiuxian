@@ -183,7 +183,7 @@ func _npcs_page() -> PanelContainer:
 			(rel_romance[sk] as Array).append(disp)
 	for k in Game.run.npcs:
 		if bool(Game.run.npcs[k].get("met", false)):
-			grid.add_child(_npc_cell(String(k), Game.run.npcs[k], "入册" + ("·幼年" if Game._npc_is_minor(String(k)) else ""), _tags_view(rel_romance, rel_tags, String(k))))
+			grid.add_child(_npc_cell(String(k), Game.run.npcs[k], "入册" + ("·已故" if bool(Game.run.npcs[k].get("dead", false)) else ("·幼年" if Game._npc_is_minor(String(k)) else "")), _tags_view(rel_romance, rel_tags, String(k))))
 	for k in pool:
 		grid.add_child(_npc_cell(String(k), pool[k] as Dictionary, "池中" + ("·幼年" if Game._npc_is_minor(String(k)) else ""), _tags_view(rel_romance, rel_tags, String(k))))
 	for n in DataManager.npcs:

@@ -22,6 +22,38 @@ const DONGXIN := ["zhiqui", "kouyan", "xishui"]
 ## 气质仍走常量池(不出图, 作头像背景色)。
 const AURAS := ["疏懒", "清冷", "热络", "拘谨", "悠然"]
 
+## 灵根(与主角同口径): 身负几行定聚灵系数(五行0.65/四0.90/三1.15/二1.40/单1.65, 见 Game.ROOT_COUNT_COEF)。
+## 市井轮盘: 五行俱全为常、四三行为贤、双灵根稀、天灵根百中无一; 遗传走逐行闸门(亲带 60% 传下 + 3% 变异)。
+const ELEMENTS := ["金", "木", "水", "火", "土"]
+const ROOT_ROW_WHEEL := [5, 5, 5, 5, 5, 4, 4, 4, 3, 3, 2, 1]
+
+
+static func roll_roots(rng) -> Array:
+	var n: int = ROOT_ROW_WHEEL[rng.randi_range(0, ROOT_ROW_WHEEL.size() - 1)]
+	var els: Array = ELEMENTS.duplicate()
+	for i in range(els.size() - 1, 0, -1):   # 局部 Fisher-Yates(用传入 rng, 不碰全局)
+		var j: int = rng.randi_range(0, i)
+		var tmp = els[i]
+		els[i] = els[j]
+		els[j] = tmp
+	return els.slice(0, n)
+
+
+## 逐行独立遗传: P(子带此行) = 1-0.97×(1-0.6×hasA)×(1-0.6×hasB); 全空兜底随机单行(不断灵根)。
+static func inherit_roots(rng, ra: Array, rb: Array) -> Array:
+	var out: Array = []
+	for e in ELEMENTS:
+		var q := 0.97
+		if ra.has(e):
+			q *= 0.4
+		if rb.has(e):
+			q *= 0.4
+		if rng.randf() < 1.0 - q:
+			out.append(String(e))
+	if out.is_empty():
+		out = [String(ELEMENTS[rng.randi_range(0, ELEMENTS.size() - 1)])]
+	return out
+
 ## —— 部件目录 API ——
 ## catalog.json: {"male"/"female"/"kid": {slot: [{id,name,n,back,back_only,color,skin,base?,src}]}}
 ## slot ∈ SLOTS; 文件约定 res://assets/portraits/<slot>/<n>{m|f|k}.png(+_back.png 背面层)。
@@ -304,6 +336,7 @@ func generate(rng, existing: Dictionary, filter_ids: Array = []) -> Dictionary:
 		"taste_final": final,
 		"scene": "坊市",
 		"blurb": "%s(%s) —— 游历与市井之间入世的新面孔" % [npc_name, String(ID_NAMES[identity])],
+		"roots": roll_roots(rng),
 	}
 
 
@@ -407,4 +440,5 @@ func breed_child(rng, pa: Dictionary, pb: Dictionary, existing: Dictionary) -> D
 		"taste_final": final,
 		"scene": "坊市",
 		"blurb": "%s(%s) —— 某家新添的小辈" % [kid_name, String(ID_NAMES[identity])],
+		"roots": inherit_roots(rng, pa.get("roots", []) as Array, pb.get("roots", []) as Array),
 	}
