@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## v1.2 灰盒三段校验:
 ## A. 铁律回归(§12): 同种子下, 逐月调用与批量调用结果逐字节一致(时速档只改频率不改结算)。
 ## B. 确定性曲线: 纯修炼/灵田混合 两策略的历月与决策密度, 对照 xlsx v1.1 混合基准与 80–150 目标。
@@ -9,6 +10,9 @@ extends Node
 const XLSX_REF_MONTHS := {"炼气": 171, "筑基": 223, "金丹": 440, "元婴": 784, "化神": 1451, "炼虚": 2675, "合体": 4932, "渡劫": 8877}
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("SIMREPORT"):
+		get_tree().quit(2)
+		return
 	Game.logged.connect(func(t, _day): print(t))
 	var n := 6
 	for a in OS.get_cmdline_user_args():
@@ -16,11 +20,13 @@ func _ready() -> void:
 			n = int(String(a).trim_prefix("--LIVES="))
 
 	print("== A. 铁律回归: 1×(逐月) ≡ 100×(批量), 同种子 7 ==")
+	var iron_fail := false
 	var dump_a := _fresh_and_step(7, 1, 2000)
 	var dump_b := _fresh_and_step(7, 2000, 1)
 	if dump_a == dump_b:
 		print("PASS: 两档位结算完全一致(%d 月, 修为 %s)" % [int(Game.run.kpi.ticks), Game._fmt(float(Game.run.cult))])
 	else:
+		iron_fail = true
 		print("FAIL: 结算与调用频率相关, 违反 §12 铁律!")
 		print("A: ", dump_a.left(200))
 		print("B: ", dump_b.left(200))
@@ -76,7 +82,7 @@ func _ready() -> void:
 	print("== 结束: 历 %d 世, 最高 %s, 结局 %s ==" % [
 		int(Game.meta.lives), String(Game.meta.best_name), str(Game.meta.endings)])
 	SaveSystem.clear_all()
-	get_tree().quit()
+	get_tree().quit(1 if iron_fail else 0)   # B/C 为观察报表不判分; 铁律(A)不过即非零退出
 
 ## 重置 → 定种子 → 开一世 → 按 chunk 大小跑 steps 段 step_months(1) —— 返回终态字符串
 func _fresh_and_step(seed: int, chunk: int, rounds: int) -> String:

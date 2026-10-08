@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 遇见NPC直接入册回归冒烟(2026-09-22 拍板: 不再弹「是否攀谈」框)。
 ## ⚠ 会 Game.new_game() 清档重写 user:// 存档 —— 跑前先备份存档目录, 跑完还原。
 
@@ -12,6 +13,9 @@ func _chk(name: String, ok: bool) -> void:
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("MEET_AUTOENROLL_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.new_game()
 	# 1) 被动首遇: 反复检定, 全程不得出现弹框, 最终固定候选全部入册
 	var fixed_keys: Array = []

@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 天生特质冒烟: 转世组合扣款/超支拒转/非法 id 丢弃; 八效果精确(武力/冲关/修为/寿元/事件/收成/成菜/免死);
 ## buffs_summary 与入世志可见; 老档回填。
 ## 运行: Godot --headless --path . res://tests/trait_smoke.tscn
@@ -7,6 +8,9 @@ var _fails := 0
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("TRAIT_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.debug_seed(53)
 	Game._start_life(DataManager.origins[0], 0)
 	Game.speed = 0

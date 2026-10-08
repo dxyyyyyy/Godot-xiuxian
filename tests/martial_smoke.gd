@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 武力值冒烟: §5.4 口径的 wu_li 单调性(境界层数/食补↑, 心魔/低气血↓) + 寻道检定走通三档。
 ## 运行: Godot --headless --path . res://tests/martial_smoke.tscn
 
@@ -6,6 +7,9 @@ var _fails := 0
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("MARTIAL_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.debug_seed(23)
 	Game._start_life(DataManager.origins[0], 0)
 	Game.speed = 0

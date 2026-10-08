@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 关注冒烟: 关注名单上限 10 / 「喜欢」默认入关注 / 取关「喜欢」联动清喜欢 /
 ## 老档 follows 迁移 / 日程「一世纪事」关注过滤(月报拆段/单行整滤/池内未入册者亦滤/无关条目保留)。
 ## 运行: Godot --headless --path . res://tests/follow_smoke.tscn
@@ -7,6 +8,9 @@ var _fails := 0
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("FOLLOW_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.debug_seed(7)
 	Game._start_life(DataManager.origins[0], 0)
 	Game.speed = 0

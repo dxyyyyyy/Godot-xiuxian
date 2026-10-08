@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 寻道采获冒烟: 有获检定按游历去向从风物池采得植物入库(品阶正确) + 灵石随地图位阶增值;
 ## 去向 auto 时解析到轮换实地的池子。
 ## 运行: Godot --headless --path . res://tests/seek_forage_smoke.tscn
@@ -7,6 +8,9 @@ var _fails := 0
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("SEEK_FORAGE_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.debug_seed(11)
 	Game._start_life(DataManager.origins[0], 0)
 	Game.speed = 0

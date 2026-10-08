@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 妖战冒烟: 寻道「其间」档遇妖 —— 胜率随战力极端变化(碾压/不敌)、胜掉灵石+妖丹、
 ## 败仅气血−30 不弹框; 妖丹卖出/赠礼/闭关守卫; 空池兜底不崩。
 ## 运行: Godot --headless --path . res://tests/yaoguai_smoke.tscn
@@ -7,6 +8,9 @@ var _fails := 0
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("YAOGUAI_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.debug_seed(31)
 	Game._start_life(DataManager.origins[0], 0)
 	Game.speed = 0
@@ -64,7 +68,10 @@ func _ready() -> void:
 	Game.run.focus = key
 	var aff0 := float(Game.run.npcs[key].aff)
 	Game.farm_gift_yaodan()
-	_check(int(Game.farm().yaodan) == 1 and absf(float(Game.run.npcs[key].aff) - aff0 - 60.0) < 1e-4, "赠礼: 好感+60 且耗丹")
+	# 赠礼增幅设计口径(_bump_aff): 正好感乘 (1+主角气质+NPC 气质+故人情面) —— 断言按同式而非裸 60, 免随气质表漂移假红
+	var gain := 60.0 * (1.0 + Game.aura_self("aff") + Game.aura_npc_aff(key) + Game.relation_halo(key))
+	var d := float(Game.run.npcs[key].aff) - aff0
+	_check(int(Game.farm().yaodan) == 1 and absf(d - gain) < 1e-4, "赠礼: 好感+%.1f(60×增幅) 且耗丹" % d)
 	Game.run.recover = 10
 	Game.run.npcs[key].gift_q = 0
 	Game.farm_gift_yaodan()

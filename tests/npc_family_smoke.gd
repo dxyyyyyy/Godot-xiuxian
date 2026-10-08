@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## NPC 家庭冒烟: 恋爱六段→成婚→添丁→遗传→成年 全链路。⚠ 会 new_game() 清档, 跑前备份 user://。
 
 const NG := preload("res://sim/NpcGenerator.gd")
@@ -32,6 +33,9 @@ func _on_logged(t: String, _d: String) -> void:
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("NPC_FAMILY_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.new_game()
 	Game.deterministic = true   # 冒烟免弹框: 打断类事件短路
 	Game.logged.connect(_on_logged)
@@ -79,14 +83,14 @@ func _ready() -> void:
 		for p in ps2:
 			if not (Game._npc_entry(String(p)) as Dictionary).get("children", []).has(String(k)):
 				kid_ok = false
-			# 方向称谓: 娃看长辈=父亲/母亲, 长辈看娃=儿子/女儿
-			var want_p := "父亲" if Game.npc_male(String(p)) else "母亲"
-			var want_c := "儿子" if Game.npc_male(String(k)) else "女儿"
-			if String(Game.relation_between(String(k), String(p)).get("tag", "")) != want_p:
-				print("  TAG BAD ", k, "→", p, " = ", Game.relation_between(String(k), String(p)).get("tag", ""))
+			# 方向称谓存词表 key(显示措辞由词表给): 娃看长辈=father/mother, 长辈看娃=son/daughter
+			var want_p := "father" if Game.npc_male(String(p)) else "mother"
+			var want_c := "son" if Game.npc_male(String(k)) else "daughter"
+			if String(Game.relation_between(String(k), String(p)).get("key", "")) != want_p:
+				print("  TAG BAD ", k, "→", p, " = ", Game.relation_between(String(k), String(p)).get("key", ""))
 				kid_ok = false
-			if String(Game.relation_between(String(p), String(k)).get("tag", "")) != want_c:
-				print("  TAG BAD ", p, "→", k, " = ", Game.relation_between(String(p), String(k)).get("tag", ""))
+			if String(Game.relation_between(String(p), String(k)).get("key", "")) != want_c:
+				print("  TAG BAD ", p, "→", k, " = ", Game.relation_between(String(p), String(k)).get("key", ""))
 				kid_ok = false
 		var male := Game.npc_male(String(k))
 		for slot in NG.SLOTS:
@@ -244,4 +248,4 @@ func _ready() -> void:
 	# 纪事有 200 条滚动上限(早年线会被挤掉), 故按全程 logged 计数, 不依赖末窗
 	_chk("未关注NPC破境入纪事(全程≥1行)", _broke_seen >= 1)
 	print("NPC_FAMILY_SMOKE %s" % ("PASS" if _fails == 0 else "FAIL(%d)" % _fails))
-	get_tree().quit()
+	get_tree().quit(0 if _fails == 0 else 1)

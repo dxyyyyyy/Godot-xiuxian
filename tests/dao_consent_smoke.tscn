@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bdaoconsentsm1"]
+
+[ext_resource type="Script" path="res://tests/dao_consent_smoke.gd" id="1_dcs"]
+
+[node name="DaoConsentSmoke" type="Node"]
+script = ExtResource("1_dcs")

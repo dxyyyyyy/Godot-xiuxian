@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bluochangmath01"]
+
+[ext_resource type="Script" path="res://tests/luochang_math_smoke.gd" id="1_lms"]
+
+[node name="LuochangMathSmoke" type="Node"]
+script = ExtResource("1_lms")

@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 世界 NPC 池回归冒烟: 50人池+动态关系边全链路(池/边/入册/情面/再遇/老档迁移/新固定NPC进网)。
 ## ⚠ 会 Game.new_game() 清档重写 user:// 存档 —— 跑前先备份存档目录, 跑完还原。
 
@@ -12,6 +13,9 @@ func _chk(name: String, ok: bool) -> void:
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("WORLD_POOL_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.new_game()
 	var pool: Dictionary = Game.run.world_npcs
 	var rels: Array = Game.run.world_rels
@@ -129,7 +133,7 @@ func _ready() -> void:
 			break
 	if k == "":
 		k = String(pool_keys[0])
-	Game.run.world_rels.append({"a": "jianshu", "b": k, "tag": "酒友", "val": 60.0, "note": "冒烟造边。"})
+	Game.run.world_rels.append({"a": "jianshu", "b": k, "tag": "winebuddy", "val": 60.0, "note": "冒烟造边。"})
 	Game._enroll_pool_npc(k)
 	_chk("入册且带情面好感", Game.run.npcs.has(k) and bool(Game.run.npcs[k].met) and float(Game.run.npcs[k].aff) > 0.0)
 	_chk("入册后移出池", not pool.has(k))
@@ -160,4 +164,4 @@ func _ready() -> void:
 	_chk("新固定NPC自动进关系网", touches)
 	DataManager.npcs.pop_back()
 	print("WORLD_POOL_SMOKE %s" % ("PASS" if _fails == 0 else "FAIL(%d)" % _fails))
-	get_tree().quit()
+	get_tree().quit(0 if _fails == 0 else 1)

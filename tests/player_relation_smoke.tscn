@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bplayrelsmk01"]
+
+[ext_resource type="Script" path="res://tests/player_relation_smoke.gd" id="1_prs"]
+
+[node name="PlayerRelationSmoke" type="Node"]
+script = ExtResource("1_prs")

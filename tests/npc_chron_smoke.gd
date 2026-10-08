@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 纪事弹层回归冒烟: Game.chronicle_of 检索语义 + 名录详情「纪事」子弹层交互。
 ## 纪事条目为合成注入(绕开月度节奏, 断言确定); ⚠ 会 Game.new_game() 清档, 跑前备份存档。
 
@@ -12,6 +13,9 @@ func _chk(name: String, ok: bool) -> void:
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("NPC_CHRON_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.set_speed(0)
 	# ---- 覆盖: 每月坊市侧写 —— 未被互动的入册者也要进纪事(不再只归互动对象) ----
 	Game.new_game()
@@ -98,4 +102,4 @@ func _ready() -> void:
 		var h3: Array = Game.chronicle_of(pk)
 		_chk("池内人检索不误伤", h3.is_empty())
 	print("NPC_CHRON_SMOKE %s" % ("PASS" if _fails == 0 else "FAIL(%d)" % _fails))
-	get_tree().quit()
+	get_tree().quit(0 if _fails == 0 else 1)

@@ -1,7 +1,11 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 临时集成冒烟:主场景 + 100× 常流时钟,压 tick→UI 重建全链路;顺带踩交互 API。
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("UI_SMOKE"):
+		get_tree().quit(2)
+		return
 	var main: Control = load("res://scenes/main.tscn").instantiate()
 	add_child(main)
 	Game.set_speed(100)
@@ -45,4 +49,4 @@ func _run() -> void:
 	if OS.get_cmdline_user_args().has("--CLEAN"):
 		SaveSystem.clear_all()
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(GameState.SAVE_PATH))
-	get_tree().quit()
+	get_tree().quit(0)   # 跑到此处即 tick→UI 全链路无异常; 崩溃不会走到这行(进程非零/无输出)

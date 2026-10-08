@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 退养闭关冒烟: 秘境善后选「退养」→ 实打实闭关 24 月 ——
 ## 方案封存(切不动/自动行为停)、赠礼解契守卫生效、倒计时逐月递减、出关自动解禁。
 ## 运行: Godot --headless --path . res://tests/recover_smoke.tscn
@@ -7,6 +8,9 @@ var _fails := 0
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("RECOVER_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.debug_seed(7)
 	Game._start_life(DataManager.origins[0], 0)
 	Game.speed = 0
@@ -26,11 +30,11 @@ func _ready() -> void:
 	_check(Game._recover_guard("赠礼"), "关内赠礼/解契守卫返回 true")
 	_check(Game.buffs_summary().contains("闭关注养"), "加持栏显示闭关注养")
 
-	# 3) 逐月倒计时: 第 1 月 23, 第 24 月归零出关
-	Game._tick_core()
+	# 3) 逐月倒计时: 第 1 月 23, 第 24 月归零出关(走 tick_month 唯一入口, 月报才会冲刷入纪事)
+	Game.tick_month()
 	_check(Game.recover_months() == 23, "tick 一个月后闭关余 23 月")
 	for i in 23:
-		Game._tick_core()
+		Game.tick_month()
 	_check(Game.recover_months() == 0, "24 月后闭关归零")
 	var has_out := false
 	for e in GameState.chronicle:

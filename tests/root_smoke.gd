@@ -1,4 +1,5 @@
 extends Node
+const TestGuard := preload("res://tests/test_guard.gd")
 ## 炼灵根冒烟: 五行俱全免费默认; 炼至四/三/二/单行累计 30/80/150/240 道韵(边际递增), 不足拒转;
 ## 行数定系数(五0.65→单1.65, +0.25/行), 持有五行自择; 多行亲和与反属封锁; 转易换根不换行数; 老档回填。
 ## 运行: Godot --headless --path . res://tests/root_smoke.tscn
@@ -7,6 +8,9 @@ var _fails := 0
 
 
 func _ready() -> void:
+	if not TestGuard.ensure_isolated("ROOT_SMOKE"):
+		get_tree().quit(2)
+		return
 	Game.debug_seed(43)
 	Game._start_life(DataManager.origins[0], 0)
 	Game.speed = 0
