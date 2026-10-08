@@ -41,11 +41,6 @@
   "mid": 0.25,
   "high": 6.0
  },
- "gift_dish": {
-  "low": 1,
-  "mid": 3,
-  "high": 5
- },
  "qi_regen": 5,
  "seek_qi_cost": 20,
  "seek_stones_lo": 5,
@@ -65,6 +60,8 @@
  "seed_cost_mult": 0.5,
  "seed_buy_mult": 8,
  "npc_fail_keep": 0.7,
+ "date_found_rate": 0.45,
+ "facility_break_step": 0.02,
  "cook_months": {
   "low": 2,
   "mid": 4,

@@ -1,0 +1,76 @@
+[
+ {
+  "key": "firstmeet", "name": "初识", "kind": "pos", "gen": true, "min": 10, "max": 30,
+  "aliases": ["新识", "旧识", "点头交", "相识"],
+  "notes": ["%s与%s近日才认识, 见面还客客气气。", "一个是%s, 一个是%s, 坊市里刚处上点头之交。", "%s与%s点头之交, 多年没说过整句。", "路上遇见, %s朝%s拱拱手, 就算打过照面。"]
+ },
+ {
+  "key": "street", "name": "街坊", "kind": "pos", "gen": true, "min": 20, "max": 45,
+  "aliases": ["街坊"],
+  "notes": ["%s和%s是街坊, 抬头不见低头见。", "%s家的灶台挨着%s家的, 烟都往一处飘。"]
+ },
+ {
+  "key": "sectmate", "name": "同门", "kind": "pos", "gen": true, "min": 30, "max": 60,
+  "aliases": ["同门"],
+  "notes": ["%s与%s同出一门, 师兄弟相称。", "听%s说, 当年与%s一起挑过水。"]
+ },
+ {
+  "key": "oldfriend", "name": "故交", "kind": "pos", "gen": true, "min": 30, "max": 65,
+  "aliases": ["旧交"],
+  "notes": ["%s与%s是几十年的交情, 吵不散。", "坊里都道, %s只见%s才肯坐下喝茶。"]
+ },
+ {
+  "key": "winebuddy", "name": "酒友", "kind": "pos", "gen": true, "min": 20, "max": 50,
+  "aliases": ["酒友"],
+  "notes": ["%s与%s顿顿对饮, 酒钱轮流掏。", "%s不醉, 因为酒都让%s喝了。"]
+ },
+ {
+  "key": "chessbuddy", "name": "棋友", "kind": "pos", "gen": true, "min": 15, "max": 40,
+  "aliases": ["棋友"],
+  "notes": ["%s与%s在茶摊摆棋, 输了付茶钱。", "%s的棋, 只有%s肯连输三局还笑。"]
+ },
+ {
+  "key": "patron", "name": "主顾", "kind": "pos", "gen": true, "min": 20, "max": 45,
+  "aliases": ["主顾"],
+  "notes": ["%s是%s店里的老客, 进门不用开口。", "%s的几桩事, 都放心托给%s。"]
+ },
+ {
+  "key": "coworker", "name": "同僚", "kind": "pos", "gen": true, "min": 25, "max": 45,
+  "aliases": ["同守"],
+  "notes": ["%s与%s同当差多年, 一个守山一个护院。", "%s有事只喊%s —— 共过事的人靠得住。"]
+ },
+ {
+  "key": "hobbyist", "name": "同好", "kind": "pos", "gen": true, "min": 15, "max": 40,
+  "aliases": ["话本常客"],
+  "notes": ["%s与%s都是茶摊常客, 碰上一回聊一回。", "坊里说, %s与%s最谈得来, 聊的全是同一桩事。"]
+ },
+ {
+  "key": "feud", "name": "交恶", "kind": "neg", "gen": true, "min": -40, "max": -15,
+  "aliases": ["旧怨", "看不顺眼", "隔墙"],
+  "notes": ["%s与%s为地契拌过嘴, 至今不同席。", "%s欠%s一句道歉, 拖了十年。"]
+ },
+ {
+  "key": "spouse", "name": "夫妻", "kind": "love", "gen": false,
+  "aliases": ["夫妻"]
+ },
+ {
+  "key": "kin", "name": "亲子", "kind": "kin", "gen": false,
+  "aliases": ["亲子"]
+ },
+ {
+  "key": "father", "name": "父亲", "kind": "kin", "gen": false,
+  "aliases": ["父亲"]
+ },
+ {
+  "key": "mother", "name": "母亲", "kind": "kin", "gen": false,
+  "aliases": ["母亲"]
+ },
+ {
+  "key": "son", "name": "儿子", "kind": "kin", "gen": false,
+  "aliases": ["儿子"]
+ },
+ {
+  "key": "daughter", "name": "女儿", "kind": "kin", "gen": false,
+  "aliases": ["女儿"]
+ }
+]

@@ -20,6 +20,7 @@ var sound_volume := 75
 var music_volume := 60
 var quality := "high"
 var notifications := true
+var wall_full_name := true   # 闲话壁主角帖: 开=代称后括注全名; 关=只称代称(称谓规约 GDD §8.1)
 
 # ---- 玉牌数据：纪事 / 图鉴发现 / 红点 / 壁讯订阅 ----
 const CHRONICLE_LIMIT := 200
@@ -171,6 +172,13 @@ func set_notifications(v: bool) -> void:
 	tablet_unread_changed.emit()
 
 
+## 闲话壁主角帖是否括注全名(称谓规约 GDD §8.1)
+func set_wall_full_name(v: bool) -> void:
+	if wall_full_name == v:
+		return
+	wall_full_name = v
+
+
 # ---- 初始化与存档 ----
 
 func _load_or_init() -> void:
@@ -202,7 +210,7 @@ func _init_fresh() -> void:
 
 func save_game() -> void:
 	var data := {
-		"settings": {"sound": sound_volume, "music": music_volume, "quality": quality, "notifications": notifications},
+		"settings": {"sound": sound_volume, "music": music_volume, "quality": quality, "notifications": notifications, "wall_full_name": wall_full_name},
 		"chronicle": chronicle,
 		"tablet": {
 			"chronicle_unread": chronicle_unread,
@@ -232,6 +240,7 @@ func _load_game() -> bool:
 	music_volume = int(st.get("music", music_volume))
 	quality = String(st.get("quality", quality))
 	notifications = bool(st.get("notifications", notifications))
+	wall_full_name = bool(st.get("wall_full_name", wall_full_name))
 
 	# 纪事（旧档 day 为 int 天数，迁为字符串标签；缺节走默认值）
 	chronicle.clear()

@@ -92,10 +92,12 @@ func _enter_main() -> void:
 
 
 ## 新开一世：清双层存档 + UI 档 → 起第 1 世 → 主界面先落捏脸。
+## reset_all 放在 new_game 之后: new_game 预开的一世会写一条开局志, reset_all 把它清掉 ——
+## 纪事里的开局志只留三生石入世那一次, 不再重复。
 func _new_game() -> void:
 	SaveSystem.clear_all()
-	GameState.reset_all()
 	Game.new_game()
+	GameState.reset_all()
 	GameState.fresh_start = true
 	get_tree().change_scene_to_file(MAIN_SCENE)
 

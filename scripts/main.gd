@@ -377,8 +377,10 @@ func _on_tablet_leave() -> void:
 
 func _on_ended(summary: Dictionary) -> void:
 	_nav_bar.visible = false   # 转世前锁底栏: 结局弹窗 → 三生石, 只能经「转世」入局
-	_end_body.text = "【%s】\n享年 %d 岁 · 止步%s · 出身%s\n道韵 +%d（累计 %d）· 印记羁绊 %d · 决策 %d 次\n\n玉牌三生石可炼灵根、铸体、纳眷顾，转世再来。" % [
-		String(summary.get("kind", "落幕")), int(summary.get("years", 0)), String(summary.get("realm", "?")),
+	_end_body.text = "【%s】\n%s · 享年 %d 岁 · 止步%s · 出身%s\n道韵 +%d（累计 %d）· 印记羁绊 %d · 决策 %d 次\n\n玉牌三生石可炼灵根、铸体、纳眷顾，转世再来。" % [
+		String(summary.get("kind", "落幕")),
+		String(summary.get("name", "")) if String(summary.get("name", "")) != "" else "无名氏",
+		int(summary.get("years", 0)), String(summary.get("realm", "?")),
 		String(summary.get("origin", "?")), int(summary.get("dao", 0)), int(summary.get("total_dao", 0)),
 		int(summary.get("bonds", 0)), int(summary.get("decisions", 0)),
 	]

@@ -6,6 +6,8 @@ extends "res://scripts/screen_base.gd"
 
 const Portrait := preload("res://scripts/portrait.gd")
 
+const PLAYER_KEY := "@player"   # 主角伪键: 关系格/详情弹层用, 非真 NPC key
+
 const TAG_CN := {"zuidu": "嘴毒", "ruanruo": "软糯", "guayan": "寡言", "xinruan": "心软", "manre": "慢热", "zilaishu": "自来熟", "qinkuai": "勤快", "lansan": "懒散", "jiaozhen": "较真", "zhiqui": "直球", "kouyan": "口嫌", "xishui": "细水"}
 const ID_NAME_FALLBACK := {"baimenzong": "百味宗弟子", "tongming": "仙门修士", "jianpai": "剑修", "yoududao": "散修(来历不明)", "shanshen": "山神庙祝", "huizu": "妖族商贩", "wenmai": "说书人", "fangshi": "坊市散修"}
 
@@ -102,7 +104,9 @@ func _rebuild() -> void:
 	stat.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_content.add_child(stat)
 
-	if _open_key != "" and Game.run.npcs.has(_open_key):
+	if _open_key == PLAYER_KEY:
+		_open_player_detail()
+	elif _open_key != "" and Game.run.npcs.has(_open_key):
 		_open_detail(_open_key)
 
 
@@ -515,18 +519,164 @@ func _open_npc_chron(key: String) -> void:
 	cv.add_child(acts)
 
 
+# ================= 主角详情弹层 =================
+
+## 主角显示名: run.name 为空(未命名)时回退「主角」
+func _player_display_name() -> String:
+	var n := Game.player_name()
+	return n if n != "" else "主角"
+
+
+## 主角详情: 与 NPC 详情同款全屏结构 —— 头像/名号/境界 + 修为·气血条 + 详情行 + 关系区。
+## 主角无性格/口味档案, 也没有喜欢/关注/解契(纪事按 NPC 记档, 故亦不设「纪事」)。
+func _open_player_detail() -> void:
+	_close_detail()
+	_open_key = PLAYER_KEY
+	var dlg := UiKit.dialog_layer(self, 348.0)
+	_detail = dlg.layer
+	UiKit.dim_click_close(dlg.dim, _close_detail)
+
+	var cv: VBoxContainer = dlg.vb
+	var look := Game.player_look()
+	var male := Game.player_male()
+
+	# 头部: 头像 + 主角 + 出身·灵根 | 性别 + 境界
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 12)
+	top.add_child(Portrait.build_from(look, 52, male))
+	var name_vb := VBoxContainer.new()
+	name_vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	name_vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL   # 副标题(出身·灵根)较长, 不给展开位会被挤成竖排窄列
+	name_vb.add_theme_constant_override("separation", 1)
+	name_vb.add_child(UiKit.label(_player_display_name(), 17, UiKit.PINK_700, 600))
+	var sub := UiKit.label("出身%s · %s" % [String(Game.run.get("origin", "—")), Game.root_display()], 11, UiKit.PINK_400)
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_vb.add_child(sub)
+	top.add_child(name_vb)
+	top.add_child(UiKit.pill("♂" if male else "♀", UiKit.WHITE, UiKit.BLUE_500 if male else UiKit.PINK_400, 12, 600))
+	top.add_child(UiKit.pill(Game.realm_display(), UiKit.WHITE, _realm_color(int(Game.run.get("realm", 0))), 12, 600))
+	cv.add_child(top)
+
+	# 修为/气血条(修炼页角色卡同口径)
+	var need := Game.layer_need()
+	var cult := float(Game.run.get("cult", 0.0))
+	var frac := cult / need if need > 0 else 0.0
+	cv.add_child(_player_bar("修为", frac, "圆满·自动冲关" if Game.realm_ready() else "%d%%" % int(round(frac * 100.0))))
+	cv.add_child(_player_bar("气血", float(Game._qi()) / float(Game.qi_max()), "%d/%d" % [Game._qi(), Game.qi_max()]))
+
+	# 详情行
+	var pct := clampi(int(round(frac * 100.0)), 0, 100)
+	var detail := UiKit.pink_box()
+	var dv := VBoxContainer.new()
+	dv.add_theme_constant_override("separation", 4)
+	var lines: Array = [
+		"境界：%s（修为 %d%%）· 突破率 %d%%" % [Game.realm_display(), pct, int(round(Game.break_chance() * 100.0))],
+		"四柱：%s · 气血 %d/%d · 寿元 %d/%d 年 · 武力 %.1f" % [
+			Game.root_display(), Game._qi(), Game.qi_max(),
+			int(Game.age_years()), Game.lifespan_cap_years(), Game.wu_li(),
+		],
+		"营生：月修为 %s · 灵石 %d" % [Game._fmt(Game.month_gain()), int(Game.farm().stones)],
+	]
+	var td := Game.trait_display()
+	if td != "":
+		lines.append(td)
+	var buff_txt := Game.buffs_summary()
+	lines.append("加持：%s" % (buff_txt if buff_txt != "" else "无"))
+	for line in lines:
+		var lb := UiKit.label(String(line), 12, UiKit.PINK_600)
+		lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		dv.add_child(lb)
+	detail.add_child(UiKit.margin_wrap(dv, 10))
+	cv.add_child(detail)
+
+	cv.add_child(_player_relation_box())
+
+	var acts := HBoxContainer.new()
+	acts.add_theme_constant_override("separation", 6)
+	acts.add_child(UiKit.expander())
+	acts.add_child(_mini_button("关闭", _close_detail))
+	cv.add_child(acts)
+
+
+## 主角弹层横条: 名称 + 进度 + 右对齐数值(比值比 友/情 条长, 右栏加宽)。
+func _player_bar(caption: String, frac: float, value: String) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.add_child(UiKit.label(caption, 12, UiKit.PINK_600, 600))
+	row.add_child(UiKit.progress(clampf(frac, 0.0, 1.0), UiKit.PINK_400))
+	var lb := UiKit.label(value, 12, UiKit.PINK_600, 600)
+	lb.custom_minimum_size = Vector2(88, 0)
+	lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(lb)
+	return row
+
+
 # ================= 关系（详情弹层） =================
 
-## NPC 详情里的「关系」区: Ta 的全部关系边 —— 对方头像 + 姓名 + 友情值(边亲疏) + 关系名称(+恋爱对加情值), 点击格子弹出该人详情。无关系则返回隐藏控件。
-## 未识者一并列出(头像灰显): 关系是世间真情, 不因玩家是否认识而遮蔽 —— 如季忘川开局在册而其故交均未入册。
-## 情值(恋爱边 aff 0~1000)仅恋爱对显示; 同性/无恋爱边者情值恒 0 无来源, 不占行。
-func _relation_box(key: String) -> Control:
-	var items: Array = Game.npc_relations(key)
-	if items.is_empty():
-		var none := Control.new()
-		none.visible = false
-		return none
+## 与主角的一段关系边(该 NPC 运行态): tag=道侣/段位称谓(与详情头部段位 pill 同口径), 友=好感(0~1000),
+## 情=情缘(仅>0带上, 关系格见 aff 即显情行)。peer 传 PLAYER_KEY 得主角伪边(NPC 详情关系区),
+## 传 NPC 本 key 得 NPC 边(主角详情关系区)。
+func _aff_edge(key: String, peer: String) -> Dictionary:
+	var st: Dictionary = Game.run.npcs.get(key, {})
+	var names: Array = Game.tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])
+	var edge := {
+		"peer": peer,
+		"tag": "道侣" if bool(st.get("dao_lu", false)) else String(names[clampi(int(st.get("stage", 0)), 0, names.size() - 1)]),
+		"val": float(st.get("aff", 0.0)),
+		"raw": true,   # 友值是 0~1000 好感原值(与名录瓦片同口径), 非 NPC↔NPC 边值(−100~+100) —— 关系格按此选格式
+	}
+	if float(st.get("love", 0.0)) > 0.0:
+		edge.aff = float(st.love)
+	return edge
 
+
+## 单个关系格: 对方头像 + 姓名 + 友情值 + 关系名称(+情值), 点击格子弹出该人详情。
+## peer == "@player" 为主角格: 主角捏脸像/名字(永不灰显), 点击开主角详情弹层。
+func _relation_cell(r: Dictionary) -> Control:
+	var peer := String(r.get("peer", ""))
+	var v := float(r.get("val", 0.0))
+	var is_player := peer == PLAYER_KEY
+	var peer_met := is_player or _is_met(peer)
+	var cell := PanelContainer.new()
+	cell.add_theme_stylebox_override("panel", UiKit.stylebox(Color(0, 0, 0, 0), 8))
+	var item := VBoxContainer.new()
+	item.add_theme_constant_override("separation", 2)
+	var av := CenterContainer.new()
+	av.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var portrait: Control = Portrait.build_from(Game.player_look(), 40, Game.player_male()) if is_player else Portrait.build_for(peer, 40)
+	if not peer_met:
+		portrait.modulate = Color(1, 1, 1, 0.45)   # 未识者: 灰显
+	av.add_child(portrait)
+	item.add_child(av)
+	var nl := UiKit.label(_player_display_name() if is_player else Game.npc_name(peer), 10, UiKit.PINK_600 if peer_met else UiKit.GRAY_400, 500, HORIZONTAL_ALIGNMENT_CENTER)
+	nl.custom_minimum_size = Vector2(44, 0)
+	nl.clip_text = true
+	item.add_child(nl)
+	# 好感原值边(主角边/主角关系区 NPC 边, 0~1000, 与名录瓦片同口径)不带符号; NPC↔NPC 边值(−100~+100)带符号
+	item.add_child(UiKit.label("友 %+d" % int(v) if not bool(r.get("raw", false)) else "友 %.0f" % v, 11, _friend_color(v), 600, HORIZONTAL_ALIGNMENT_CENTER))
+	var tag_lb := UiKit.label(String(r.get("tag", "")) if String(r.get("tag", "")) != "" else DataManager.rel_tag_display(""), 10, _relation_color(v), 500, HORIZONTAL_ALIGNMENT_CENTER)
+	tag_lb.custom_minimum_size = Vector2(44, 0)
+	tag_lb.clip_text = true
+	item.add_child(tag_lb)
+	if r.has("aff"):   # 恋爱对独享: 情值逐月涨好感、争风吃醋会扣, 恋爱态已在 tag 冠名
+		item.add_child(UiKit.label("情 %.0f" % float(r.get("aff", 0.0)), 10, _love_color(float(r.get("aff", 0.0))), 600, HORIZONTAL_ALIGNMENT_CENTER))
+	cell.add_child(item)
+	# 命中层(铺满格): 点击跳转到该人详情弹层
+	var hit := Button.new()
+	hit.focus_mode = Control.FOCUS_NONE
+	hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+		hit.add_theme_stylebox_override(st, StyleBoxEmpty.new())
+	if is_player:
+		hit.pressed.connect(_open_player_detail)
+	else:
+		hit.pressed.connect(_open_detail.bind(peer))
+	cell.add_child(hit)
+	return cell
+
+
+## 「关系」区共用骨架: 标题 + 流式关系格。items 每项 {peer,tag,val[,aff]}。
+func _relation_flow_box(items: Array) -> Control:
 	var box := UiKit.pink_box()
 	var bv := VBoxContainer.new()
 	bv.add_theme_constant_override("separation", 6)
@@ -540,44 +690,40 @@ func _relation_box(key: String) -> Control:
 	flow.add_theme_constant_override("h_separation", 12)
 	flow.add_theme_constant_override("v_separation", 8)
 	for r in items:
-		var peer := String(r.get("peer", ""))
-		var v := float(r.get("val", 0.0))
-		var peer_met := _is_met(peer)
-		var cell := PanelContainer.new()
-		cell.add_theme_stylebox_override("panel", UiKit.stylebox(Color(0, 0, 0, 0), 8))
-		var item := VBoxContainer.new()
-		item.add_theme_constant_override("separation", 2)
-		var av := CenterContainer.new()
-		av.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var portrait := Portrait.build_for(peer, 40)
-		if not peer_met:
-			portrait.modulate = Color(1, 1, 1, 0.45)   # 未识者: 灰显
-		av.add_child(portrait)
-		item.add_child(av)
-		var nl := UiKit.label(Game.npc_name(peer), 10, UiKit.PINK_600 if peer_met else UiKit.GRAY_400, 500, HORIZONTAL_ALIGNMENT_CENTER)
-		nl.custom_minimum_size = Vector2(44, 0)
-		nl.clip_text = true
-		item.add_child(nl)
-		item.add_child(UiKit.label("友 %+d" % int(v), 11, _friend_color(v), 600, HORIZONTAL_ALIGNMENT_CENTER))
-		var tag_lb := UiKit.label(String(r.get("tag", "")) if String(r.get("tag", "")) != "" else "相识", 10, _relation_color(v), 500, HORIZONTAL_ALIGNMENT_CENTER)
-		tag_lb.custom_minimum_size = Vector2(44, 0)
-		tag_lb.clip_text = true
-		item.add_child(tag_lb)
-		if r.has("aff"):   # 恋爱对独享: 情值逐月涨好感、争风吃醋会扣, 恋爱态已在 tag 冠名
-			item.add_child(UiKit.label("情 %.0f" % float(r.get("aff", 0.0)), 10, _love_color(float(r.get("aff", 0.0))), 600, HORIZONTAL_ALIGNMENT_CENTER))
-		cell.add_child(item)
-		# 命中层(铺满格): 点击跳转到该人详情弹层
-		var hit := Button.new()
-		hit.focus_mode = Control.FOCUS_NONE
-		hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
-			hit.add_theme_stylebox_override(st, StyleBoxEmpty.new())
-		hit.pressed.connect(_open_detail.bind(peer))
-		cell.add_child(hit)
-		flow.add_child(cell)
+		flow.add_child(_relation_cell(r))
 	bv.add_child(flow)
 	box.add_child(UiKit.margin_wrap(bv, 10))
 	return box
+
+
+## NPC 详情里的「关系」区: Ta 的全部关系边 —— 对方头像 + 姓名 + 友情值(边亲疏) + 关系名称(+恋爱对加情值), 点击格子弹出该人详情。无边且未相识主角则返回隐藏控件。
+## 已相识者关系首位固定列主角(点击开主角详情); 未相逢传闻者不列主角格。
+## 未识者一并列出(头像灰显): 关系是世间真情, 不因玩家是否认识而遮蔽 —— 如季忘川开局在册而其故交均未入册。
+## 情值(恋爱边 aff 0~1000)仅恋爱对显示; 同性/无恋爱边者情值恒 0 无来源, 不占行。
+func _relation_box(key: String) -> Control:
+	var items: Array = Game.npc_relations(key)
+	if _is_met(key):
+		items.push_front(_aff_edge(key, PLAYER_KEY))
+	if items.is_empty():
+		var none := Control.new()
+		none.visible = false
+		return none
+	return _relation_flow_box(items)
+
+
+## 主角详情里的「关系」区: 相识且未坐化的众人, 按好感从深到浅 —— 同款关系格, 点击跳该人详情。
+func _player_relation_box() -> Control:
+	var items: Array = []
+	for k in Game.run.npcs:
+		var st: Dictionary = Game.run.npcs[k]
+		if bool(st.get("met", false)) and not bool(st.get("dead", false)):
+			items.append(_aff_edge(String(k), String(k)))
+	items.sort_custom(func(x, y): return float(x.val) > float(y.val))
+	if items.is_empty():
+		var none := Control.new()
+		none.visible = false
+		return none
+	return _relation_flow_box(items)
 
 
 # ================= 小件 =================

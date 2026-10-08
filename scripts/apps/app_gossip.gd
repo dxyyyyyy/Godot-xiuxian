@@ -56,11 +56,9 @@ func _rebuild() -> void:
 		_list_vb.add_child(_post_card(post, int(p.get("year", 0)), int(p.get("month", 1)), p.get("sub", {})))
 
 
-## 事件帖占位替换: "{npc}" → 帖子记录里的人名等
+## 事件帖占位替换: 委托 Game._wall_sub 单一口径 —— {npc} 等存档 sub + 称名占位 {xingming}/{ming}(GDD §8.1)
 func _sub(line: String, sub: Dictionary) -> String:
-	for k in sub:
-		line = line.replace("{%s}" % k, String(sub[k]))
-	return line
+	return Game._wall_sub(line, sub)
 
 
 func _post_card(post: Dictionary, year: int, month: int, sub: Dictionary = {}) -> PanelContainer:

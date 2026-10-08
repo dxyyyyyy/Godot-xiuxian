@@ -1,13 +1,16 @@
 extends Node
 ## 数据驱动地基(GDD §12): 境界/方案/出身/占位NPC/事件/全局调参 = res://data/*.json。
 ## v1.2: actions.json(AP 表)退役, 新增 plans.json(行动方案倍率)与 npcs.json(好感占位对象)。
-## relations.json: NPC 之间的关系网(手写预设无向边 a/b + 身份标签 tag + 亲疏值 val −100~+100)。
+## relations.json: NPC 之间的关系网(手写预设无向边 a/b + 关系 key tag + 亲疏值 val −100~+100)。
+## rel_tags.json: 关系标签统一词表(单一事实源) —— 静态边/动态边生成池/兜底默认名/亲族方向称谓/恋爱夫妻名分都查这一张表;
+## 边的 tag 字段存稳定 key(如 oldfriend), 玩家可见措辞经 rel_tag_display 集中解析, 改词只动数据文件。
 
 var realms: Array = []
 var plans: Array = []
 var origins: Array = []
 var npcs: Array = []
 var relations: Array = []
+var rel_tags: Array = []
 var events: Array = []
 var seeds: Array = []
 var recipes: Array = []
@@ -30,6 +33,8 @@ var _wall_index: Dictionary = {}
 var _yaoguai_index: Dictionary = {}
 var _traits_index: Dictionary = {}
 var _aura_index: Dictionary = {}
+var _rel_tag_index: Dictionary = {}      # key → 词表条目
+var _rel_tag_lookup: Dictionary = {}     # key/现名/旧别名 → key(兜底解析与旧档迁移共用)
 
 func _ready() -> void:
 	realms = _load_array("res://data/realms.json")
@@ -37,6 +42,7 @@ func _ready() -> void:
 	origins = _load_array("res://data/origins.json")
 	npcs = _load_array("res://data/npcs.json")
 	relations = _load_array("res://data/relations.json")   # NPC 之间的关系网(手写预设, 无向边)
+	rel_tags = _load_array("res://data/rel_tags.json")     # 关系标签统一词表(静态/动态/兜底/亲族/夫妻 单一事实源)
 	events = _load_array("res://data/events.json")
 	seeds = _load_array("res://data/seeds.json")
 	recipes = _load_array("res://data/recipes.json")
@@ -65,6 +71,13 @@ func _ready() -> void:
 		_traits_index[String(t.get("id", ""))] = t
 	for a in auras:
 		_aura_index[String(a.get("name", ""))] = a
+	for t in rel_tags:
+		var tk := String(t.get("key", ""))
+		_rel_tag_index[tk] = t
+		_rel_tag_lookup[tk] = tk
+		_rel_tag_lookup[String(t.get("name", ""))] = tk
+		for al in (t.get("aliases", []) as Array):
+			_rel_tag_lookup[String(al)] = tk
 
 func plan(id: String) -> Dictionary:
 	return _plan_index.get(id, _plan_index.get("pure", {}))
@@ -90,6 +103,39 @@ func traits_def(id: String) -> Dictionary:
 ## 气质定义(按名字索引): {id,name,color,self:{cult/insight/break/aff/event},npc:{aff},note}
 func aura_def(name: String) -> Dictionary:
 	return _aura_index.get(name, {})
+
+## —— 关系标签统一词表(rel_tags.json) ——
+## 条目按 key 取: {key,name,kind,pos|neg|kin|love,gen,min,max,notes,aliases}
+func rel_tag(key: String) -> Dictionary:
+	return _rel_tag_index.get(key, {})
+
+## 显示措辞: 边存的是 key/现名/旧别名都能解析; 空串兜底「初识」; 未知串原样透传(旧档/手造边不破显示)。
+func rel_tag_display(stored: String) -> String:
+	if stored == "":
+		return String(_rel_tag_index.get("firstmeet", {}).get("name", "初识"))
+	var k := String(_rel_tag_lookup.get(stored, ""))
+	if k == "":
+		return stored
+	return String(_rel_tag_index.get(k, {}).get("name", stored))
+
+## 归一为 key(旧档迁移用): key 照旧、现名/别名→key、未知串原样透传。
+func rel_tag_key(stored: String) -> String:
+	return String(_rel_tag_lookup.get(stored, stored))
+
+## 标签性质: "pos"/"neg"/"kin"/"love"; 未识别返回空串。
+func rel_tag_kind(stored: String) -> String:
+	var k := String(_rel_tag_lookup.get(stored, ""))
+	if k == "":
+		return ""
+	return String(_rel_tag_index.get(k, {}).get("kind", ""))
+
+## 动态边抽取池: gen=true 条目按正/负分带(负带 = kind=="neg")。
+func rel_tag_pool(neg: bool) -> Array:
+	var out: Array = []
+	for t in rel_tags:
+		if bool(t.get("gen", false)) and String(t.get("kind", "")) == "neg" == neg:
+			out.append(t)
+	return out
 
 ## 固定 NPC 出厂外貌（深拷贝；捏脸页「复原」用）
 func npc_raw_appearance(key: String) -> Dictionary:

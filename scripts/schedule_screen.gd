@@ -138,7 +138,8 @@ func _profile_card() -> PanelContainer:
 	var nv := VBoxContainer.new()
 	nv.add_theme_constant_override("separation", 1)
 	nv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	nv.add_child(UiKit.label(Game.realm_display(), 14, UiKit.PINK_700, 600))
+	var pname := Game.player_name()
+	nv.add_child(UiKit.label("%s · %s" % [pname, Game.realm_display()] if pname != "" else Game.realm_display(), 14, UiKit.PINK_700, 600))
 	var ol := UiKit.label("出身%s · %s · 灵根×%.2f" % [String(Game.run.origin), Game.root_display(), float(Game.run.root)], 10, UiKit.PINK_400)
 	ol.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	nv.add_child(ol)

@@ -62,12 +62,15 @@ func _ready() -> void:
 	meta = SaveSystem.load_meta()
 	if meta.is_empty() or int(meta.get("schema", 0)) != SCHEMA:
 		meta = {"schema": SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
-	var loaded := SaveSystem.load_open_run()
-	if not loaded.is_empty() and int(loaded.get("schema", 0)) == SCHEMA:
+	var loaded := SaveSystem.load_open_run(SCHEMA)   # 读不出/版本不合的档由 SaveSystem 保全改名, 不静默覆盖
+	if not loaded.is_empty():
 		run = loaded
-		_log("—— 读档: 继续第 %d 世(%s·%s), 时间静止于 %d× ——" % [run.life, run.origin, realm().name, 0])
+		if run.has("rng_state"):
+			rng.state = int(run.rng_state)   # v2.7: RNG 流随档续接 —— 读档后的世界脉动/首遇与不间断推进同流(缺键旧档跳过)
+		_log("—— 读档: 继续第 %d 世(%s·%s), 时间静止于 %d× ——" % [int(run.get("life", 1)), String(run.get("origin", "?")), realm().name, 0])
 	else:
-		_start_life(default_origin(), 0)
+		# 兜底新世只活在内存(save_now=false): 读档失败往往是并发写盘的竞争, 立即落盘会毁掉好档(2026-10-07 教训)
+		_start_life(default_origin(), 0, {}, [], true, false)
 	_ensure_run()
 	changed.emit()
 
@@ -75,6 +78,12 @@ func _ready() -> void:
 func _ensure_run() -> void:
 	if run.is_empty() or not run.has("farm"):
 		return
+	if not run.has("surname"):
+		# 老档单字段 run.name → 首字为姓、余下为名(无则取默认); 不 bump SCHEMA
+		var old_nm := String(run.get("name", ""))
+		run.surname = old_nm.left(1) if old_nm != "" else DEFAULT_PLAYER_SURNAME
+		run.given = old_nm.substr(1) if old_nm.length() > 1 else (DEFAULT_PLAYER_GIVEN if old_nm == "" else "")
+		run.erase("name")
 	if not run.has("buffs"):
 		run.buffs = {}
 	if not run.has("qi"):
@@ -145,6 +154,12 @@ func _ensure_run() -> void:
 	for pool in [run.npcs, run.get("world_npcs", {})]:
 		for key in (pool as Dictionary).keys():
 			_npc_vitals_backfill((pool as Dictionary)[key], String(key))
+	# 旧档关系 tag 迁移: 词表统一后边存 key —— 中文旧措辞(新识/旧怨/父亲…)经别名表归一, 未知串透传(幂等, 不 bump SCHEMA)
+	for e in run.get("world_rels", []):
+		if e.has("tag"):
+			e.tag = DataManager.rel_tag_key(String(e.tag))
+		if e.has("r_tag"):
+			e.r_tag = DataManager.rel_tag_key(String(e.r_tag))
 
 func _process(delta: float) -> void:
 	if speed <= 0 or not run.has("age_m") or is_ended() or not pending.is_empty():
@@ -162,6 +177,15 @@ func _process(delta: float) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST and not run.is_empty() and not bool(run.get("ended", false)):
 		SaveSystem.save_run(run)
+
+## 设置页「立即存档」: 手动落盘 meta+run(写前自动轮转 .bak, rng_state 随档续流)。
+## 返回 {ok=两档是否全部写通, day=历法串(空=此世未启)} —— 写失败必须如实报, 假「已存」会骗人丢档。
+func save_now() -> Dictionary:
+	if run.is_empty():
+		return {"ok": false, "day": ""}
+	var ok := SaveSystem.save_meta(meta)
+	ok = SaveSystem.save_run(run) and ok
+	return {"ok": ok, "day": calendar()}
 
 ## 测试用: 以「逐月调用」的方式推进 n 月(与 _process 走同一 tick_month 入口, 验证倍速无关性)
 func step_months(n: int) -> void:
@@ -197,8 +221,9 @@ func age_years() -> float:
 
 func lifespan_cap_years() -> int:
 	# 仙膳「寿命」永久加成(全世合计 ≤+3 年, 图鉴 6.5 已记冲突拍板: 触碰寿元硬时钟, M0 纳入模拟重标); 长寿相同为加数
+	# 渡劫寿元用时读 tuning(dujie_cap_years): Game._ready 与 DataManager 装载时序有竞态, 缓存值可能取到旧默认
 	if String(realm().get("key", "")) == "dujie":
-		return duijie_cap + int(run.get("life_bonus", 0)) + int(round(_trait_fx("life")))
+		return int(tune("dujie_cap_years", float(duijie_cap))) + int(run.get("life_bonus", 0)) + int(round(_trait_fx("life")))
 	return int(realm().lifespan_cap) + int(run.get("life_bonus", 0)) + int(round(_trait_fx("life")))
 
 func calendar() -> String:
@@ -237,11 +262,13 @@ func aura_npc_aff(npc_key: String) -> float:
 
 
 ## —— NPC 关系网: 两层边 —— ① relations.json 手写静态边(固定 NPC 之间, 数据层不随存档变化);
-## ② run.world_rels 动态边(世界池生成, 随存档)。每条边 {a,b,tag,val,note[,r_note]}:
-## val 亲疏值 −100~+100; tag/note 是「从 a 看 b」的口径, 反向看取 r_note(r_tag), 没写就照搬。
+## ② run.world_rels 动态边(世界池生成, 随存档)。每条边 {a,b,tag,val,note[,r_note][,r_tag]}:
+## val 亲疏值 −100~+100; tag 存统一词表 key(data/rel_tags.json 单一事实源, 静态/动态/亲族/夫妻共用);
+## tag/note 是「从 a 看 b」的口径, 反向看取 r_note(r_tag), 没写就照搬。
 ## 查表先静态后动态 —— 手写设定永远压过程序生成。
 
-## 取两人关系(无向): {peer,tag,val,note[,aff,stage,married]}; 没有预设关系返回空字典。
+## 取两人关系(无向): {peer,key,tag,val,note[,aff,stage,married]}; 没有预设关系返回空字典。
+## tag 为词表解析后的显示措辞(未知串透传, 空兜底「初识」); key 为稳定词表 key(方向判定用, 不随改词失效)。
 ## 恋爱态(run.npc_romance)覆盖展示 tag: 已婚→夫妻, 否则按好感段(相识/相熟/心动/相恋)。
 func relation_between(a: String, b: String) -> Dictionary:
 	if a == "" or b == "" or a == b:
@@ -251,32 +278,39 @@ func relation_between(a: String, b: String) -> Dictionary:
 		var ea := String(e.get("a", ""))
 		var eb := String(e.get("b", ""))
 		if ea == a and eb == b:
-			base = {"peer": b, "tag": String(e.get("tag", "旧识")), "val": float(e.get("val", 0.0)), "note": String(e.get("note", ""))}
+			base = _rel_edge_out(b, String(e.get("tag", "")), float(e.get("val", 0.0)), String(e.get("note", "")))
 			break
 		if ea == b and eb == a:
-			base = {"peer": b, "tag": String(e.get("r_tag", e.get("tag", "旧识"))), "val": float(e.get("val", 0.0)), "note": String(e.get("r_note", e.get("note", "")))}
+			base = _rel_edge_out(b, String(e.get("r_tag", e.get("tag", ""))), float(e.get("val", 0.0)), String(e.get("r_note", e.get("note", ""))))
 			break
 	if base.is_empty():
 		for e in run.get("world_rels", []):
 			var ea2 := String(e.get("a", ""))
 			var eb2 := String(e.get("b", ""))
 			if ea2 == a and eb2 == b:
-				base = {"peer": b, "tag": String(e.get("tag", "新识")), "val": float(e.get("val", 0.0)), "note": String(e.get("note", ""))}
+				base = _rel_edge_out(b, String(e.get("tag", "")), float(e.get("val", 0.0)), String(e.get("note", "")))
 				break
 			if ea2 == b and eb2 == a:
 				# 动态边同静态边一样支持方向称谓(亲子边 tag=娃视角, r_tag=长辈视角)
-				base = {"peer": b, "tag": String(e.get("r_tag", e.get("tag", "新识"))), "val": float(e.get("val", 0.0)), "note": String(e.get("r_note", e.get("note", "")))}
+				base = _rel_edge_out(b, String(e.get("r_tag", e.get("tag", ""))), float(e.get("val", 0.0)), String(e.get("r_note", e.get("note", ""))))
 				break
 	var r: Dictionary = run.get("npc_romance", {}).get(_pair_key(a, b), {})
 	if not r.is_empty():
 		if base.is_empty():
-			base = {"peer": b, "tag": "新识", "val": 0.0, "note": ""}
+			base = _rel_edge_out(b, "", 0.0, "")
 		var names: Array = tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])
-		base.tag = "夫妻" if bool(r.get("married", false)) else String(names[clampi(int(r.get("stage", 0)), 1, 4)])
+		base.tag = DataManager.rel_tag_display("spouse") if bool(r.get("married", false)) else String(names[clampi(int(r.get("stage", 0)), 1, 4)])
 		base.aff = float(r.get("aff", 0.0))
 		base.stage = int(r.get("stage", 0))
 		base.married = bool(r.get("married", false))
 	return base
+
+## 边出口统一装配: 存值(key/旧名/别名/空) → {key 稳定, tag 显示措辞}。
+func _rel_edge_out(peer: String, stored_tag: String, v: float, note: String) -> Dictionary:
+	var key := DataManager.rel_tag_key(stored_tag)
+	if key == "":
+		key = "firstmeet"
+	return {"peer": peer, "key": key, "tag": DataManager.rel_tag_display(stored_tag), "val": v, "note": note}
 
 
 ## 某人对外的人际关系全表, 按亲疏从亲到疏排序(名录/详情/传言共用)。静态边优先, 按 peer 去重。
@@ -357,29 +391,12 @@ func _relation_gift(key: String) -> Dictionary:
 	return {"v": minf(best, cap), "from": who}
 
 
-## 名录页用的关系提示串: 「故人情面 好感 +8%」; 无光环返回空串。
-func relation_halo_hint(npc_key: String) -> String:
-	var m := relation_halo(npc_key)
-	if m < 0.001:
-		return ""
-	return "（故人情面 好感 +%.0f%%）" % (m * 100.0)
-
-
 # ---------------------------------------------------------------- 世界 NPC 池(未识亦在世)
 
 ## 开局即在世的随机 NPC: run.world_npcs(生成器快照, 不进名录) + run.world_rels(动态边)。
 ## 主角未遇见不入册; 但池内彼此、池与固定 NPC(含后续新增的掌门等档案)之间预有关系 ——
-## 八卦有来由、初见有情面、拒绝过的脸日后可再遇。边模板放本侧, NpcGenerator 只管造人。
-
-const WORLD_REL_TAGS := [
-	["新识", 15, 30, ["%s与%s近日才认识, 见面还客客气气。", "一个是%s, 一个是%s, 坊市里刚处上点头之交。"]],
-	["街坊", 20, 45, ["%s和%s是街坊, 抬头不见低头见。", "%s家的灶台挨着%s家的, 烟都往一处飘。"]],
-	["同门", 30, 60, ["%s与%s同出一门, 师兄弟相称。", "听%s说, 当年与%s一起挑过水。"]],
-	["酒友", 20, 50, ["%s与%s顿顿对饮, 酒钱轮流掏。", "%s不醉, 因为酒都让%s喝了。"]],
-	["棋友", 15, 40, ["%s与%s在茶摊摆棋, 输了付茶钱。", "%s的棋, 只有%s肯连输三局还笑。"]],
-	["点头交", 10, 25, ["%s与%s点头之交, 多年没说过整句。", "路上遇见, %s朝%s拱拱手, 就算打过照面。"]],
-	["旧怨", -40, -15, ["%s与%s为地契拌过嘴, 至今不同席。", "%s欠%s一句道歉, 拖了十年。"]],
-]
+## 八卦有来由、初见有情面、拒绝过的脸日后可再遇。边词表在 data/rel_tags.json(gen=true 条目即抽取池),
+## NpcGenerator 只管造人。
 
 
 func _npc_is_met(key: String) -> bool:
@@ -394,7 +411,8 @@ func _world_existing() -> Dictionary:
 	return m
 
 
-## 造一条动态边。派系亲疏先验: 同派系更不易结怨(neg 概率 world_rel_neg_same, 默认 5%,
+## 造一条动态边。词表在 data/rel_tags.json —— 抽取池 = gen=true 条目, 按 kind 分正/负带。
+## 派系亲疏先验: 同派系更不易结怨(neg 概率 world_rel_neg_same, 默认 5%,
 ## 异派系 15% —— 低头不见抬头见), 且亲疏整体上移 world_rel_same_bonus —— 同门照拂、同行相护,
 ## 同派系的边更容易落进 rel_close_min 的亲近带(至交漂移/传言/初见情面都吃这个带)。
 func _make_world_edge(a: String, b: String) -> Dictionary:
@@ -402,16 +420,17 @@ func _make_world_edge(a: String, b: String) -> Dictionary:
 	var same := fac_a != "" and fac_a == _npc_faction(b)
 	var neg_rate := float(tune("world_rel_neg_same", 0.05)) if same else float(tune("world_rel_neg_rate", 0.15))
 	var neg := rng.randf() < neg_rate
-	var pool: Array = []
-	for t in WORLD_REL_TAGS:
-		if (neg and int(t[1]) < 0) or (not neg and int(t[1]) >= 0):
-			pool.append(t)
-	var t: Array = pool[rng.randi_range(0, pool.size() - 1)]
-	var note := String(t[3][rng.randi_range(0, (t[3] as Array).size() - 1)]) % [npc_name(a), npc_name(b)]
-	var val := float(rng.randi_range(int(t[1]), int(t[2])))
+	var pool: Array = DataManager.rel_tag_pool(neg)
+	if pool.is_empty():   # 数据地基异常(rel_tags.json 缺失/损坏): 静默跳过连边, 不拿空池掷 randi 崩开局
+		push_warning("关系词表%s池为空 —— 跳过造边 %s↔%s" % ["负" if neg else "正", a, b])
+		return {}
+	var t: Dictionary = pool[rng.randi_range(0, pool.size() - 1)]
+	var notes: Array = t.get("notes", [])
+	var note := String(notes[rng.randi_range(0, notes.size() - 1)]) % [npc_name(a), npc_name(b)]
+	var val := float(rng.randi_range(int(t.get("min", 0)), int(t.get("max", 0))))
 	if same:
 		val += float(tune("world_rel_same_bonus", 15.0))
-	return {"a": a, "b": b, "tag": String(t[0]), "val": clampf(val, -100.0, 100.0), "note": note}
+	return {"a": a, "b": b, "tag": String(t.get("key", "")), "val": clampf(val, -100.0, 100.0), "note": note}
 
 
 ## 派系(identity): 在册/池内快照与固定档案(npcs.json)同字段取名 —— 「物以类聚」的关系先验用它。
@@ -514,7 +533,7 @@ func _seed_start_couples() -> void:
 		if _rom_taken(rom, a) or _rom_taken(rom, b) or not _rom_eligible(a, b):
 			continue
 		_try_world_edge(a, b, {})   # 缘分来由: 无则补一条边(已有则跳过)
-		for e in run.world_rels:   # 夫妻必高亲疏: 婚配边拉进高带, 杜绝「旧怨夫妻」(展示层恋爱态只覆盖 tag 不改 val)
+		for e in run.world_rels:   # 夫妻必高亲疏: 婚配边拉进高带, 杜绝「交恶夫妻」(展示层恋爱态只覆盖 tag 不改 val)
 			var ea2 := String(e.get("a", ""))
 			var eb2 := String(e.get("b", ""))
 			if (ea2 == a and eb2 == b) or (ea2 == b and eb2 == a):
@@ -536,8 +555,11 @@ func _try_world_edge(a: String, b: String, pairs: Dictionary, allow_dead := fals
 	var pair := a + "|" + b if a < b else b + "|" + a
 	if pairs.has(pair) or not relation_between(a, b).is_empty():
 		return
+	var edge := _make_world_edge(a, b)
+	if edge.is_empty():
+		return   # 词表异常未造出边: 不登记 pairs, 下月脉动可再试
 	pairs[pair] = true
-	run.world_rels.append(_make_world_edge(a, b))
+	run.world_rels.append(edge)
 
 
 ## 从世界池抽一位未识者: 多数偏向「与已入册者有边」的 —— 情面/八卦有来由。
@@ -642,11 +664,10 @@ func _world_churn() -> void:
 func _pair_key(a: String, b: String) -> String:
 	return a + "|" + b if a < b else b + "|" + a
 
-## 亲族称谓集: 新边用方向词(娃看长辈=父/母亲, 长辈看娃=儿/女儿), 旧档遗留的「亲子」一并认。
-const FAMILY_TAGS := ["亲子", "父亲", "母亲", "儿子", "女儿"]
-
+## 亲族判定查统一词表(data/rel_tags.json kind=="kin"): 新边用方向词 key(娃看长辈=father/mother,
+## 长辈看娃=son/daughter), 旧档遗留的「亲子」等中文串经别名一并认。
 func _is_kin(tag: String) -> bool:
-	return tag in FAMILY_TAGS
+	return DataManager.rel_tag_kind(tag) == "kin"
 
 ## 亲族并提对词(茶摊/帖面用): 长辈头衔+孩子排行 → 父子/父女/母子/母女。
 func _kin_pair(parent_key: String, child_key: String) -> String:
@@ -783,7 +804,7 @@ func _rom_eligible(a: String, b: String) -> bool:
 	if npc_male(a) == npc_male(b):
 		return false
 	var rel := relation_between(a, b)
-	return not _is_kin(String(rel.get("tag", "")))   # 血亲不恋爱(方向称谓任一视角落亲族词即算)
+	return not _is_kin(String(rel.get("key", rel.get("tag", ""))))   # 血亲不恋爱(方向称谓任一视角落亲族词即算)
 
 
 ## 全部关系边(静态+动态)一览。
@@ -805,7 +826,7 @@ func _marry(a: String, b: String, r: Dictionary) -> void:
 	ea.spouse = b
 	eb.spouse = a
 	_report("◆ 大喜: 【%s】与【%s】结为夫妻 —— 坊间随了份子" % [npc_name(a), npc_name(b)])
-	_queue_wall_event("relation", {"a": npc_name(a), "b": npc_name(b), "tag": "夫妻"})
+	_queue_wall_event("relation", {"a": npc_name(a), "b": npc_name(b), "tag": DataManager.rel_tag_display("spouse")})
 
 
 func _divorce(a: String, b: String, r: Dictionary) -> void:
@@ -888,20 +909,21 @@ func _birth_child(fa: String, mo: String, ef: Dictionary, em: Dictionary) -> voi
 	(em.children as Array).append(kid_key)
 	_try_world_edge(kid_key, fa, {}, true)
 	_try_world_edge(kid_key, mo, {}, true)
-	# 亲子边固定方向称谓+val(覆盖随机模板): 娃看长辈=父亲/母亲, 长辈看娃=儿子/女儿
+	# 亲子边固定方向称谓+val(覆盖随机模板): 娃看长辈=father/mother, 长辈看娃=son/daughter(词表 key, 显示措辞由词表给)
 	# 注意: 婚配边按字典序拆 fa|mo, 首位未必是男 —— 称谓一律按性别现取
-	var kid_word := "儿子" if String(kid.get("gender", "")) == "male" else "女儿"
-	var fa_word := "父亲" if npc_male(fa) else "母亲"
-	var mo_word := "父亲" if npc_male(mo) else "母亲"
+	var kid_tag := "son" if String(kid.get("gender", "")) == "male" else "daughter"
+	var fa_tag := "father" if npc_male(fa) else "mother"
+	var mo_tag := "father" if npc_male(mo) else "mother"
+	var kid_word := DataManager.rel_tag_display(kid_tag)
 	for e in run.world_rels:
 		var ea := String(e.get("a", "")); var eb := String(e.get("b", ""))
 		if (ea == kid_key and eb == fa) or (ea == fa and eb == kid_key):
-			e.tag = fa_word if ea == kid_key else kid_word
-			e.r_tag = kid_word if ea == kid_key else fa_word
+			e.tag = fa_tag if ea == kid_key else kid_tag
+			e.r_tag = kid_tag if ea == kid_key else fa_tag
 			e.val = 70.0; e.note = "%s是%s的%s —— 眉眼像爹, 脾气像娘" % [npc_name(kid_key), npc_name(fa), kid_word]
 		if (ea == kid_key and eb == mo) or (ea == mo and eb == kid_key):
-			e.tag = mo_word if ea == kid_key else kid_word
-			e.r_tag = kid_word if ea == kid_key else mo_word
+			e.tag = mo_tag if ea == kid_key else kid_tag
+			e.r_tag = kid_tag if ea == kid_key else mo_tag
 			e.val = 70.0; e.note = "%s是%s的%s —— 眉眼像爹, 脾气像娘" % [npc_name(kid_key), npc_name(mo), kid_word]
 	_report("◆ 添丁: 【%s】家喜得%s【%s】" % [npc_name(fa), kid_word, npc_name(kid_key)])
 	changed.emit()
@@ -1091,7 +1113,8 @@ func global_n() -> int:
 	return DataManager.layer_offset(int(run.realm)) + int(run.layer) + 1
 
 func layer_need() -> float:
-	return float(tune("layer_need_base", 100.0)) * pow(float(tune("layer_growth", 1.55)), global_n() - 1)
+	# need_mult: 每境界独立的修为需求乘数(realms.json)——后期每一步占用的寿元份额更重(称谓/节奏规约 2026-10)
+	return float(tune("layer_need_base", 100.0)) * pow(float(tune("layer_growth", 1.55)), global_n() - 1) * float(realm().get("need_mult", 1.0))
 
 func realm_ready() -> bool:
 	var re := realm()
@@ -1228,9 +1251,24 @@ func _queue_wall_event(ev_name: String, sub: Dictionary = {}) -> void:
 
 ## 文案占位替换: "{npc}" → 实际人名等
 func _wall_sub(line: String, sub: Dictionary) -> String:
+	# 称名占位(称谓规约 GDD §8.1): 公共帖 {xingming}=全名(连名带姓是外人); {ming}=只称名(自己人); 未命名回退「你」
+	# {xingming} 受设置门控: 关(或未命名)时括注整段收起, 只露代称; 裸占位回退「那位」
+	if "{xingming}" in line:
+		var nm := player_name()
+		if nm != "" and GameState.wall_full_name:
+			line = line.replace("（{xingming}）", "（%s）" % nm).replace("({xingming})", "(%s)" % nm).replace("{xingming}", nm)
+		else:
+			line = line.replace("（{xingming}）", "").replace("({xingming})", "").replace("{xingming}", "那位")
+	if "{ming}" in line:
+		line = line.replace("{ming}", player_ming())
 	for k in sub:
 		line = line.replace("{%s}" % k, String(sub[k]))
 	return line
+
+## 私密亲密口径: 只呼「名」(相恋/道侣档台词、结契之问); 未命名回退「你」。
+func player_ming() -> String:
+	var g := player_given()
+	return g if g != "" else "你"
 
 ## 派发辅助: 从 wall.json 取第一个满足 filter 且**一世内未上过**的帖 id; 空=无
 func _wall_pick(type: String, extra: Callable) -> String:
@@ -1447,6 +1485,24 @@ func set_follow(key: String, on: bool) -> bool:
 	changed.emit()
 	return true
 
+## 主角名字（三生石/捏脸工坊可改）：姓、名分存 run.surname / run.given；两栏皆空=未命名，显示处回退「主角」
+const DEFAULT_PLAYER_SURNAME := "沈"
+const DEFAULT_PLAYER_GIVEN := "知味"
+
+func player_surname() -> String:
+	return String(run.get("surname", DEFAULT_PLAYER_SURNAME))
+
+func player_given() -> String:
+	return String(run.get("given", DEFAULT_PLAYER_GIVEN))
+
+func player_name() -> String:
+	return player_surname() + player_given()
+
+func set_player_name_parts(sur: String, giv: String) -> void:
+	run.surname = sur
+	run.given = giv
+	changed.emit()   # 改名不入纪事(同换容)
+
 ## 主角容貌（捏脸）：存于本世 run.look；无则用默认
 func player_look() -> Dictionary:
 	var lk: Variant = run.get("look", null)
@@ -1497,6 +1553,7 @@ func reset_npc_look(key: String) -> bool:
 	return ok
 
 ## 手动冲关入口已移除: 修为圆满即在 tick 内自动突破(§3.2 v1.2 + 玩家拍板)
+## 圆满隐退(§9 结局之一): 此函数是唯一合规入口 —— UI 接线在 backlog(GDD §13), 勿再绕它直接调 _ending。
 func retire() -> void:
 	if is_ended():
 		return
@@ -1506,6 +1563,7 @@ func retire() -> void:
 		return
 	_ending("圆满隐退")
 
+## M0 实测旋钮: 渡劫寿元 1800↔1500 选择题(设置页接线在 backlog; 目前供 app_test/手玩调试)
 func toggle_duijie_cap() -> void:
 	duijie_cap = int(tune("dujie_cap_alt", 1500)) if duijie_cap >= int(tune("duijie_cap_years", 1800)) else int(tune("duijie_cap_years", 1800))
 	_log("◎ 渡劫寿元上限切换为 %d 年(M0 实测旋钮)" % duijie_cap)
@@ -1542,7 +1600,16 @@ func resolve_option(i: int) -> void:
 			var npc_n: Dictionary = run.npcs[nk]
 			var ntrack := "love" if int(npc_n.get("stage", 0)) >= 2 else "friend"   # 心动起节点进恋爱轨, 之前仍是友情轨
 			var nunit := "情分" if ntrack == "love" else "好感"
-			if deterministic or rng.randf() < float(rates[clampi(i, 0, rates.size() - 1)]):
+			if bool(pending.data.get("dao_ask", false)):
+				# 道侣之约: 应允即成 —— 主角同意就是检定, 不再掷骰; 婉拒零惩罚(乙女红线), 时光闸重新起算
+				if i == 0:
+					_bump_aff(nk, 50.0, ntrack)
+					_log("◇ 抉择「%s」—— 你郑重点头, 与【%s】缔结道侣之契(%s +50)" % [choice, npc_name(nk), nunit])
+					_advance_node(nk)
+				else:
+					run.npcs[nk].gate = 0
+					_log("◇ 抉择「%s」—— 你笑着说要再等等。【%s】不催也不恼(这道闸顺延, 情分照旧累积)" % [choice, npc_name(nk)])
+			elif deterministic or rng.randf() < float(rates[clampi(i, 0, rates.size() - 1)]):
 				_bump_aff(nk, 50.0, ntrack)
 				_log("◇ 抉择「%s」—— 说到了 Ta 心坎上(%s +50)" % [choice, nunit])
 				_advance_node(nk)
@@ -1694,7 +1761,7 @@ func default_origin() -> Dictionary:
 	return DataManager.origins[0] if not DataManager.origins.is_empty() else {"name": "宗门弟子", "root_coef": 1.0, "element": "木", "bonus_plot": false}
 
 
-func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice := {}, trait_ids := []) -> void:
+func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice := {}, trait_ids := [], keep_name := true) -> void:
 	if origin.is_empty():
 		origin = default_origin()   # 出身设定已废: 一律宗门弟子
 	var nr := _normalize_roots(root_choice)
@@ -1712,14 +1779,14 @@ func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice
 	SaveSystem.save_meta(meta)
 	var trim_txt := "" if int(nr[0]) >= 5 else "炼灵根至 %d 行·" % int(nr[0])
 	_log("—— 前世遗产折价 %d 道韵: %s铸体×%d, 天道眷顾×%d(+%.0f%%冲关率)%s ——" % [spend, trim_txt, forge_times, bless_times, bless_times * BLESS_STEP * 100.0, ("·" + trait_display(traits)) if not traits.is_empty() else ""])
-	_start_life(origin, forge_times, root_choice, traits)
+	_start_life(origin, forge_times, root_choice, traits, keep_name)
 
 ## 开始界面「新开一世」: Meta 重置(道韵回到起始值, 历世/最佳境界全清)并起第 1 世(灵根五行俱全)。
-## 只管内存与落盘; 文件级清档由 SaveSystem.clear_all() 先行。
+## 只管内存与落盘; 文件级清档由 SaveSystem.clear_all() 先行。名字回默认(转世才沿用上一世名)。
 func new_game() -> void:
 	meta = {"schema": SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
 	SaveSystem.save_meta(meta)
-	rebirth({}, 0, 0, {}, [])
+	rebirth({}, 0, 0, {}, [], false)
 
 ## 特质清单归一: 只留合法 id(存在即收, 去重), 非法静默丢弃
 func _normalize_traits(trait_ids: Array) -> Array:
@@ -1877,9 +1944,9 @@ func _execute_plan() -> void:
 				if int(npc.talk_cd) <= 0 and int(npc.get("talk_q", 0)) < int(tune("talk_quarter_cap", 4)):
 					npc.talk_cd = int(tune("talk_cd", 3))
 					npc.talk_q = int(npc.get("talk_q", 0)) + 1
-					_bump_aff(String(key), float(tune("talk_gain", 10)))
+					_bump_aff(String(key), float(tune("talk_gain", 6)))
 					if String(key) == fk:
-						_report("与【%s】谈心(好感+%d)" % [npc_name(String(key)), int(tune("talk_gain", 10))])
+						_report("与【%s】谈心(好感+%d)" % [npc_name(String(key)), int(tune("talk_gain", 6))])
 			run.date_cd = int(run.date_cd) - 1
 			if int(run.date_cd) <= 0:
 				# 约会: 心动段(600)起解锁, 且只有男性 NPC 可赴约(恋爱/结侣仅限男性); 并行名额=待客庭院 1–4(§4.1), 第一顺位=专注, 其余按好感补足; 道侣在场则过修罗场检定
@@ -1902,12 +1969,12 @@ func _execute_plan() -> void:
 						var third := ""
 						for i in range(mini(parlor_dates(), ranked.size())):
 							var k3 := String(ranked[i])
-							_bump_aff(k3, float(tune("date_gain", 60)), "love")
+							_bump_aff(k3, float(tune("date_gain", 35)), "love")
 							went.append(npc_name(k3))
 							if third == "" and k3 != _dao_key():
 								third = k3
 						if went.size() > 0:
-							_report("同游灯会(%d 人): %s 情意各+%.0f" % [went.size(), "、".join(went), float(tune("date_gain", 60))])
+							_report("同游灯会(%d 人): %s 情意各+%.0f" % [went.size(), "、".join(went), float(tune("date_gain", 35))])
 						# 多人同游被撞破 → 火葬场: 发现者情分重挫, 吃瓜帖延迟 1 月上壁(人越多越容易被撞破)
 						if went.size() >= 2:
 							var found_rate := minf(0.9, float(econ("date_found_rate", 0.45)) + (0.25 if went.size() >= 3 else 0.0))
@@ -2922,9 +2989,9 @@ func _rumor_chronicle(key: String) -> Array:
 			peer = a
 		else:
 			continue
-		if peer == sp or String(ed.get("tag", "")) in ["夫妻", "父亲", "母亲", "儿子", "女儿"]:
-			continue   # 婚配由 spouse 行代述; 亲缘方向词并提不通顺(「是「父亲」」), 子嗣行已覆盖
-		out.append({"day": day, "text": "茶摊闲话: 【%s】与【%s】是「%s」—— %s" % [nm, npc_name(peer), String(ed.get("tag", "旧识")), String(ed.get("note", ""))]})
+		if peer == sp or DataManager.rel_tag_kind(String(ed.get("tag", ""))) in ["kin", "love"]:
+			continue   # 婚配由 spouse 行代述; 亲缘方向词并提不通顺(「是「父亲」」), 子嗣行已覆盖(词表 kind 判定, 不随改词失效)
+		out.append({"day": day, "text": "茶摊闲话: 【%s】与【%s】是「%s」—— %s" % [nm, npc_name(peer), DataManager.rel_tag_display(String(ed.get("tag", ""))), String(ed.get("note", ""))]})
 		used += 1
 	var kids: Array = e.get("children", [])
 	if not kids.is_empty():
@@ -3055,7 +3122,7 @@ func _npc_cultivation() -> void:
 		var re: Dictionary = DataManager.realm(ord)
 		var layers := maxi(1, int(re.get("layers", 3)))
 		var nlayer := int(npc.get("nlayer", 0))
-		var need: float = float(tune("layer_need_base", 100.0)) * pow(float(tune("layer_growth", 1.55)), float(DataManager.layer_offset(ord) + nlayer))
+		var need: float = float(tune("layer_need_base", 100.0)) * pow(float(tune("layer_growth", 1.55)), float(DataManager.layer_offset(ord) + nlayer)) * float(re.get("need_mult", 1.0))
 		npc.cult = float(npc.get("cult", 0.0)) + float(re.get("gain_base", 10)) * float(re.get("max_ap", 1)) * float(tune("npc_cult_mult", 0.5)) * npc_root_coef(String(key))
 		var chance: float = clampf(float(re.get("break_prob", 0.4)) + float(tune("npc_break_bonus", 0.0)), 0.05, 0.99)
 		var guard := 0
@@ -3065,7 +3132,7 @@ func _npc_cultivation() -> void:
 				npc.cult = float(npc.cult) - need
 				npc.nlayer = nlayer + 1
 				nlayer = int(npc.nlayer)
-				need = float(tune("layer_need_base", 100.0)) * pow(float(tune("layer_growth", 1.55)), float(DataManager.layer_offset(ord) + nlayer))
+				need = float(tune("layer_need_base", 100.0)) * pow(float(tune("layer_growth", 1.55)), float(DataManager.layer_offset(ord) + nlayer)) * float(re.get("need_mult", 1.0))
 			else:
 				npc.cult = float(npc.cult) * float(econ("npc_fail_keep", 0.7))
 				_report("【%s】小层冲关失手, 修为散去三成" % npc_name(String(key)))
@@ -3188,7 +3255,9 @@ func _favor_gift_tick() -> void:
 		var did := String(dish.id)
 		var dishes: Dictionary = farm().dishes
 		dishes[did] = int(dishes.get(did, 0)) + 1
-		_report("【%s】差人送来一份【%s】—— 「听说你近来冲关, 补一补。」(%s段 · 好感深厚)" % [who, String(dish.name), stage_name])
+		# 称名即亲密(称谓规约 §8.1): 相恋起 Ta 的台词不再叫「你」, 只呼其名
+		var call := player_ming() if stage >= 4 else "你"
+		_report("【%s】差人送来一份【%s】—— 「听说%s近来冲关, 补一补。」(%s段 · 好感深厚)" % [who, String(dish.name), call, stage_name])
 	else:
 		var grade := "凡"
 		var roll := rng.randf()
@@ -3237,6 +3306,15 @@ func _fire_node_event(key: String, stage: int) -> void:
 	var names: Array = tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])
 	var to_name := String(names[clampi(stage + 1, 0, 5)])
 	var moe := String(arch.get("moe", "那个人"))
+	if stage == 4 and _dao_key() == "":
+		# 结契之约(道侣节点): 大事必须主角亲口应允 —— 弹框暂停时钟, 应允即成, 婉拒不罚顺延(dao_ask 同时豁免静默白名单)
+		_fire_interrupt("道侣之约 · %s" % String(arch.get("scene", "")),
+			"【%s】(%s · 情分 %.0f) —— 情缘已满, Ta 愿与%s缔结道侣之契, 从此结伴同修。是否应允?" % [npc_name(key), String(names[clampi(stage, 0, 5)]), float(run.npcs[key].get("love", 0.0)), player_ming()],
+			[
+				{"t": "应允结契", "need": "道侣位唯一 · 此生一人", "result": "结为道侣 · 段位推进「道侣」· 闲话壁贺帖"},
+				{"t": "婉拒再议", "need": "还未准备好", "result": "不罚不锁 · 情分照旧累积 · 时光闸顺延, 来日再提"},
+			], "node", {"key": key, "rates": [1.0, 0.0], "dao_ask": true})
+		return
 	_fire_interrupt("缘分节点 · %s" % String(arch.get("scene", "")),
 		"【%s】(%s · 好感 %.0f) —— 时光闸已到, 这一步迈不迈? 说到 Ta 心坎上, 关系便是另一番天地。" % [npc_name(key), String(names[clampi(stage, 0, 5)]), float(run.npcs[key].aff)],
 		[
@@ -3259,7 +3337,7 @@ func _npc_prompt_check() -> bool:
 		# 双轨门槛: 0~2 段比 aff(友情), 3~5 段比 love(恋爱轨 · 同性恒 0 故永不达标)
 		var cur := float(npc.aff) if stage <= 2 else float(npc.get("love", 0.0))
 		var need := float(ths[stage]) if stage <= 2 else float(lovs[clampi(stage - 3, 0, 2)])
-		if stage < ths.size() and cur >= need and int(npc.gate) >= int(tune("gate_months", 24)):
+		if stage < ths.size() and cur >= need and int(npc.gate) >= int(tune("gate_months", 90)):
 			# 缘分门槛: 只有男性 NPC 可谈恋爱/结道侣 —— 女性止步「相熟」, 不弹心动节点
 			if not npc_male(String(key)) and stage >= 2:
 				continue
@@ -3279,19 +3357,15 @@ func _npc_prompt_check() -> bool:
 					return true
 	return false
 
-## 修罗场(§4.2): 已结道侣后与第三人约会(心动级) → 当月检定 55%+性格修正(D+A 两枚)+现任段位 +5;
+## 修罗场(§4.2): 已结道侣后与第三人约会(心动级) → 当月检定 55%+性格修正(D+A 两枚, ±5pp)+现任段位 +5pp;
 ## 通过=坦白(双方 −30~+20)/低调(零数值, 12 月内再引爆 +10%); 失败=喜剧善后(茶摊议论/话本传唱), 永不罚数值。
 func _luochang_check(third_key: String) -> void:
 	var dao := _dao_key()
 	if dao == "" or third_key == dao:
 		return
 	var third: Dictionary = run.npcs[third_key]
-	var tbl: Dictionary = tune("luochang_tag_fix", {})
-	var persona: Dictionary = npc_arch(third_key).get("persona", run.npcs[third_key].get("persona", {}))
-	var fix := 0.0
-	for k in [String(persona.get("dongxin", "")), String(persona.get("biaoda", ""))]:
-		fix += float(tbl.get(k, 0.0))
-	var p := float(tune("luochang_base", 0.55)) + fix + float(tune("luochang_partner_bonus", 5)) / 100.0
+	var fix := luochang_fix(third_key)
+	var p := _luochang_p(fix)
 	if bool(third.get("luochang_lowkey", false)):
 		p += float(tune("luochang_recur", 0.10))   # 低调维持: 同一对象 12 月内再引爆概率 +10%
 	if not deterministic and rng.randf() >= p:
@@ -3305,6 +3379,20 @@ func _luochang_check(third_key: String) -> void:
 			{"t": "坦白", "need": "当着现任把话说清", "result": "双方好感 −30~+20 · 此线透明不再引爆"},
 			{"t": "低调维持", "need": "按下不表", "result": "零数值 · 同一对象 12 月内再引爆率 +10%"},
 		], "luochang_ok", {"third": third_key, "dao": dao})
+
+
+## 修罗场性格修正: 第三人 动心×表达 两枚标签查 luochang_tag_fix(值域 ±5, 单位百分点)。供检定与冒烟测试共用。
+func luochang_fix(third_key: String) -> float:
+	var tbl: Dictionary = tune("luochang_tag_fix", {})
+	var persona: Dictionary = npc_arch(third_key).get("persona", run.npcs.get(third_key, {}).get("persona", {}))
+	var fix := 0.0
+	for k in [String(persona.get("dongxin", "")), String(persona.get("biaoda", ""))]:
+		fix += float(tbl.get(k, 0.0))
+	return fix
+
+## 修罗场曝光率组装: 基础 55% + 性格修正(百分点, 须 ÷100 归一) + 现任段位 +5pp —— v2.7 修: 旧代码把 ±5 原样加进概率, 检定恒真/恒假。
+func _luochang_p(fix_sum: float) -> float:
+	return clampf(float(tune("luochang_base", 0.55)) + fix_sum / 100.0 + float(tune("luochang_partner_bonus", 5)) / 100.0, 0.0, 1.0)
 
 ## 解契(§1.6 简化口径): 道侣位释放, 对方好感锁定相恋段(≥800); 解契不解印, 每世可再结
 func dao_cancel(key: String) -> void:
@@ -3333,10 +3421,11 @@ const TRAVEL_MAPS := {
 	"buzhou": {"name": "不周山脊", "unlock": 4, "ids": ["shanshen", "jianpai", "tongming"], "scene": "朝圣路与云海", "flora": ["fengqili", "chixueshen", "yujingxuelian", "jiuzhuan", "zhaoguhua"]},
 }
 
-## 地图解锁境界 = unlock 阶数 ×2(大境界序号, 1起: 炼气1阶…渡劫8阶) → 境界索引(0起)。
-## 0 阶(百味宗/清溪村)恒为开局可去; 1→筑基(idx1) 2→元婴(idx3) 4→渡劫(idx7)。
+## 地图解锁门槛 = unlock 即境界索引(0 炼气/1 筑基/2 金丹/4 化神) —— 与 GDD《游历系统》及灰盒口径一致:
+## 青梧城 1→筑基, 云梦泽 2→金丹, 不周山脊 4→化神; 0 阶(百味宗/清溪村)恒为开局可去。
+## (v2.7 修: 旧式 unlock×2−1 曾把后两图各抬高一整境至元婴/渡劫, 属回归)
 func map_unlock_realm(id: String) -> int:
-	return maxi(0, int(TRAVEL_MAPS.get(id, {}).get("unlock", 0)) * 2 - 1)
+	return maxi(0, int(TRAVEL_MAPS.get(id, {}).get("unlock", 0)))
 
 func set_travel_dest(id: String) -> void:
 	if is_ended():
@@ -3487,20 +3576,6 @@ func _gift_note(key: String) -> void:
 	_log("◇ 领【%s】的情面 —— 与【%s】初见便带了 %.0f 好感" % [String(rg.get("from", "")), npc_name(key), gift])
 
 ## 好友介绍弹框(2026-09-13 拍板: 通道关闭, 随机新 NPC 唯一来源=游历首遇)—— 保留函数体备查, P1 若恢复「偶遇引荐」可复用
-func _introduce_friend(introducer: String) -> bool:
-	if _rand_count() >= int(tune("travel_name_cap", 20)):
-		return false
-	var npc := npc_generator.generate(rng, run.npcs)
-	if npc.is_empty():
-		return false
-	world_sim.note_friend()
-	var favor := rng.randf() < float(tune("friend_favor_chance", 0.10))
-	_fire_interrupt("引荐 · %s" % String(npc.get("scene", "")), "【%s】拉着一位新面孔过来 —— 【%s】(%s), %s。是否攀谈?(相遇不加好感; 入册后可交谈/赠礼/约会)" % [npc_name(introducer), String(npc.name), String(npc.get("id_name", "")), String(npc.get("moe", ""))], [
-		{"t": "攀谈几句(入册)", "need": "无", "result": "入册缘分页%s" % (" · 与介绍人相熟, 携初始好感 20" if favor else " · 好感自 0 起")},
-		{"t": "点头而过", "need": "无", "result": "不入册 · 名录不出此人"},
-	], "friend_meet", {"npc": npc, "favor": favor, "introducer": introducer})
-	return true
-
 ## 人物侧写文案池(纪事人均覆盖): 此前 NPC 进纪事只有 10%/月的茶摊传言(至多提两人)与玩家互动线,
 ## 未被互动也未卷入事件者一世零纪事 —— 2026-09-21 拍板: 每月为一位坊间人物写一行小景。
 ## 候选两档加权: 主角团(入册已识+未遇固定)为主, 世界池未识者为辅(名录灰显关系区可见, 纪事人人可看)。
@@ -3616,11 +3691,12 @@ func _gossip_pair(met: Array, negative: bool) -> Array:
 func _gossip_line(a: String, b: String, negative: bool) -> String:
 	var rel := relation_between(a, b)
 	if not rel.is_empty():
-		var tag := String(rel.get("tag", "旧识"))
-		# 亲族方向词并提时归对词(「A与B是「父亲」」不通 → 「A与B是「父子」」): 按孩子性别定子/女
-		if tag == "父亲" or tag == "母亲":
+		var key := String(rel.get("key", ""))
+		var tag := String(rel.get("tag", ""))
+		# 亲族方向词并提时归对词(「A与B是「父亲」」不通 → 「A与B是「父子」」): 按词表 key 判方向, 孩子性别定子/女
+		if key == "father" or key == "mother":
 			tag = _kin_pair(b, a)   # b 是 a 的长辈
-		elif tag == "儿子" or tag == "女儿":
+		elif key == "son" or key == "daughter":
 			tag = _kin_pair(a, b)   # b 是 a 的小辈
 		_queue_wall_event("relation_bad" if negative else "relation", {"a": npc_name(a), "b": npc_name(b), "tag": tag})
 		if negative:
@@ -3747,7 +3823,7 @@ func _normalize_roots(root_choice: Dictionary) -> Array:
 			roots.append(String(e))
 	return [n, roots]
 
-func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_ids := []) -> void:
+func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_ids := [], keep_name := true, save_now := true) -> void:
 	pending = {}
 	month_notes.clear()
 	# 容貌跨世延续: 本函数整换 run, 先把上一世已应用的容貌留底(三生石/转世卡预览的正是它), 新世重新落上
@@ -3755,6 +3831,9 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 	var prev_lk: Variant = run.get("look", null)
 	if prev_lk is Dictionary and not (prev_lk as Dictionary).is_empty():
 		carry_look = (prev_lk as Dictionary).duplicate(true)
+	# 名字跨世延续: 转世沿用上一世姓/名(keep_name=true); 新开一世回默认(keep_name=false)
+	var carry_sur := String(run.get("surname", DEFAULT_PLAYER_SURNAME)) if keep_name else ""
+	var carry_giv := String(run.get("given", DEFAULT_PLAYER_GIVEN)) if keep_name else ""
 	# 灵根三源归一: 出身只定风味/地块, 灵根 = 行数(钱) + 持有五行(免费自择); 铸体照常叠加
 	var nr := _normalize_roots(root_choice)
 	var n := int(nr[0])
@@ -3769,6 +3848,8 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 	run = {
 		"schema": SCHEMA,
 		"life": int(meta.get("lives", 0)) + 1,
+		"surname": DEFAULT_PLAYER_SURNAME,
+		"given": DEFAULT_PLAYER_GIVEN,
 		"origin": String(origin.name),
 		"root": coef,
 		"root_count": n,
@@ -3782,7 +3863,7 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 			"inner": 0, "secret": 0, "recover": 0,
 			"buffs": {}, "qi": 100, "aptitude": 0.0, "life_bonus": 0, "luck": 0, "break_bonus": 0.0,
 			"facilities": {"julingzhen": 0, "lingquan": 0, "cangjingge": 0, "daiketingyuan": 0},
-			"wall": {"posts": [], "queue": [], "read": 0, "rotate_cd": 1},		"date_cd": 0, "secret_cd": 0, "check_clock": 0,
+			"wall": {"posts": [], "queue": [], "read": 0, "rotate_cd": 1},		"date_cd": 0, "secret_cd": 0,
 		"npcs": npcs,
 		"farm": {
 			"stones": 100, "millennium": 0, "yaodan": 0, "tonic_cd": 0, "cook": 0,
@@ -3798,6 +3879,9 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 	}
 	if not carry_look.is_empty():
 		run.look = carry_look
+	if keep_name:
+		run.surname = carry_sur
+		run.given = carry_giv
 	_seed_world()   # 世界 NPC 池: 未识亦在世, 彼此有关系
 	_wall_seed_opening()   # 入世时照壁正热闹: 预置旧帖(不入月报)
 	_inv_add("chunjiu", "凡", 10)   # 初始家底: 春韭种子 ×10(留种/烹「素炒春韭」皆可用)
@@ -3805,7 +3889,8 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 	if trait_display() != "":
 		_log("◆ %s —— 这副骨头, 是拿道韵跟老天爷预支过的。" % trait_display())
 	_log("◇ 时间在常流: 选时速档、选方案, 岁月自会走。特殊事件会自己跳出来等你拍板。")
-	SaveSystem.save_run(run)
+	if save_now:
+		SaveSystem.save_run(run)   # 兜底新世(_ready 读档竞争)传 false: 只活在内存, 首次落盘推迟到真 tick
 	changed.emit()
 
 func _add_cult(x: float) -> void:
@@ -3830,11 +3915,12 @@ func _add_cult(x: float) -> void:
 ##    neglect=故人心思(+30) luochang_*=修罗场坦白(双方 −30~+20);
 ## 2) 事件档 events.json 自带 "auto": true —— 默认参与(如故纸堆 insight), 见即按首选项结算。
 ## 二者同样: 不弹框、时钟不暂停, 只在「一世纪事」留果。
+## 例外: node 带 dao_ask=true(道侣之约)必弹框 —— 结契须主角应允, 婉拒不罚; 仅 deterministic 回归档仍静默应允。
 const SILENT_AFF_KINDS := ["node", "focus_mile", "neglect", "luochang_ok", "luochang_bad"]
 
 func _fire_interrupt(title: String, text: String, options: Array, kind: String, data: Dictionary) -> void:
 	pending = {"title": title, "text": text, "options": options, "kind": kind, "data": data}
-	if deterministic or kind in SILENT_AFF_KINDS or bool(data.get("auto", false)):
+	if deterministic or (kind in SILENT_AFF_KINDS and not bool(data.get("dao_ask", false))) or bool(data.get("auto", false)):
 		# auto=事件档自带「默认参与」: 不弹框、不暂停时钟, 按首选项结算, 只在纪事留果(如故纸堆)
 		var keep := speed   # resolve_option 收尾会按 _resume_speed 复位时钟, 静默结算要把时速原样还回去
 		resolve_option(0)
@@ -3848,20 +3934,14 @@ func _fire_interrupt(title: String, text: String, options: Array, kind: String, 
 	_report("⏸ %s: %s" % [title, text.replace("\n", " ")])
 	interrupted.emit(pending)
 
-## 选池: "check"=保底打断(id 带 chk_ 前缀); "chance"=机缘打断(level=interrupt 且无前缀); 其余=月报琐碎
+## 选池: "chance"=机缘打断(level=interrupt); 其余=月报琐碎(level=report)。
+## 保底「check」池已随 chk_ 退役条目一并下线(GDD §3.3 v1.6 拍板: 取消保底打断)。
 func _pick_event(group: String) -> Dictionary:
 	var pool: Array = []
 	var total := 0
 	for e in DataManager.events:
-		var is_check := String(e.get("id", "")).begins_with("chk_")
-		var ok := false
-		match group:
-			"check":
-				ok = is_check
-			"chance":
-				ok = (not is_check) and String(e.get("level", "report")) == "interrupt"
-			_:
-				ok = (not is_check) and String(e.get("level", "report")) == "report"
+		var lvl := String(e.get("level", "report"))
+		var ok := (lvl == "interrupt") if group == "chance" else (lvl != "interrupt")
 		if ok:
 			pool.append(e)
 			total += int(e.get("weight", 1))
@@ -3936,7 +4016,7 @@ func _ending(kind: String) -> void:
 	for r in range(1, ord + 1):
 		base += 1.4 * r * r        # §11 道韵 = Σ(境界²×1.4)
 	var bonds := sealed_count()
-	base += int(run.secret) * 5.0 + float(bonds) * 50.0   # +羁绊×50(§11)
+	base += int(run.secret) * 5.0 + float(bonds) * float(tune("seal_dao", 50))   # +羁绊×seal_dao(§11)
 	var dao := int(base * float(ENDING_MULT.get(kind, 1.0)))
 	meta.dao = int(meta.get("dao", 0)) + dao
 	meta.lives = int(meta.get("lives", 0)) + 1
@@ -3953,10 +4033,11 @@ func _ending(kind: String) -> void:
 		"kind": kind, "dao": dao, "total_dao": int(meta.dao), "lives": int(meta.lives),
 		"years": (int(run.age_m) - START_AGE_M) / 12, "realm": String(realm().name),
 		"origin": String(run.origin), "decisions": int(k.decisions), "bonds": bonds,
+		"name": player_name(),   # 碑文称名(称谓规约 §8.1: 落幕是名字的归属地)
 	}
 	_log("")
 	_log("═══ 第 %d 世落幕:【%s】═══" % [run.life, kind])
-	_log("享年 %d 岁 · 止步%s · 印记羁绊 %d · 特殊事件 %d 次" % [summary.years, summary.realm, bonds, int(k.interrupts)])
+	_log("%s · 享年 %d 岁 · 止步%s · 印记羁绊 %d · 特殊事件 %d 次" % [summary.name if String(summary.name) != "" else "无名氏", summary.years, summary.realm, bonds, int(k.interrupts)])
 	_log("结算道韵 +%d(×%.1f), 累计 %d 道韵" % [dao, float(ENDING_MULT.get(kind, 1.0)), int(meta.dao)])
 	_log("魂魄印记、三生石与来世重逢(P2)—— 灰盒留白, 情感承诺已记账。")
 	ended.emit(summary)

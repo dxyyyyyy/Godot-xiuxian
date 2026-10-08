@@ -120,6 +120,61 @@ static func gradient_texture(from: Color, to: Color, mode := "v") -> GradientTex
 	return t
 
 
+## 姓/名分栏命名行(三生石/捏脸工坊共用): 下划线式——无框无底卡, 输入处只留字底一粉线; 两栏各限 1-2 字、定宽不拉伸。返回 {row, sur, giv}。
+static func name_row(sur_text := "", giv_text := "", sur_ph := "沈", giv_ph := "知味") -> Dictionary:
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 2)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.add_child(label("姓", 13, PINK_700, 700))
+	var se := name_edit(sur_ph)
+	se.text = sur_text
+	row.add_child(se)
+	row.add_child(label("名", 13, PINK_700, 700))
+	var ge := name_edit(giv_ph)
+	ge.text = giv_text
+	row.add_child(ge)
+	vb.add_child(row)
+	var hint := label("姓/名各 1-2 字 · 点横线处可改 · 留空 = 不修改", 10, PINK_400)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(hint)
+	return {"row": vb, "sur": se, "giv": ge}
+
+
+## 下划线输入: 透明底, 仅字底一条粉线(聚焦加深); 姓/名两栏共用——定宽 56px(≈2 个中文字), 不随容器拉伸。
+static func name_edit(placeholder := "", min_w := 56) -> LineEdit:
+	var ed := LineEdit.new()
+	ed.placeholder_text = placeholder
+	ed.max_length = 2   # 姓(含复姓)与名各以两字为限
+	ed.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	ed.custom_minimum_size = Vector2(min_w, 32)
+	ed.add_theme_font_override("font", font(600))
+	ed.add_theme_font_size_override("font_size", 14)
+	ed.add_theme_color_override("font_color", PINK_700)
+	ed.add_theme_color_override("font_placeholder_color", GRAY_400)
+	ed.add_theme_color_override("font_caret_color", PINK_500)
+	ed.add_theme_stylebox_override("normal", _underline_sb(PINK_300))
+	ed.add_theme_stylebox_override("focus", _underline_sb(PINK_500))
+	ed.add_theme_stylebox_override("read_only", _underline_sb(PINK_100))
+	# 禁止空格: 输入含半角/全角空格即刻剔除(改值再发一次 text_changed, 净化后自然收敛)
+	ed.text_changed.connect(func(t: String) -> void:
+		var clean := t.replace(" ", "").replace("　", "")
+		if clean != t:
+			ed.text = clean
+	)
+	return ed
+
+
+static func _underline_sb(line: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0)
+	sb.border_width_bottom = 2
+	sb.border_color = line
+	sb.content_margin_left = 2
+	sb.content_margin_bottom = 4
+	return sb
+
+
 static func stylebox(bg: Color, radius := 12, shadow := false, border := 0, border_color := Color.WHITE) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = bg

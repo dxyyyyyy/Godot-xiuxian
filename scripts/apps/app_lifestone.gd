@@ -11,9 +11,18 @@ var _rebuild_pending := false
 var _root_n := 5                      # 身负行数: 5/4/3/2/1(五行俱全免费)
 var _root_els: Array = ["金", "木", "水", "火", "土"]   # 持有哪几行(自择, 不超过 _root_n)
 var _traits_sel: Array[String] = []   # 已订先天特质 id(一世, 多选)
+var _sur_edit: LineEdit = null        # 姓输入(卡片随交互重建, 文本走 _sur/_giv_pending 保持)
+var _giv_edit: LineEdit = null        # 名输入
+var _sur_pending := ""                # 姓暂存: 新开局预填默认姓, 转世预填上世姓
+var _giv_pending := ""                # 名暂存
+var _name_dirty := false              # 本张卡上用户动过键盘 → 重建保留暂存; 未动过 → 回读 run
+var _name_refocus := false            # 重建前输入框有焦点 → 重建后找回
 
 
 func _build_content(vb: VBoxContainer) -> void:
+	_sur_pending = Game.player_surname()   # 开页预填: 新开局=默认(沈/知味), 转世=上一世
+	_giv_pending = Game.player_given()
+	_name_dirty = false
 	_content = VBoxContainer.new()
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_content.add_theme_constant_override("separation", 0)
@@ -31,6 +40,14 @@ func _schedule_rebuild() -> void:
 
 func _rebuild() -> void:
 	_rebuild_pending = false
+	# 未动过键盘 → 每次重建都回读当前姓/名(转世=上一世, 新开局=默认);
+	# 动过则保留暂存, 不打断正在输入的名字(月 tick/炼灵根重建同卡)。
+	if not _name_dirty:
+		_sur_pending = Game.player_surname()
+		_giv_pending = Game.player_given()
+	_name_refocus = _sur_edit != null and is_instance_valid(_sur_edit) and _sur_edit.has_focus()
+	_sur_edit = null
+	_giv_edit = null
 	for c in _content.get_children():
 		_content.remove_child(c)
 		c.queue_free()
@@ -77,6 +94,9 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 	var c := bleed_section()
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 6)
+
+	# —— 名字(新开局默认名 / 转世上世名, 均可改) ——
+	cv.add_child(_name_row())
 
 	# —— 容貌 + 五维图(同行) ——
 	var top_row := HBoxContainer.new()
@@ -185,17 +205,37 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 	go.add_theme_stylebox_override("disabled", UiKit.stylebox(UiKit.GRAY_400, 10))
 	go.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	go.disabled = spend > dao
-	go.pressed.connect(func() -> void:
-		if GameState.fresh_start:
-			Game.new_game()
-		Game.rebirth({}, 0, 0, {"n": _root_n, "els": _root_els}, _traits_sel.duplicate())
-		_traits_sel.clear()
-		GameState.fresh_start = false
-		exit_app.emit()
-	)
+	go.pressed.connect(_enter_world)
 	cv.add_child(go)
 	c.add_child(UiKit.margin_wrap(cv, 10))
 	return c
+
+
+## 名字行(姓/名分栏, UiKit.name_row 共用样式): 文本走 _sur/_giv_pending(随交互重建保持); 重建前有焦点则找回。
+func _name_row() -> Control:
+	var built := UiKit.name_row(_sur_pending, _giv_pending, Game.DEFAULT_PLAYER_SURNAME, Game.DEFAULT_PLAYER_GIVEN)
+	_sur_edit = built.sur
+	_giv_edit = built.giv
+	_sur_edit.text_changed.connect(func(t: String) -> void: _sur_pending = t; _name_dirty = true)
+	_giv_edit.text_changed.connect(func(t: String) -> void: _giv_pending = t; _name_dirty = true)
+	if _name_refocus:
+		_name_refocus = false
+		_sur_edit.grab_focus()
+	return built.row
+
+
+## 入世/转世: 姓/名两栏皆空=不修改; 任一非空即落(允许只填其一), 再 rebirth(keep_name=true 带进新世)。
+func _enter_world() -> void:
+	var sur := _sur_pending.strip_edges()
+	var giv := _giv_pending.strip_edges()
+	if sur != "" or giv != "":
+		Game.set_player_name_parts(sur, giv)
+	# 只 rebirth: meta 已由开始界面 new_game 重置, 这里再 new_game 会白起一世、开局志重复入纪事
+	Game.rebirth({}, 0, 0, {"n": _root_n, "els": _root_els}, _traits_sel.duplicate())
+	_traits_sel.clear()
+	_name_dirty = false   # 已提交 → 下张卡重新回读 run
+	GameState.fresh_start = false
+	exit_app.emit()
 
 
 ## 行数变更(档位按钮): 持有截断/补齐到恰好 n 行

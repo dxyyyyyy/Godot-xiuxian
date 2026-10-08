@@ -155,12 +155,13 @@ func _npcs_page() -> PanelContainer:
 			rel_tags[ea] = []
 		if not rel_tags.has(eb):
 			rel_tags[eb] = []
-		(rel_tags[ea] as Array).append(String(e.get("tag", "")))
-		(rel_tags[eb] as Array).append(String(e.get("r_tag", e.get("tag", ""))))
+		# 边存词表 key, 调试页显示统一解析成措辞
+		(rel_tags[ea] as Array).append(DataManager.rel_tag_display(String(e.get("tag", ""))))
+		(rel_tags[eb] as Array).append(DataManager.rel_tag_display(String(e.get("r_tag", e.get("tag", "")))))
 	for e in Game.run.get("world_rels", []):
 		var wa := String(e.get("a", ""))
 		var wb := String(e.get("b", ""))
-		var wt := String(e.get("tag", ""))
+		var wt := DataManager.rel_tag_display(String(e.get("tag", "")))
 		if not rel_tags.has(wa):
 			rel_tags[wa] = []
 		if not rel_tags.has(wb):
@@ -175,7 +176,7 @@ func _npcs_page() -> PanelContainer:
 		var segs := String(rk).split("|")
 		if segs.size() != 2:
 			continue
-		var disp := "夫妻" if bool(rr.get("married", false)) else String(stage_names[clampi(int(rr.get("stage", 0)), 1, 4)])
+		var disp := DataManager.rel_tag_display("spouse") if bool(rr.get("married", false)) else String(stage_names[clampi(int(rr.get("stage", 0)), 1, 4)])
 		for side in segs:
 			var sk := String(side)
 			if not rel_romance.has(sk):

@@ -12,6 +12,8 @@ var _work := {}
 var _preview_box: CenterContainer
 var _val_labels := {}
 var _aura_note: Label = null   # 气质效果说明(‹› 切气质时同步刷新)
+var _sur_edit: LineEdit = null   # 姓/名输入(全页唯一文本框, 建一次不随 _rebuild 重建 —— 月 tick 不能打断正在输入的名字)
+var _giv_edit: LineEdit = null
 var _rng := RandomNumberGenerator.new()
 
 const FIELDS := [
@@ -33,6 +35,14 @@ func _build_content(vb: VBoxContainer) -> void:
 	hw.add_theme_constant_override("margin_top", 8)
 	hw.add_theme_constant_override("margin_bottom", 4)
 	vb.add_child(hw)
+	# 名字行(姓/名分栏, UiKit.name_row 共用样式): 「应用容貌」时落 run.surname/given; 两栏皆空提交=不修改名字
+	var built := UiKit.name_row(Game.player_surname(), Game.player_given(), Game.DEFAULT_PLAYER_SURNAME, Game.DEFAULT_PLAYER_GIVEN)
+	_sur_edit = built.sur
+	_giv_edit = built.giv
+	var nw := UiKit.margin_wrap(built.row, 16)
+	nw.add_theme_constant_override("margin_top", 0)
+	nw.add_theme_constant_override("margin_bottom", 8)
+	vb.add_child(nw)
 	_rng.randomize()
 	if _work.is_empty():
 		var saved := Game.player_look()
@@ -94,13 +104,20 @@ func _rebuild() -> void:
 		_rebuild()
 	))
 	act.add_child(_sec_button("随机", _randomize_look))
-	var apply := _big_button("应用容貌", func() -> void:
-		Game.set_player_look(_work)
-		exit_app.emit()
-	)
+	var apply := _big_button("应用容貌", _commit)
 	apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	act.add_child(apply)
 	_content.add_child(act)
+
+
+## 提交: 姓/名两栏皆空=不修改(保留现名, 免得误删后回退「主角」); 任一非空即落; 容貌写入本世 run.look。
+func _commit() -> void:
+	var sur := String(_sur_edit.text).strip_edges()
+	var giv := String(_giv_edit.text).strip_edges()
+	if sur != "" or giv != "":
+		Game.set_player_name_parts(sur, giv)
+	Game.set_player_look(_work)
+	exit_app.emit()
 
 
 ## 随机除性别外的全部部件槽(气质保留)：走 NpcGenerator 的目录随机(前后发同色/耳随肤色已内置)。

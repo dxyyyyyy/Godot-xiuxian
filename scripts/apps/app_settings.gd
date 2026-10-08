@@ -5,6 +5,7 @@ extends "res://scripts/apps/app_base.gd"
 var quality_group := ButtonGroup.new()
 var speed_group := ButtonGroup.new()
 var speed_caption: Label
+var _save_status: Label
 
 
 func _build_content(vb: VBoxContainer) -> void:
@@ -14,6 +15,7 @@ func _build_content(vb: VBoxContainer) -> void:
 	vb.add_child(_quality_card())
 	vb.add_child(_red_dot_card())
 	vb.add_child(_speed_card())
+	vb.add_child(_save_card())
 	vb.add_child(_about_card())
 	Game.changed.connect(_update_speed_caption)
 
@@ -135,6 +137,75 @@ func _update_speed_caption() -> void:
 		speed_caption.text = "当前时间流速: 停（事件待拍板）"
 	else:
 		speed_caption.text = "当前时间流速: %s · %s" % [str(Game.speed) + "×" if Game.speed > 0 else "暂停", Game.calendar()]
+
+
+## 存档卡: 每年腊月自动落盘(tick_month, 写前轮转 3 代备份), 此处可手动补一手; 状态行显示上次落盘。
+func _save_card() -> PanelContainer:
+	var c := bleed_section()
+	var cv := VBoxContainer.new()
+	cv.add_theme_constant_override("separation", 10)
+	var ch := HBoxContainer.new()
+	ch.add_theme_constant_override("separation", 12)
+	ch.add_child(UiKit.icon_rect("package", 20, UiKit.PINK_500))
+	ch.add_child(UiKit.label("存档", 16, UiKit.PINK_700, 600))
+	cv.add_child(ch)
+	cv.add_child(UiKit.label("每年腊月自动落盘一次(写前轮转 .bak 备份可回滚); 也可随手存一手。", 12, UiKit.PINK_400))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var b := Button.new()
+	b.text = "立即存档"
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(104, 34)
+	b.add_theme_font_override("font", UiKit.font(600))
+	b.add_theme_font_size_override("font_size", 13)
+	b.add_theme_color_override("font_color", UiKit.WHITE)
+	b.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_500, 8))
+	b.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_600, 8))
+	b.add_theme_stylebox_override("pressed", UiKit.stylebox(UiKit.PINK_600, 8))
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.pressed.connect(_on_save_pressed)
+	row.add_child(b)
+	_save_status = UiKit.label(_last_saved_text(), 12, UiKit.PINK_500)
+	row.add_child(_save_status)
+	cv.add_child(row)
+	# 闲话壁称全名开关(称谓规约 §8.1): 关=主角帖只称代称, 不落真名
+	var sw_row := HBoxContainer.new()
+	sw_row.add_theme_constant_override("separation", 12)
+	var left := HBoxContainer.new()
+	left.add_theme_constant_override("separation", 12)
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left.add_child(UiKit.label("闲话壁称全名", 13, UiKit.PINK_600, 500))
+	sw_row.add_child(left)
+	sw_row.add_child(_make_switch(GameState.wall_full_name, func(v: bool) -> void: GameState.set_wall_full_name(v)))
+	cv.add_child(sw_row)
+	cv.add_child(UiKit.label("关 = 照壁主角帖只称代称（那位），不落真名；对已上壁的旧帖同样生效。", 11, UiKit.PINK_400))
+	c.add_child(UiKit.margin_wrap(cv, 16))
+	return c
+
+
+func _on_save_pressed() -> void:
+	if _save_status == null:
+		return
+	var res: Dictionary = Game.save_now()
+	if String(res.get("day", "")) == "":
+		_save_status.text = "此世未启 · 无可存"
+		return
+	if bool(res.get("ok", false)):
+		_save_status.text = "已存 · %s · %s" % [String(res.day), Time.get_time_string_from_system().left(5)]
+	else:
+		_save_status.text = "⚠ 写入失败 · 检查磁盘/存档目录"
+
+
+## 上次落盘时间: 读本世存档文件的修改时间(MM-DD HH:MM)。
+func _last_saved_text() -> String:
+	var path := "user://baiwei_run_life_%d.json" % int(Game.run.get("life", 1))
+	if not FileAccess.file_exists(path):
+		return "尚无落盘记录"
+	var t := FileAccess.get_modified_time(path)
+	if t <= 0:
+		return "尚无落盘记录"
+	var ds := Time.get_datetime_string_from_unix_time(t)
+	return "上次落盘 %s %s" % [ds.substr(5, 5), ds.substr(11, 5)]
 
 
 ## 「关于本牌」

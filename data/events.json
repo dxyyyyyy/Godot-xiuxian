@@ -16,9 +16,5 @@
 	{"t": "硬扛", "need": "咬牙硬受", "result": "修为 −18% · 心魔 1 年"},
 	{"t": "运功逼散", "need": "耗神运功一夜", "result": "寒邪尽散 · 气血 −30 · 三个月聚灵 −15%",
 	 "opt_effect": {"label": "运功逼散: 寒邪尽散", "qi": -30, "buff": {"kind": "eff_pct", "pct": -0.15, "months": 3, "name": "寒邪余韵"}}}
-  ], "effect": {"cult_pct": -0.18, "inner_years": 1}},
-  {"id": "chk_wutong","text": "【保底打断·退役】六十岁月无波, 忽而顿悟如潮(保底取消后留存数据)", "level": "interrupt", "weight": 3, "effect": {"cult_pct_layer": 0.60}},
-  {"id": "chk_xinmo", "text": "【保底打断·退役】心魔趁虚而入, 旧事在识海翻腾(保底取消后留存数据)",       "level": "interrupt", "weight": 2, "effect": {"cult_pct": -0.20, "inner_years": 3}},
-  {"id": "chk_friend","text": "【保底打断·退役】旧友提酒上门, 你出关半日叙旧(保底取消后留存数据)",       "level": "interrupt", "weight": 2, "effect": {"cult_pct_layer": 0.15}},
-  {"id": "chk_luck",  "text": "【保底打断·退役】机缘撞怀: 一株百年灵药无人认领(保底取消后留存数据)",     "level": "interrupt", "weight": 2, "effect": {"cult_pct_layer": 0.35}}
+  ], "effect": {"cult_pct": -0.18, "inner_years": 1}}
 ]
