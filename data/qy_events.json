@@ -1,0 +1,163 @@
+[
+ {
+  "id": "QY-H01", "name": "上元灯会迷路童",
+  "trigger": {"months": [1], "realm": [0, 7], "maps": ["qingxicun", "qingwucheng"], "chance": 0.10, "cd": 0, "limit": 3, "per_year": true},
+  "opts": [
+   {"line": "上元人潮里, 一个哭花脸的小孩撞进你怀里, 手里还攥着半串糖葫芦。你把他送回药炉后头那个焦心的师父手里, 被塞了一包谢礼药材", "effects": {"inv": {"seed": "ningshencao", "grade": "凡", "n": 5}, "npc": {"target": "random_met", "v": 3}}},
+   {"line": "娃骑在你肩头看完了一整场灯山, 你笑着多买了两串糖葫芦 —— 心情大好, 修炼也顺", "effects": {"cult_months": 0.5}},
+   {"line": "娃交给巡夜执事, 你转身没入灯山。第二天坊间说, 那娃逢人便讲灯会里遇到个好人", "effects": {}}
+  ]
+ },
+ {
+  "id": "QY-H02", "name": "灶王显灵",
+  "trigger": {"months": [12], "realm": [0, 2], "maps": ["baimenzong"], "chance": 0.05, "cd": 48, "limit": 3, "guaranteed": true},
+  "opts": [
+   {"line": "腊月祭灶, 灶火窜起三尺。你冲火光叩首: 「求道。」柴火噼啪诵了一夜, 明日开窍", "effects": {"cult_months": 1.0, "buff": {"kind": "eff_pct", "pct": 0.05, "months": 12, "name": "灶王赐福"}}},
+   {"outcomes": [
+     {"p": 0.9, "line": "「求味。」火光递出半页火候, 你隐约觉得自己炒什么都香了", "effects": {"buff": {"kind": "cult_pct", "pct": 0.10, "months": 6, "name": "灶王回礼"}}},
+     {"p": 0.1, "line": "「求味。」火光笑出声, 往你锅里多撒了把看不见的盐 —— 那盘菜怪得离谱, 又莫名好吃", "effects": {"buff": {"kind": "cult_pct", "pct": 0.10, "months": 6, "name": "灶王回礼"}}}
+   ]},
+   {"line": "「求人。」火光歪了歪, 记下你心里那个名字, 替你往灶台上多摆了一副碗筷", "effects": {"npc": {"target": "focus_or_random", "v": 6}, "flag": {"key": "taste_memory", "meta": true}}}
+  ]
+ },
+ {
+  "id": "QY-H03", "name": "千年灵植现世",
+  "trigger": {"months": [8, 9, 10], "realm": [2, 7], "maps": ["baimenzong"], "chance": 0.02, "cd": 0, "limit": 2},
+  "opts": [
+   {"line": "秋收巡视, 一株灵植泛起千年份的流光。你包了三层油纸送去坊市, 拍卖行的铜铃响了一下午", "effects": {"stones": {"min": 200, "max": 500}}},
+   {"line": "你把它供进丹房阴干 —— 渡劫的清单上, 又多压了一味底气", "effects": {"dao": 10}},
+   {"line": "你把它包进食盒送了去 —— 塔尖一样高的灵植, 配一句「煲了汤记得喝」", "effects": {"npc": {"target": "focus_or_random", "v": 6}}}
+  ]
+ },
+ {
+  "id": "QY-H04", "name": "灶前问心",
+  "trigger": {"realm": [7, 7], "maps": ["baimenzong"], "chance": 0.15, "cd": 0, "limit": 1},
+  "opts": [
+   {"line": "渡劫前夜你回了灶房, 炉火映出这一世的饭桌。你把自己按回凳子盛满一碗 —— 明日渡劫, 今日吃饭", "effects": {"buff": {"kind": "check_pct", "pct": 0.10, "months": 12, "name": "人间烟火护道"}}},
+   {"line": "你留了主位, 摆了他的碗筷, 一桌人笑到半夜 —— 渡不渡劫的, 先顾眼前人", "effects": {"dao": 40}},
+   {"line": "你吹熄火, 袖袍一走。身后灶膛余温噼啪, 像有人轻轻说了声: 好孩子", "effects": {"flag": {"key": "iron_cauldron"}}}
+  ]
+ },
+ {
+  "id": "QY-H05", "name": "旧逢·他把你忘了",
+  "trigger": {"realm": [0, 7], "maps": ["baimenzong"], "chance": 0.04, "cd": 24, "limit": 6},
+  "opts": [
+   {"line": "山门口一位旧相识拦住你: 「来者何人?」你们明明已经认识许多年了。你把自己的名姓一字一句又报了一遍, 他郑重抱拳, 鞘上多了一道新刻痕", "effects": {"npc": {"target": "random_met", "v": 1}}},
+   {"outcomes": [
+     {"p": 0.5, "line": "你憋着笑扮作初访的散修, 他挠头翻遍记性, 忽然大笑出眼泪: 「骗子! 上回你也这么哄我!」", "effects": {"npc": {"target": "random_met", "v": 3}}},
+     {"p": 0.5, "line": "你扮作初访, 他作揖赔礼: 「失敬, 我当真想不起。」你扶他起身, 心里软了一小块 —— 不亏", "effects": {}}
+   ]},
+   {"line": "你递上一盒桂花糕, 什么也没说。他捏着糕愣了半晌: 「……这个味道, 我好像认识。」", "effects": {"npc": {"target": "random_met", "v": 6}}}
+  ]
+ },
+ {
+  "id": "QY-H06", "name": "话本里的女修",
+  "trigger": {"realm": [2, 7], "maps": ["qingwucheng"], "chance": 0.03, "cd": 0, "limit": 1},
+  "opts": [
+   {"outcomes": [
+     {"p": 0.3, "cond": {"frag_lt": 3}, "line": "茶楼正讲《百味宗女修传》——情节和你这一世对不上, 「上一世」的细节却准得吓人。散场时, 袖里多了一片说不清的「记得」", "effects": {"anxian": {"frag": 1}, "dao": 30}},
+     {"p": 0.7, "line": "茶楼正讲《百味宗女修传》。你把这场「前世」听出了熟稔感, 散场时往说书人钱筐里多押了一锭", "effects": {"dao": 10}}
+   ]},
+   {"line": "你追到后巷, 说书老先生捋须直笑: 「故事是虚的, 在意是实的。」你替他润了半场词, 满堂茶客听不出哪句是编的", "effects": {"npc": {"target": "focus_or_random", "v": 3}}},
+   {"line": "你把那本《百味宗女修传》买断了。夜里翻两页下饭 —— 自己的故事, 越看越饿", "effects": {"buff": {"kind": "cult_pct", "pct": 0.02, "months": 240, "name": "《百味宗女修传》"}}}
+  ]
+ },
+ {
+  "id": "QY-H07", "name": "百年陈酿",
+  "trigger": {"realm": [3, 7], "maps": ["qingwucheng"], "chance": 0.03, "cd": 0, "limit": 1, "requires": {"lives_gte": 1}},
+  "opts": [
+   {"line": "酒坊掌柜起出一坛无主的陈酿, 坛身刻着一个你「不该认识」的旧名。你仰头饮尽 —— 当夜梦见一桌没散席的酒", "effects": {"buff": {"kind": "check_pct", "pct": 0.10, "months": 12, "name": "百味入梦"}, "dao": 10}},
+   {"line": "你双手把坛推过去: 「存了百年, 该两个喝。」他挑眉接了, 耳根有点红", "effects": {"npc": {"target": "dao_or_focus", "v": 6}}},
+   {"line": "你俩默默把它重新埋回地下, 压实, 立了块无字小牌。有些东西, 存给来世", "effects": {"flag": {"key": "buried", "meta": true}}}
+  ]
+ },
+ {
+  "id": "QY-H09", "name": "前世旧物",
+  "trigger": {"realm": [2, 7], "chance": 0.03, "cd": 0, "limit": 1, "requires": {"buried": true}},
+  "opts": [
+   {"line": "起出一只眼熟的坛子, 里头躺着你上一世亲手埋下的东西, 附一张你自己的字条: 「给找到它的我。」你照单练了一炉, 灵气顺得像有人替你把过路", "effects": {"buff": {"kind": "eff_pct", "pct": 0.10, "months": 24, "name": "旧物承露"}}},
+   {"outcomes": [
+     {"p": 1.0, "cond": {"has_reunited": true}, "line": "你把坛子抱给那个人。Ta 接过的手在抖: 「……我埋的? 还是你埋的?」三世信物, 今日归位", "effects": {"npc": {"target": "reunited", "v": 6}}},
+     {"p": 1.0, "line": "你把它转赠给心尖上那位: 「替一个前世的你, 存了这一世。」", "effects": {"npc": {"target": "focus_or_random", "v": 3}}}
+   ]},
+   {"line": "你把坛子供进洞府高处。夜里去看, 坛口压着一枚新剥的松子", "effects": {"dao": 5}}
+  ]
+ },
+ {
+  "id": "QY-H10", "name": "归途",
+  "trigger": {"realm": [3, 7], "maps": ["baimenzong"], "chance": 0.06, "cd": 0, "limit": 1},
+  "opts": [
+   {"outcomes": [
+     {"p": 1.0, "cond": {"frag_gte": 3}, "line": "入世山道上, 引路的老者又说那句: 「我走过这条路, 知道你会在。」你鬼使神差问了当年。他沉默着走完半里, 才开口: 「灶火替我记着一笔旧账……」风散了后半句 —— 可你知道, 他说了", "effects": {"dao": 20}},
+     {"p": 1.0, "line": "你问了当年。老者笑而不答: 「等你做出一顿叫我满意的饭, 我就告诉你。」这灶, 是应下了", "effects": {"flag": {"key": "stove_promise"}}}
+   ]},
+   {"line": "你陪他把那条岔路从头走到尾。临别他塞给你一把干柴: 「灶火认人, 带着。」", "effects": {"buff": {"kind": "cult_pct", "pct": 0.10, "months": 12, "name": "灶火之心"}}},
+   {"line": "「那以后, 换我走这条路, 去捡一个人。」老者大笑, 笑声惊起半坡宿鸟", "effects": {"dao": 10, "flag": {"key": "ending_echo", "meta": true}}}
+  ]
+ },
+ {
+  "id": "QY-L01", "name": "春山采菌",
+  "trigger": {"months": [2, 3, 4], "realm": [0, 7], "chance": 0.03},
+  "opts": [
+   {"line": "后山一场春雨, 菌子拱得比灵稻还欢。你挎篮上山, 篮子满得溢出春味", "effects": {"inv": {"seed": "chunjiu", "grade": "凡", "n": 12}}}
+  ]
+ },
+ {
+  "id": "QY-L02", "name": "秋收寻常变异",
+  "trigger": {"months": [8, 9, 10], "realm": [0, 7], "chance": 0.02},
+  "opts": [
+   {"line": "田角一株火绒瓜自己变异了, 纹路亮得像上了釉。你舍不得吃, 供进了库房", "effects": {"inv": {"seed": "huoronggua", "grade": "上", "n": 1}}}
+  ]
+ },
+ {
+  "id": "QY-L03", "name": "冬夜围炉",
+  "trigger": {"months": [11, 12, 1], "realm": [0, 7], "chance": 0.03},
+  "opts": [
+   {"line": "雪夜围炉炖了锅百味汤, 循味的翻墙声比钟还准 —— 分他半碗, 修为也暖出来了", "effects": {"cult_months": 0.5}}
+  ],
+  "promote": {"requires": {"dao": true}, "once": true, "opts": [
+   {"line": "大雪夜你炖了锅百味汤, 那人循味翻墙进来, 肩头还顶着雪。你们分了一整夜, 谁也没提明天", "effects": {"npc": {"target": "dao_or_focus", "v": 3}}}
+  ]}
+ },
+ {
+  "id": "QY-L04", "name": "清明旧灶",
+  "trigger": {"months": [3], "realm": [0, 7], "chance": 0.03, "limit": 1, "guaranteed": true},
+  "opts": [
+   {"line": "你扫杂役院旧灶, 烟灰里层层叠叠刻着旧字 —— 有一行笔迹像你的, 可你不记得写过", "effects": {"anxian": {"trace": 1}}}
+  ],
+  "promote": {"requires": {"frag_gte": 2}, "once": true, "opts": [
+   {"line": "旧灶的烟字这一回连成了句: 「灶火记名, 世代相传。」你伸手去碰, 字迹散了, 掌心烫了一下", "effects": {"anxian": {"trace": 1}, "dao": 10}}
+  ]}
+ },
+ {
+  "id": "QY-L05", "name": "引气异象",
+  "trigger": {"realm": [0, 0], "chance": 0.015},
+  "opts": [
+   {"line": "引气入体那刻, 灵气拐成了一缕炊烟的形状。师兄弟围观半天, 结论是: 饿的", "effects": {"cult_months": 0.5}}
+  ]
+ },
+ {
+  "id": "QY-L06", "name": "炉火生灵",
+  "trigger": {"realm": [1, 7], "chance": 0.02, "limit": 1},
+  "opts": [
+   {"line": "灶底钻出一缕火灵, 偷舔了你半勺糖。你没舍得打, 收留了它, 取名「小镬」", "effects": {"buff": {"kind": "eff_pct", "pct": 0.02, "months": 240, "name": "小镬"}}}
+  ]
+ },
+ {
+  "id": "QY-L07", "name": "金丹道韵初鸣",
+  "trigger": {"realm": [2, 7], "chance": 0.01},
+  "opts": [
+   {"line": "丹田里金丹「嗡」地鸣了一声, 像有人在很远处弹了下酒坛。你笑了: 是回声", "effects": {"dao": 5}}
+  ]
+ },
+ {
+  "id": "QY-L08", "name": "市集药商怪药方",
+  "trigger": {"realm": [0, 7], "chance": 0.02, "cd": 12},
+  "opts": [
+   {"line": "药商丢来一张方子: 「照着做, 别问。」你照做 —— 药材全是食材, 难喝, 真管用", "effects": {"inv": {"seed": "ningshencao", "grade": "凡", "n": 2}}}
+  ],
+  "promote": {"requires": {"focus_aff_gte": 600}, "once": true, "opts": [
+   {"line": "那药商忽然低声问: 「方子别外传。……上回那张, 你身边那人吃了可好?」毒舌底下, 垫着一片真心", "effects": {"npc": {"target": "focus", "v": 3}}}
+  ]}
+ }
+]

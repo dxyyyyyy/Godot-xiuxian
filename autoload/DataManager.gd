@@ -11,6 +11,7 @@ var origins: Array = []
 var npcs: Array = []
 var relations: Array = []
 var rel_tags: Array = []
+var qy: Array = []
 var reunion_texts: Dictionary = {}
 var events: Array = []
 var seeds: Array = []
@@ -45,6 +46,7 @@ func _ready() -> void:
 	relations = _load_array("res://data/relations.json")   # NPC 之间的关系网(手写预设, 无向边)
 	rel_tags = _load_array("res://data/rel_tags.json")     # 关系标签统一词表(静态/动态/兜底/亲族/夫妻 单一事实源)
 	reunion_texts = _load_dict("res://data/reunion_texts.json")   # 魂印跨世重逢文本(三档/六人认人通道/H08 弹窗/壁帖/三生石)
+	qy = _load_array("res://data/qy_events.json")                 # 奇缘族 18 条全静默(§2.x): 命中随机选选项直接结算入月报, trigger 门控+账本在 Game._qy_tick
 	events = _load_array("res://data/events.json")
 	seeds = _load_array("res://data/seeds.json")
 	recipes = _load_array("res://data/recipes.json")

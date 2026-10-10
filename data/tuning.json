@@ -73,6 +73,7 @@
  "seal_hidden_step": 0.02,
  "seal_dao": 50,
  "reunion_month_chance": 0.06,
+ "qy_month_max": 2,
  "reunion_tiers": [
   3300,
   6600

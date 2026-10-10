@@ -1927,6 +1927,7 @@ func _tick_core() -> void:
 	_first_meet_roll()   # 被动首遇检定: 命中直接入册(2026-09-22 拍板: 不再弹框询问攀谈)
 	_worldsim_tick()
 	_reunion_tick()   # 魂印跨世: 转世体擦肩/开局 pending 兑现/迟疑甜补(每月恒定 roll, 铁律同制)
+	_qy_tick()   # 奇缘族(全静默): 命中随机选选项直接结算入月报, 同月 ≤2 行(《奇缘事件设计》v0.2)
 	if rng.randf() < float(tune("world_npc_churn", 0.02)):
 		_world_churn()   # 世界脉动: 偶有新客搬来, 顺手攀一条交情
 	_aff_drift()
@@ -3610,6 +3611,210 @@ func _reunion_tick() -> void:
 	if hb.is_empty() or (hb.get("opts", []) as Array).is_empty():
 		return
 	_fire_interrupt(String(hb.get("title", "魂印 · 似曾相识")), _reunion_sub(String(hb.get("text", "")), cand, {}), hb.get("opts", []), "reunion", {"key": cand})
+
+
+# ---------------------------------------------------------------- 奇缘族(《奇缘事件设计》v0.2 · 首批 17 条全静默: 命中随机选选项→直接结算入月报, 不弹框; QY-H08 走魂印重逢机制)
+## 账本 run.qy={use,cd,year,promoted} + 旗标 run.flags / meta.flags + 暗线计数 meta.anxian{frag,trace}(碎片事件链本体仍留 backlog④)。
+## 铁律: 每条活跃条目每月恒定一次 roll(消费由状态决定, 1×≡100× 成立); deterministic 下同样静默, 曲线不弹框。
+
+func _qy_ledger() -> Dictionary:
+	if not run.has("qy"):
+		run.qy = {"use": {}, "cd": {}, "year": {}, "promoted": {}}
+	return run.qy
+
+func _flags_store(is_meta: bool) -> Dictionary:
+	if is_meta:
+		if not meta.has("flags"):
+			meta.flags = {}
+		return meta.flags
+	if not run.has("flags"):
+		run.flags = {}
+	return run.flags
+
+func _meta_flag(key: String) -> int:
+	return int((meta.get("flags", {}) as Dictionary).get(key, 0))
+
+func _qy_frag() -> int:
+	return int((meta.get("anxian", {}) as Dictionary).get("frag", 0))
+
+func _qy_first_reunited() -> String:
+	for k in run.get("npcs", {}):
+		if bool(run.npcs[k].get("reunion", false)):
+			return String(k)
+	return ""
+
+## 好感落点恒为「角色」(去 NPC 绑定红线): random_met=随机在册一人 / focus=专注 / dao_or_focus / focus_or_random / reunited=魂印转世者
+func _qy_npc_key(target: String) -> String:
+	match target:
+		"random_met":
+			var arr: Array = []
+			for k in run.get("npcs", {}):
+				if bool(run.npcs[k].get("met", false)):
+					arr.append(String(k))
+			return String(arr[rng.randi_range(0, arr.size() - 1)]) if not arr.is_empty() else ""
+		"focus":
+			var f := _focus_key()
+			return f if f != "" and run.npcs.has(f) else ""
+		"dao_or_focus":
+			var d := _dao_key()
+			return d if d != "" else _qy_npc_key("focus")
+		"focus_or_random":
+			var f2 := _focus_key()
+			return f2 if f2 != "" else _qy_npc_key("random_met")
+		"reunited":
+			return _qy_first_reunited()
+	return ""
+
+## 条件谓词(旗标/计数/角色态): trigger.requires 与 outcomes[].cond 共用
+func _qy_cond_ok(c: Dictionary) -> bool:
+	if c.is_empty():
+		return true
+	if c.has("frag_lt") and _qy_frag() >= int(c.frag_lt):
+		return false
+	if c.has("frag_gte") and _qy_frag() < int(c.frag_gte):
+		return false
+	if bool(c.get("buried", false)) and _meta_flag("buried") < 1:
+		return false
+	if bool(c.get("dao", false)) and _dao_key() == "":
+		return false
+	if c.has("lives_gte") and int(meta.get("lives", 0)) < int(c.lives_gte):
+		return false
+	if c.has("focus_aff_gte"):
+		var fk := _focus_key()
+		if fk == "" or float(run.npcs.get(fk, {}).get("aff", 0.0)) < float(c.focus_aff_gte):
+			return false
+	if bool(c.get("has_reunited", false)) and _qy_first_reunited() == "":
+		return false
+	return true
+
+func _qy_trig_ok(entry: Dictionary, led: Dictionary) -> bool:
+	var tr: Dictionary = entry.get("trigger", {})
+	if tr.is_empty():
+		return false
+	if tr.has("months"):
+		var mo := (int(run.age_m) % 12) + 1
+		var hit := false
+		for m in (tr.months as Array):
+			if int(m) == mo:
+				hit = true
+		if not hit:
+			return false
+	var rr: Array = tr.get("realm", [0, 7])
+	if int(run.realm) < int(rr[0]) or int(run.realm) > int(rr[1]):
+		return false
+	var maps: Array = tr.get("maps", [])
+	if not maps.is_empty():
+		var unok := false
+		for mp in maps:
+			if int(run.realm) >= map_unlock_realm(String(mp)):
+				unok = true
+		if not unok:
+			return false
+	var eid := String(entry.get("id", ""))
+	if int((led.use as Dictionary).get(eid, 0)) >= int(tr.get("limit", 99)):
+		return false
+	if int(run.age_m) < int((led.cd as Dictionary).get(eid, 0)):
+		return false
+	if bool(tr.get("per_year", false)) and int((led.year as Dictionary).get(eid, -1)) == int(run.age_m / 12):
+		return false
+	return _qy_cond_ok((tr as Dictionary).get("requires", {}))
+
+## 选项抽取: opts 均匀随机; 命中项若带 outcomes, 按 p 加权二次抽(条件不成立的 outcome 剔除后归一)
+func _qy_take_opt(entry: Dictionary, use_promote: bool) -> Dictionary:
+	var opts: Array = []
+	if use_promote:
+		opts = ((entry.get("promote", {}) as Dictionary).get("opts", [])) as Array
+	if opts.is_empty():
+		opts = entry.get("opts", []) as Array
+	if opts.is_empty():
+		return {}
+	var pick: Dictionary = opts[rng.randi_range(0, opts.size() - 1)]
+	if not pick.has("outcomes"):
+		return pick
+	var oks: Array = []
+	var tot := 0.0
+	for oc in (pick.outcomes as Array):
+		if _qy_cond_ok(((oc as Dictionary)).get("cond", {})):
+			oks.append(oc)
+			tot += float((oc as Dictionary).get("p", 1.0))
+	if oks.is_empty():
+		return pick
+	var r := rng.randf() * tot
+	for oc in oks:
+		r -= float((oc as Dictionary).get("p", 1.0))
+		if r <= 0.0:
+			return oc
+	return oks[oks.size() - 1]
+
+func _qy_apply_effects(e: Dictionary) -> void:
+	if e.is_empty():
+		return
+	if e.has("cult_months"):
+		_add_cult(month_gain() * float(e.cult_months))
+	if e.has("stones"):
+		var s: Dictionary = e.stones
+		farm().stones = int(farm().get("stones", 0)) + rng.randi_range(int(s.get("min", 1)), int(s.get("max", 10)))
+	if e.has("dao"):
+		meta.dao = int(meta.get("dao", 0)) + int(e.dao)
+		SaveSystem.save_meta(meta)
+	if e.has("inv"):
+		var iv: Dictionary = e.inv
+		_inv_add(String(iv.get("seed", "chunjiu")), String(iv.get("grade", "凡")), int(iv.get("n", 1)))
+	if e.has("npc"):
+		var np: Dictionary = e.npc
+		var k := _qy_npc_key(String(np.get("target", "random_met")))
+		if k != "":
+			_bump_aff(k, float(np.get("v", 0.0)))
+	if e.has("buff"):
+		var b: Dictionary = e.buff
+		_buff_apply(String(b.get("kind", "cult_pct")), float(b.get("pct", 0.0)), int(b.get("months", 1)), String(b.get("name", "")))
+	if e.has("flag"):
+		var fl: Dictionary = e.flag
+		var is_meta := bool(fl.get("meta", false))
+		var fs := _flags_store(is_meta)
+		var fkey := String(fl.get("key", ""))
+		fs[fkey] = int(fs.get(fkey, 0)) + int(fl.get("v", 1))
+		if is_meta:
+			SaveSystem.save_meta(meta)
+	if e.has("anxian"):
+		if not meta.has("anxian"):
+			meta.anxian = {"frag": 0, "trace": 0}
+		var ax: Dictionary = e.anxian
+		meta.anxian.frag = int((meta.anxian as Dictionary).get("frag", 0)) + int(ax.get("frag", 0))
+		meta.anxian.trace = int((meta.anxian as Dictionary).get("trace", 0)) + int(ax.get("trace", 0))
+		SaveSystem.save_meta(meta)
+
+## 月度派发: 过门控→恒一次 roll→(保底的未触发首窗 p=1)→随机选项→结算+月报行(同月 ≤2 行, 超了顺延)。
+func _qy_tick() -> void:
+	if is_ended():
+		return
+	var led := _qy_ledger()
+	var lines := 0
+	for entry in DataManager.qy:
+		var tr: Dictionary = entry.get("trigger", {})
+		if not _qy_trig_ok(entry, led):
+			continue
+		var guaranteed := bool(tr.get("guaranteed", false)) and int((led.use as Dictionary).get(String(entry.get("id", "")), 0)) == 0
+		var p := 1.0 if guaranteed else float(tr.get("chance", 0.0))
+		if rng.randf() >= p:
+			continue
+		if lines >= int(tune("qy_month_max", 2)):
+			break   # 月报防流水账: 超配额不结算不落账, 下月重新参抽
+		var promote_ok := false
+		if entry.has("promote") and not bool((led.promoted as Dictionary).get(String(entry.get("id", "")), false)):
+			promote_ok = _qy_cond_ok((entry.promote as Dictionary).get("requires", {}))
+			if promote_ok:
+				(led.promoted as Dictionary)[String(entry.get("id", ""))] = 1
+		var chosen := _qy_take_opt(entry, promote_ok)
+		_qy_apply_effects((chosen as Dictionary).get("effects", {}))
+		_report("◇ 奇缘 ·【%s】 %s" % [String(entry.get("name", "")), String(chosen.get("line", ""))])
+		var eid := String(entry.get("id", ""))
+		(led.use as Dictionary)[eid] = int((led.use as Dictionary).get(eid, 0)) + 1
+		if tr.has("cd"):
+			(led.cd as Dictionary)[eid] = int(run.age_m) + int(tr.cd)
+		if bool(tr.get("per_year", false)):
+			(led.year as Dictionary)[eid] = int(run.age_m / 12)
+		lines += 1
 
 # ---------------------------------------------------------------- 游历(游历系统: 行动方案第 7 格 —— 名录的主动泵, 全程静默零弹窗)
 
