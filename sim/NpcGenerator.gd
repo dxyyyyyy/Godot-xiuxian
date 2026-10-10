@@ -291,7 +291,10 @@ func generate_name(rng, used: Dictionary) -> String:
 func generate_epithet(rng) -> String:
 	return String(EPITHET_PLACES[rng.randi_range(0, EPITHET_PLACES.size() - 1)]) + String(EPITHET_TRADES[rng.randi_range(0, EPITHET_TRADES.size() - 1)])
 
-func generate(rng, existing: Dictionary, filter_ids: Array = []) -> Dictionary:
+## hint(魂印跨世的转世体专用, 空=普通随机人): gender/identity/persona/taste/moe/name/appearance 沿上世快照 ——
+## 「那张脸、那个名字」跨世沿用(GDD §8.1 灵魂之名), 等着被遇见; 境界/别号/灵根重掷(转世新身)。
+## 旧档外观可能含后续版本已删件的槽位, 统一由尾部 resolve_look 修复三约束。
+func generate(rng, existing: Dictionary, filter_ids: Array = [], hint: Dictionary = {}) -> Dictionary:
 	var used := {}
 	for k in existing:
 		used[String(existing[k].get("name", ""))] = true
@@ -318,9 +321,24 @@ func generate(rng, existing: Dictionary, filter_ids: Array = []) -> Dictionary:
 	var gender := "male" if rng.randf() < 0.5 else "female"
 	var appearance := random_look(rng, gender == "male")
 	appearance["aura"] = String(AURAS[rng.randi_range(0, AURAS.size() - 1)])
+	var moe := "一面之缘, 各有各的忙"
+	if not hint.is_empty():
+		if hint.has("gender"): gender = String(hint.get("gender"))
+		if ID_NAMES.has(String(hint.get("identity", ""))): identity = String(hint.identity)
+		if hint.has("persona"): persona = (hint.persona as Dictionary).duplicate(true)
+		if hint.has("taste_base"): base = String(hint.taste_base)
+		if hint.has("taste_final"): final = String(hint.taste_final)
+		if hint.has("moe"): moe = String(hint.moe)
+		if hint.has("name"): npc_name = String(hint.name)   # 跨世沿用旧名; 与今世同名者撞名不设限(重逢即该如此)
+		if hint.has("appearance"):
+			var old_ap: Dictionary = hint.appearance
+			if not old_ap.is_empty():
+				appearance = old_ap.duplicate(true)
 	# 随机 NPC 境界轮盘: 炼气偏多、元婴稀有(GDD 未定具体分布, M0 取 flat 轮盘)
 	const REALM_WHEEL := [0, 0, 0, 0, 1, 1, 1, 2, 2, 3]
 	var realm_ord: int = REALM_WHEEL[rng.randi_range(0, REALM_WHEEL.size() - 1)]
+	if not hint.is_empty():
+		appearance = resolve_look(appearance, gender == "male")   # 转世体旧容过三约束修复(缺件槽自动回退)
 	return {
 		"key": "rand_%d" % idx,
 		"name": npc_name,
@@ -329,7 +347,7 @@ func generate(rng, existing: Dictionary, filter_ids: Array = []) -> Dictionary:
 		"identity": identity,
 		"id_name": String(ID_NAMES[identity]),
 		"persona": persona,
-		"moe": "一面之缘, 各有各的忙",
+		"moe": moe,
 		"appearance": appearance,
 		"alias": generate_epithet(rng),
 		"taste_base": base,

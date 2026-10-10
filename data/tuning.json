@@ -72,6 +72,17 @@
  "seal_year_step": 0.05,
  "seal_hidden_step": 0.02,
  "seal_dao": 50,
+ "reunion_month_chance": 0.06,
+ "reunion_tiers": [
+  3300,
+  6600
+ ],
+ "seal_inherit": {
+  "飞升": 1.0,
+  "圆满隐退": 0.8,
+  "渡劫陨落": 0.5,
+  "寿尽坐化": 0.3
+ },
  "luochang_base": 0.55,
  "luochang_tag_fix": {
   "xinruan": 5,

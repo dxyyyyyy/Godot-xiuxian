@@ -943,5 +943,18 @@
   ],
   "op_extra": "说书人按: 此段收录进《坊市长卷》, 后续有变, 加更。",
   "report_line": "壁上有人帖: {a}与{b}好聚好散了"
+ },
+ {
+  "id": "wall_040",
+  "family": "protagonist",
+  "trigger": {"type": "event", "event": "reunion"},
+  "title": "【求证】集市那人盯着{npc}哭了",
+  "op": {"poster_id": "称盐的孙婆子", "text": "老婆子卖了四十年盐, 头一回见这种场面: {npc} 与一陌生人对视, 那人当场落泪。店家担保二人素未相识 —— 莫非是失散多年的旧识?"},
+  "replies": [
+   {"poster_id": "无名客", "text": "不是旧识。是旧魂。"},
+   {"poster_id": "扫叶道人", "text": "三生石上刻过名字的, 阎王爷那儿有账 —— 哭着认的多了, 不稀奇。"}
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: {npc}在集市被人认出了(哭着认的)"
  }
 ]

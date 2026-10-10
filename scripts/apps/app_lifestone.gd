@@ -4,6 +4,7 @@ extends "res://scripts/apps/app_base.gd"
 
 const RootRadar := preload("res://scripts/root_radar.gd")
 const Portrait := preload("res://scripts/portrait.gd")
+const NGScript := preload("res://sim/NpcGenerator.gd")
 ## 出身设定已废(一律宗门弟子), 只剩风味文本; 灵根 = 行数(道韵) + 自择五行(免费)。
 
 var _content: VBoxContainer
@@ -55,15 +56,37 @@ func _rebuild() -> void:
 	if meta.is_empty():
 		return
 
-	# —— 标题 + 道韵总账(合并紧凑) ——
-	var hdr := bleed_head("三生石")
-	hdr.add_theme_constant_override("margin_top", 6)
-	hdr.add_theme_constant_override("margin_bottom", 4)
-	var hdr_vb := hdr.get_child(0)   # 内部 VBox
-	var stats := HBoxContainer.new()
-	stats.add_theme_constant_override("separation", 4)
-	stats.add_child(UiKit.label("%d 韵 · %d 世 · 最佳 %s · 魂印 %d" % [int(meta.get("dao", 0)), int(meta.get("lives", 0)), String(meta.get("best_name", "无")), int(meta.get("bonds", 0))], 11, UiKit.PINK_500))
-	hdr_vb.add_child(stats)
+	# —— 历世烙印者名录(GDD §16 三生石含此账; 重逢实装 GDD §13-①): 旧名·身份·世次·强度·今世寻回与否 ——
+	# (旧版「标题+道韵总账」hdr 构造从未挂树=死代码, v2.8 清除; 道韵总账在转世卡/此世状态块显示, App 外层标题栏已有「三生石」)
+	var seals: Array = meta.get("seals", [])
+	if not seals.is_empty():
+		var ts: Dictionary = DataManager.reunion_texts
+		var lf: Dictionary = ts.get("lifestone", {})
+		var reg_sec := bleed_section()
+		var reg_vb := UiKit.margin_wrap(VBoxContainer.new(), 16)
+		reg_vb.add_theme_constant_override("separation", 2)
+		reg_sec.add_child(reg_vb)
+		reg_vb.add_child(UiKit.label(String(lf.get("title", "历世烙印者名录")), 11, UiKit.PINK_600))
+		for rec in seals:
+			var strength := Game._seal_strength(rec)
+			var tier: int = Game._seal_tier(strength)
+			var tiers: Array = ts.get("tiers", [])
+			var tname := String((tiers[tier] as Dictionary).get("name", "")) if tiers.size() > tier else ""
+			var found := false
+			if String(rec.get("fixed", "")) != "":
+				found = bool(Game.run.get("npcs", {}).get(String(rec.fixed), {}).get("reunion", false))
+			else:
+				for nk in Game.run.get("npcs", {}):
+					var ne: Dictionary = Game.run.npcs[nk]
+					if bool(ne.get("reunion", false)) and String(ne.get("name", "")) == String(rec.get("name", "")):
+						found = true
+						break
+			var row := String(lf.get("row", "【{name}】 {id} · 第{life}世 · 强度{strength} · {found}"))
+			row = row.replace("{name}", String(rec.get("name", ""))).replace("{id}", String(NGScript.ID_NAMES.get(String(rec.get("identity", "")), "散修")))
+			row = row.replace("{life}", String.num_int64(int(rec.get("seal_life", 0)))).replace("{strength}", String.num_int64(int(strength)))
+			row = row.replace("{found}", ("今世已寻回 · " + tname) if found else ("转世在世 · 待重逢" if String(rec.get("fixed", "")) == "" else "旧人在世 · 待重逢"))
+			reg_vb.add_child(UiKit.label(row, 10, UiKit.GRAY_400))
+		_content.add_child(reg_sec)
 
 	# —— 此世状态 / 转世操作 ——
 	if GameState.fresh_start:

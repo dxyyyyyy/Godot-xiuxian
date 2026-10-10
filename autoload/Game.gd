@@ -116,6 +116,7 @@ func _ensure_run() -> void:
 		run.world_npcs = {}
 		run.world_rels = []
 		_seed_world()   # 老档补一次世界池(只补这一次; 后加的固定 NPC 不追溯, 新世自然生效)
+		_seed_reunion()   # 老档补池顺带补转世体(重逢实装前的老档 meta 已有 seals 时, 此世即刻生效)
 	if not run.has("npc_romance"):
 		run.npc_romance = {}
 	if not run.has("follows"):
@@ -572,6 +573,13 @@ func _pick_pool_npc() -> String:
 			keys.append(String(k))   # 坐化者退出生抽: 缘不再牵给故纸堆
 	if keys.is_empty():
 		return ""
+	# 魂印跨世(§4.2): 印记灵魂优先进本世相遇 —— 池里有未认出的转世体, 首遇抽它(不走 rng, 保证「一定会再遇见」)
+	var marks: Array = []
+	for k in keys:
+		if bool(((run.world_npcs as Dictionary)[k] as Dictionary).get("soulmark", false)):
+			marks.append(k)
+	if not marks.is_empty():
+		return String(marks[rng.randi_range(0, marks.size() - 1)])
 	if rng.randf() < float(tune("world_pool_prefer_met", 0.6)):
 		var connected: Array = []
 		for k in keys:
@@ -597,6 +605,7 @@ func _enroll_pool_npc(key: String) -> void:
 	run.npcs[key] = base
 	run.world_npcs.erase(key)
 	_gift_note(key)
+	_reunion_recognize(key)   # 魂印跨世: 这张脸若带着旧印, 入册即认出(演出在 recognize 里)
 	changed.emit()
 
 
@@ -1670,10 +1679,33 @@ func resolve_option(i: int) -> void:
 				var k := String(pending.data.key)
 				run.npcs[k].sealed = true
 				meta.bonds = int(meta.get("bonds", 0)) + 1
+				if not meta.has("seals"):
+					meta.seals = []
+				(meta.seals as Array).append(_seal_snapshot(k))   # 魂印跨世唯一历史结构: 来世转世/认出全靠这条快照
 				SaveSystem.save_meta(meta)
 				_log("◆ 你在【%s】魂魄上烙下印记 —— 来世 Ta 会带着模糊的记忆寻你。" % npc_name(k))
 			else:
 				_log("◇ 抉择「%s」—— 你笑了笑: 若真有来世, 认路的人总会再遇见。" % choice)
+		"reunion":
+			var rk := String(pending.data.key)
+			if i == 0:
+				# a 唤住: 直接入册 —— 认出演出/好感保留在 _enroll_pool_npc 出口统一触发(与游历首遇同一条认出口)
+				_log("◇ 你唤住了那个素未谋面的人 —— 话还没出口, 眼泪先替你说完。")
+				if run.world_npcs.has(rk):
+					_enroll_pool_npc(rk)
+				else:
+					_reunion_recognize(rk)
+			elif i == 1:
+				# b 远望: 人留池里挂「迟来的对视」—— 下次入册只演档一, 好感门槛事件补升档台词
+				if run.world_npcs.has(rk):
+					(run.world_npcs[rk] as Dictionary)["reunion_wait"] = true
+				_log("◇ 你没有开口 —— Ta 回头望了你一眼。这一眼, 三生石记下了。")
+			else:
+				# c 转身: 零损失; 3 月后一行甜向补完(纪事), 人仍在池里等真相遇(_pick_pool_npc 印记优先)
+				if run.world_npcs.has(rk):
+					run.reunion_sweet_m = int(run.age_m) + 3
+					run.reunion_sweet_key = rk
+				_log("◇ 你转身离开 —— 背后的魂魄印记轻轻发烫。来日方长。")
 		"focus_mile":
 			var mk := String(pending.data.key)
 			if i == 0:
@@ -1894,6 +1926,7 @@ func _tick_core() -> void:
 			run.npcs[key].gift_q = 0
 	_first_meet_roll()   # 被动首遇检定: 命中直接入册(2026-09-22 拍板: 不再弹框询问攀谈)
 	_worldsim_tick()
+	_reunion_tick()   # 魂印跨世: 转世体擦肩/开局 pending 兑现/迟疑甜补(每月恒定 roll, 铁律同制)
 	if rng.randf() < float(tune("world_npc_churn", 0.02)):
 		_world_churn()   # 世界脉动: 偶有新客搬来, 顺手攀一条交情
 	_aff_drift()
@@ -3187,6 +3220,7 @@ func _first_meet(key: String, reason := "") -> void:
 	_npc_vitals_backfill(npc, key)   # 固定档案也上生辰/灵根/气血(寿数只示人不坐化 —— mortality 豁免固定者)
 	_log("◆ 初遇【%s】(%s·%s)%s —— 缘分页已入册" % [npc_name(key), String(arch.get("identity", "")), String(arch.get("scene", "")), ("" if reason == "" else " —— " + reason)])
 	_gift_note(key)
+	_reunion_recognize(key)   # 魂印跨世: 上世烙过印的固定 NPC, 今世相遇即认出(认人通道见 reunion_texts)
 	changed.emit()
 
 ## 双轨好感: track="friend"(aff, 人人可涨) / "love"(love, 恋爱行为专属 —— 同性守回落回友情轨)。
@@ -3298,6 +3332,13 @@ func _advance_node(key: String) -> void:
 		_queue_wall_event("xianglian", {"npc": npc_name(key)})   # 闲话壁: 相恋实锤帖
 	elif int(npc.stage) == 3:
 		_queue_wall_event("xindong", {"npc": npc_name(key)})   # 闲话壁: 心动吃瓜帖
+	# 魂印跨世: 擦肩时「远望」认下的档一, 在下一次好感门槛推进处补升档台词(H08-b「迟来的对视」)
+	if bool(npc.get("reunion_upgrade", false)):
+		npc.erase("reunion_upgrade")
+		var ub: Array = ((DataManager.reunion_texts.get("b_upgrade", {}) as Dictionary)).get("lines", [])
+		if not ub.is_empty():
+			var urec := _seal_for_fixed(key) if not bool(npc.get("soulmark", false)) else _seal_for_reborn(npc)
+			_log("◆ " + _reunion_sub(String(ub[rng.randi_range(0, ub.size() - 1)]), key, urec))
 
 ## 门槛事件(§1.4): 3 选 1 对话检定 —— 命中萌点 0.85 / 笨拙但真诚 0.70 / 本心直给 0.55(数值·M0 拍板进 tuning);
 ## 成功 ±50 直给并推进; 失败微幅波动、不重置好感、这道闸顺延(暂缓不消耗资格, 每 tick 重弹)。
@@ -3410,6 +3451,165 @@ func dao_cancel(key: String) -> void:
 	_log("◇ 与【%s】解契 —— 道侣位已释放, 情分锁在相恋段; 魂印若有, 不随契解(§1.6)" % npc_name(key))
 	_queue_wall_event("jieqi", {"npc": npc_name(key)})   # 闲话壁: 解契唏嘘帖(延迟 1 月)
 	changed.emit()
+
+
+# ---------------------------------------------------------------- 魂印跨世重逢(QY-H08 / 恋爱系统 7.3 / GDD §4.2「印记灵魂优先投胎进本世地图池」)
+
+## 烙印瞬间快照(写进 meta.seals, 唯一跨世身份账本): 名/脸/性别/性格/口味随魂跨世; 固定六人记 fixed=key ——
+## 他们本就每世在场(§7.1), 不做转世体, 首遇钩子按 fixed 认出(各档案 §6 认人通道)。
+func _seal_snapshot(k: String) -> Dictionary:
+	var arch := npc_arch(k)
+	var src: Dictionary = run.npcs.get(k, {}).duplicate(true)
+	for f in ["name", "gender", "identity", "persona", "moe", "appearance", "scene", "favorite_taste", "taste_base", "taste_final"]:
+		if arch.has(f):
+			src[f] = arch[f]
+	var rec := {
+		"name": String(src.get("name", npc_name(k))),
+		"gender": "male" if npc_male(k) else "female",
+		"identity": String(src.get("identity", "")),
+		"persona": (src.get("persona", {}) as Dictionary).duplicate(true),
+		"moe": String(src.get("moe", "")),
+		"appearance": (src.get("appearance", {}) as Dictionary).duplicate(true),
+		"taste_base": String((src.get("favorite_taste", {}) as Dictionary).get("base", src.get("taste_base", ""))),
+		"taste_final": String((src.get("favorite_taste", {}) as Dictionary).get("final", src.get("taste_final", ""))),
+		"hidden": float(run.npcs.get(k, {}).get("hidden", 0.0)),
+		"seal_life": int(run.life),
+		"end_kind": "",
+	}
+	if not arch.is_empty():
+		rec["fixed"] = k
+	return rec
+
+## 魂印强度 = 烙印时隐藏好感 × 结局继承率(§4.2 飞升100/隐退80/殒落50/坐化30); 未盖终局戳按满额。
+func _seal_strength(rec: Dictionary) -> float:
+	var inh: Dictionary = tune("seal_inherit", {"飞升": 1.0, "圆满隐退": 0.8, "渡劫陨落": 0.5, "寿尽坐化": 0.3})
+	return float(rec.get("hidden", 0.0)) * float(inh.get(String(rec.get("end_kind", "")), 1.0))
+
+## 认出分档: <tiers[0] 梦中似曾相识 / <tiers[1] 一眼落泪 / ≥tiers[1] 记忆完整觉醒(阈值 tuning 可标定)
+func _seal_tier(strength: float) -> int:
+	var th: Array = tune("reunion_tiers", [3300, 6600])
+	if strength < float(th[0]):
+		return 0
+	if strength < float(th[1]):
+		return 1
+	return 2
+
+## 重逢台词占位替换: {npc}=今世名, {old}=旧世名, {life}=烙印世次
+func _reunion_sub(line: String, key: String, rec: Dictionary) -> String:
+	return line.replace("{npc}", npc_name(key) if key != "" else "那人").replace("{old}", String(rec.get("name", ""))).replace("{life}", String.num_int64(int(rec.get("seal_life", 0))))
+
+func _seal_for_fixed(key: String) -> Dictionary:
+	for rec in meta.get("seals", []):
+		if String(rec.get("fixed", "")) == key:
+			return rec
+	return {}
+
+func _seal_for_reborn(npc: Dictionary) -> Dictionary:
+	for rec in meta.get("seals", []):
+		if String(rec.get("fixed", "")) == "" and String(rec.get("name", "")) == String(npc.get("name", "")) and int(rec.get("seal_life", -1)) == int(npc.get("old_life", 0)):
+			return rec
+	return {}
+
+## 开世注入转世体: 遍历 meta.seals, 随机烙印者「沿用旧名旧脸」造进世界池(soulmark 标, 等游历首遇/H08 擦肩);
+## 并牵一条边让再遇有来由。开局在册的季忘川带旧印 → reunion_pending, 首月 tick 放 opening 演出。
+func _seed_reunion() -> void:
+	if not run.has("world_npcs"):
+		return
+	for rec in meta.get("seals", []):
+		if String(rec.get("fixed", "")) != "" or String(rec.get("identity", "")) == "":
+			continue
+		var rb := npc_generator.generate(rng, _world_existing(), [String(rec.identity)], rec)
+		if rb.is_empty():
+			continue
+		rb["soulmark"] = true
+		rb["old_life"] = int(rec.get("seal_life", 0))
+		rb["blurb"] = "%s(%s) —— 旧梦里见过的脸" % [String(rb.get("name", "")), String(rb.get("id_name", ""))]
+		run.world_npcs[String(rb.key)] = rb
+		_npc_vitals_backfill(rb, String(rb.key))
+		var all_keys: Array = (run.world_npcs as Dictionary).keys()
+		for nd in DataManager.npcs:
+			all_keys.append(String(nd.key))
+		if all_keys.size() > 1:
+			_try_world_edge(String(rb.key), String(all_keys[rng.randi_range(0, all_keys.size() - 1)]), {})
+	if run.npcs.has("jianshu") and not _seal_for_fixed("jianshu").is_empty():
+		(run.npcs["jianshu"] as Dictionary)["reunion_pending"] = true
+
+## 认出结算(入册/首遇/开局三出口共用, 幂等): 按档放认人台词 + 100% 保留可见好感(§4.2「情深许」直达,
+## 道侣位/魂印契约今世仍要重新处出来 —— stage 封顶相恋段) + 上照壁 + 纪事行。b 选过的先只演档一, 升档词留给下次推进。
+func _reunion_recognize(key: String) -> void:
+	if not run.npcs.has(key):
+		return
+	var npc: Dictionary = run.npcs[key]
+	if bool(npc.get("reunion", false)):
+		return
+	var rec := _seal_for_reborn(npc) if bool(npc.get("soulmark", false)) else _seal_for_fixed(key)
+	if rec.is_empty():
+		return
+	var tier := _seal_tier(_seal_strength(rec))
+	var waited := bool(npc.get("reunion_wait", false))
+	if waited:
+		tier = 0
+	npc["reunion"] = true
+	npc["reunion_tier"] = tier
+	npc["reunion_upgrade"] = waited
+	npc.erase("reunion_wait")
+	var opening := bool(npc.get("reunion_pending", false))
+	npc.erase("reunion_pending")
+	npc.aff = maxf(float(npc.get("aff", 0.0)), 1000.0)
+	npc.stage = mini(maxi(int(npc.get("stage", 0)), 4), 4)
+	npc.love = maxf(float(npc.get("love", 0.0)), 1000.0)
+	npc.hidden = maxf(float(npc.get("hidden", 0.0)), _seal_strength(rec))
+	var texts: Dictionary = DataManager.reunion_texts
+	var line := ""
+	var fx: Dictionary = texts.get("fixed", {})
+	if fx.has(key):
+		var fe: Dictionary = fx[key]
+		if opening and fe.has("opening"):
+			line = String(fe.get("opening", ""))
+		else:
+			var fl: Array = fe.get("lines", [])
+			if not fl.is_empty():
+				line = String(fl[clampi(tier, 0, fl.size() - 1)])
+	if line == "":
+		var tiers: Array = texts.get("tiers", [])
+		if tiers.size() > tier and not ((tiers[tier] as Dictionary).get("lines", []) as Array).is_empty():
+			var gl: Array = (tiers[tier] as Dictionary).get("lines", [])
+			line = String(gl[rng.randi_range(0, gl.size() - 1)])
+		else:
+			line = "四目相对, 人海忽然安静下来 —— 有些账, 三生石替你们记着。"
+	_log("◆ " + _reunion_sub(line, key, rec))
+	_queue_wall_event("reunion", {"npc": npc_name(key), "life": String.num_int64(int(rec.get("seal_life", 0)))})
+	changed.emit()
+
+## 重逢月度排程: ①季忘川开局 pending 兑现 ②「迟疑」3 月后甜向补一行(零数值) ③ H08 集市擦肩 6%/月。
+## 铁律: 每月恒定消费一次 rng(候选检查在 roll 之后, 关闭重逢不改变已开重逢世道) —— 仿 _first_meet_roll。
+func _reunion_tick() -> void:
+	if is_ended():
+		return
+	if run.npcs.has("jianshu") and bool(run.npcs["jianshu"].get("reunion_pending", false)):
+		_reunion_recognize("jianshu")
+	if run.has("reunion_sweet_m") and int(run.age_m) >= int(run.reunion_sweet_m):
+		var skey := String(run.get("reunion_sweet_key", ""))
+		run.erase("reunion_sweet_m")
+		run.erase("reunion_sweet_key")
+		var sw: Array = ((DataManager.reunion_texts.get("c_sweet", {}) as Dictionary)).get("lines", [])
+		if not sw.is_empty():
+			_report(_reunion_sub(String(sw[rng.randi_range(0, sw.size() - 1)]), skey, {}))
+	if rng.randf() >= float(tune("reunion_month_chance", 0.06)):
+		return
+	var cand := ""
+	if run.has("world_npcs"):
+		for k in (run.world_npcs as Dictionary).keys():
+			var e: Dictionary = (run.world_npcs as Dictionary)[k]
+			if bool(e.get("soulmark", false)) and not bool(e.get("dead", false)):
+				cand = String(k)
+				break
+	if cand == "":
+		return
+	var hb: Dictionary = DataManager.reunion_texts.get("h08", {})
+	if hb.is_empty() or (hb.get("opts", []) as Array).is_empty():
+		return
+	_fire_interrupt(String(hb.get("title", "魂印 · 似曾相识")), _reunion_sub(String(hb.get("text", "")), cand, {}), hb.get("opts", []), "reunion", {"key": cand})
 
 # ---------------------------------------------------------------- 游历(游历系统: 行动方案第 7 格 —— 名录的主动泵, 全程静默零弹窗)
 
@@ -3883,6 +4083,7 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 		run.surname = carry_sur
 		run.given = carry_giv
 	_seed_world()   # 世界 NPC 池: 未识亦在世, 彼此有关系
+	_seed_reunion()   # 魂印跨世: 历世烙印者的转世体投进本世地图池(§4.2), 固定者挂开局 pending
 	_wall_seed_opening()   # 入世时照壁正热闹: 预置旧帖(不入月报)
 	_inv_add("chunjiu", "凡", 10)   # 初始家底: 春韭种子 ×10(留种/烹「素炒春韭」皆可用)
 	_log("—— 第 %d 世: 宗主在山道上又捡回了一个孩子。出身【%s】, 灵根 ×%.2f(%s), 16 岁测灵入炼气 ——" % [run.life, run.origin, run.root, root_display()])
@@ -4026,6 +4227,9 @@ func _ending(kind: String) -> void:
 	var endings: Dictionary = meta.get("endings", {})
 	endings[kind] = int(endings.get(kind, 0)) + 1
 	meta.endings = endings
+	for rec in meta.get("seals", []):   # 魂印跨世: 本世烙印盖结局戳 —— 来世强度=隐藏好感×继承率(§4.2)
+		if int(rec.get("seal_life", 0)) == int(run.life) and String(rec.get("end_kind", "")) == "":
+			rec.end_kind = kind
 	SaveSystem.save_meta(meta)
 	SaveSystem.save_run(run)
 	var k := kpi_summary()

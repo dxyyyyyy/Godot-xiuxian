@@ -11,6 +11,7 @@ var origins: Array = []
 var npcs: Array = []
 var relations: Array = []
 var rel_tags: Array = []
+var reunion_texts: Dictionary = {}
 var events: Array = []
 var seeds: Array = []
 var recipes: Array = []
@@ -43,6 +44,7 @@ func _ready() -> void:
 	npcs = _load_array("res://data/npcs.json")
 	relations = _load_array("res://data/relations.json")   # NPC 之间的关系网(手写预设, 无向边)
 	rel_tags = _load_array("res://data/rel_tags.json")     # 关系标签统一词表(静态/动态/兜底/亲族/夫妻 单一事实源)
+	reunion_texts = _load_dict("res://data/reunion_texts.json")   # 魂印跨世重逢文本(三档/六人认人通道/H08 弹窗/壁帖/三生石)
 	events = _load_array("res://data/events.json")
 	seeds = _load_array("res://data/seeds.json")
 	recipes = _load_array("res://data/recipes.json")
