@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://axsmoketest01"]
+
+[ext_resource type="Script" path="res://tests/ax_smoke.gd" id="1_axs"]
+
+[node name="AxSmoke" type="Node"]
+script = ExtResource("1_axs")

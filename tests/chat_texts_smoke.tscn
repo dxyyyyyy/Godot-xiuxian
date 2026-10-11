@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bchatpoolsmk01"]
+
+[ext_resource type="Script" path="res://tests/chat_texts_smoke.gd" id="1_cts"]
+
+[node name="ChatTextsSmoke" type="Node"]
+script = ExtResource("1_cts")

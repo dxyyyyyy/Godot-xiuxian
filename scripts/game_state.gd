@@ -100,6 +100,8 @@ func sync_discoveries() -> void:
 	for rid in f.get("eaten", {}):
 		_discover_recipe(String(rid))
 	for r in DataManager.recipes:
+		if String(r.get("tier", "")) == "dark":
+			continue   # 黑暗料理不随境界自动点亮 —— 只认亲手烹出(dishes/eaten 回填), 图鉴 §黑暗料理「对玩家隐藏」
 		if int(Game.run.get("realm", 0)) >= int(r.get("min_realm", 0)):
 			_discover_recipe(String(r.id))
 

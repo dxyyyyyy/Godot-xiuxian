@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://lfstonesmk01"]
+
+[ext_resource type="Script" path="res://tests/lifestone_smoke.gd" id="1_lsm"]
+
+[node name="LifestoneSmoke" type="Node"]
+script = ExtResource("1_lsm")

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bdarksmoke001"]
+
+[ext_resource type="Script" path="res://tests/dark_smoke.gd" id="1_drk"]
+
+[node name="DarkSmoke" type="Node"]
+script = ExtResource("1_drk")

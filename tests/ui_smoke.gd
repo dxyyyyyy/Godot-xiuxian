@@ -33,6 +33,9 @@ func _run() -> void:
 		if Game.seed_in_season(s, season):
 			Game.farm_plant(0, String(s.id))
 			break
+	Game.farm().stones = int(Game.farm().stones) + 5000
+	Game.farm().inv = {String(DataManager.seeds[0].id): {"凡": 5}}   # v2.9.6 开垦吃自种灵植
+	Game.pill_buy()        # v2.9.6 坊市突破丹(不限购, 挂 check_pct)
 	Game.farm_reclaim()
 	Game.farm_sell_all()
 	Game._stoves()

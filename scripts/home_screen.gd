@@ -94,7 +94,7 @@ func _plot_tile(p: Dictionary, idx: int) -> PanelContainer:
 		vb.add_child(UiKit.circle(40, UiKit.GRAY_200, UiKit.GRAY_300, "lock", 18, UiKit.GRAY_400))
 		if can:
 			vb.add_child(UiKit.label("荒地 · 开垦", 12, UiKit.PINK_600, 600, HORIZONTAL_ALIGNMENT_CENTER))
-			vb.add_child(UiKit.label("%d 灵石" % cost, 11, UiKit.GOLD_600, 500, HORIZONTAL_ALIGNMENT_CENTER))
+			vb.add_child(UiKit.label("%d 灵石 + 灵植 %d 株(存 %d)" % [cost, Game.farm_reclaim_crops(), Game.farm_inv_total()], 11, UiKit.GOLD_600, 500, HORIZONTAL_ALIGNMENT_CENTER))
 		else:
 			vb.add_child(UiKit.label("未开垦", 12, UiKit.GRAY_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
 			var need := Game.farm_plot_need_realm()
@@ -225,19 +225,22 @@ func _stove_tile(stoves: Array, i: int) -> PanelContainer:
 		_tile_click(tile, func() -> void: _open_cook_picker(i))
 		return tile
 
+	# 黑暗料理未揭晓: 灶上只显「？？？」—— 不上菜图、不露菜名与效果(图鉴 §黑暗料理)
+	var hidden_dark: bool = String(dish.get("tier", "")) == "dark" and not Game.dark_found(String(dish.get("id", "")))
 	# 食物图标占主视觉: 放大到 72px 并居中
-	var img := UiKit.sprite("res://assets/sprites/recipes/%s.svg" % String(dish.get("id", "")), 72)
-	if img:
-		if not Game.stove_done(i):
-			img.modulate = Color(1, 1, 1, 0.55)   # 烹制中半透明, 出锅全彩
-		var ic := CenterContainer.new()
-		ic.custom_minimum_size = Vector2(0, 72)
-		ic.add_child(img)
-		vb.add_child(ic)
+	if not hidden_dark:
+		var img := UiKit.sprite("res://assets/sprites/recipes/%s.svg" % String(dish.get("id", "")), 72)
+		if img:
+			if not Game.stove_done(i):
+				img.modulate = Color(1, 1, 1, 0.55)   # 烹制中半透明, 出锅全彩
+			var ic := CenterContainer.new()
+			ic.custom_minimum_size = Vector2(0, 72)
+			ic.add_child(img)
+			vb.add_child(ic)
 	# 名字与阶级同栏
 	var name_row := HBoxContainer.new()
 	name_row.add_theme_constant_override("separation", 6)
-	var nl := UiKit.label(String(dish.name), 13, UiKit.PINK_700, 600)
+	var nl := UiKit.label(Game.dish_display_name(dish), 13, UiKit.PINK_700, 600)
 	nl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	nl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_row.add_child(nl)
@@ -258,7 +261,7 @@ func _stove_tile(stoves: Array, i: int) -> PanelContainer:
 		return tile
 
 	# 已出锅: 效果 + 收取
-	var eff := UiKit.label(String(dish.get("effect", "")), 11, UiKit.PINK_400)
+	var eff := UiKit.label("看不懂的黑暗造物 —— 收了才知道" if hidden_dark else String(dish.get("effect", "")), 11, UiKit.PINK_400)
 	eff.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vb.add_child(eff)
 	vb.add_child(_mini_button("收取入库", func() -> void: Game.kitchen_collect(i)))
@@ -365,7 +368,29 @@ func _open_cook_picker(stove_idx: int) -> void:
 			"disabled": missing != "" or not learned,
 			"cb": func() -> void: _pick_cook(stove_idx, String(r.id)),
 		})
+	# 黑暗料理「？？？」暗格: 隐藏组合试错 —— 库存恰好凑齐才亮, 不露菜名/用料/效果(图鉴 §黑暗料理)
+	for rid_v in Game.dark_cookable():
+		var rid: String = rid_v
+		var dr: Dictionary = DataManager.recipe(rid)
+		rows.append({
+			"content": _dark_cell_content(dr),
+			"disabled": false,
+			"cb": func() -> void: _pick_cook(stove_idx, rid),
+		})
 	_open_picker("灶 %d · 开烹（已习得且足料可烹）" % (stove_idx + 1), rows, 3)
+
+
+## 黑暗料理「？？？」暗格: 只给一句朦胧风味提示(=该道的发现方式文案), 点了直接下锅, 收取时才揭晓
+func _dark_cell_content(r: Dictionary) -> Control:
+	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 3)
+	vb.add_child(UiKit.label("？？？", 14, UiKit.INK, 600, HORIZONTAL_ALIGNMENT_CENTER))
+	vb.add_child(UiKit.pill("暗谱", UiKit.WHITE, UiKit.INK, 9))
+	var hint := UiKit.label(String(r.get("acquire", "")), 11, UiKit.GRAY_400, 400, HORIZONTAL_ALIGNMENT_CENTER)
+	hint.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	vb.add_child(hint)
+	return vb
 
 
 ## 菜谱单元格（一行三个）：名称 + 阶层/门槛标签 / 效果 / 用料 / 状态。

@@ -10,7 +10,7 @@ var _detail_speed_prev := 0
 
 
 func _build_content(vb: VBoxContainer) -> void:
-	vb.add_child(bleed_head("图鉴", "灵植与菜谱，发现制。"))
+	vb.add_child(bleed_head("图鉴", "灵植、菜谱与功法，发现制。"))
 
 	var section := bleed_section()
 	var sv := VBoxContainer.new()
@@ -25,6 +25,9 @@ func _build_content(vb: VBoxContainer) -> void:
 	var ib := UiKit.seg_button("灵植", kind_group, _mode == "items")
 	ib.pressed.connect(_set_mode.bind("items"))
 	row.add_child(ib)
+	var gb := UiKit.seg_button("功法", kind_group, _mode == "gongfa")
+	gb.pressed.connect(_set_mode.bind("gongfa"))
+	row.add_child(gb)
 	sv.add_child(row)
 
 	_grid = GridContainer.new()
@@ -62,8 +65,12 @@ func _rebuild() -> void:
 		c.queue_free()
 	if _mode == "recipes":
 		for r in DataManager.recipes:
-			var found: bool = GameState.discovered_recipes.has(String(r.id)) or int(Game.run.get("realm", 0)) >= int(r.get("min_realm", 0))
+			# 黑暗料理(min_realm=-1)只认真实发现 —— 修「境界达标恒真」漏洞, 未揭晓前图鉴只给剪影(图鉴 §黑暗料理)
+			var found: bool = GameState.discovered_recipes.has(String(r.id)) if String(r.get("tier", "")) == "dark" else (GameState.discovered_recipes.has(String(r.id)) or int(Game.run.get("realm", 0)) >= int(r.get("min_realm", 0)))
 			_grid.add_child(_recipe_tile(r, found))
+	elif _mode == "gongfa":
+		for def in DataManager.gongfa:
+			_grid.add_child(_gongfa_tile(def))
 	else:
 		for s in DataManager.seeds:
 			_grid.add_child(_item_tile(s, GameState.discovered_items.has(String(s.id))))
@@ -147,6 +154,84 @@ func _item_tile(s: Dictionary, found: bool) -> Control:
 		tile.add_child(_clip_label("？？？", 12, UiKit.GRAY_400, 600, 1))
 		return _tappable(tile, _open_locked_item.bind(s))
 	return tile
+
+
+## 功法瓦片(无图谱): 玉册图标三态 —— 未得灰剪影 / 残卷粉底 / 研通金底。
+func _gongfa_tile(def: Dictionary) -> Control:
+	var tile := _tile_shell()
+	var id := String(def.id)
+	var owned: bool = not Game.run.is_empty() and Game.run.has("gongfa") and (id in Array(Game.gongfa().get("owned", [])))
+	var mastered: bool = owned and Game.gongfa_mastered(id)
+	var equipped: bool = owned and String(Game.gongfa().get("equipped", "")) == id
+	if owned:
+		tile.add_child(UiKit.circle(TILE_IMG, UiKit.GOLD_200 if mastered else UiKit.PINK_100, UiKit.GOLD_500 if mastered else UiKit.PINK_200, "jade_tablet", 24, UiKit.GOLD_600 if mastered else UiKit.PINK_400))
+		tile.add_child(_clip_label(String(def.name), 12, UiKit.PINK_700, 600, 2))
+		tile.add_child(UiKit.pill("主功法" if equipped else ("研通" if mastered else "残卷"), UiKit.WHITE, UiKit.GOLD_500 if equipped else (UiKit.GREEN_500 if mastered else UiKit.PINK_400), 10))
+		tile.add_child(_clip_label("聚灵 ×%.2f" % float(def.get("mult", 1.0)), 11, UiKit.PINK_400, 400, 1))
+		return _tappable(tile, _open_gongfa_detail.bind(def))
+	tile.add_child(_silhouette())
+	tile.add_child(_clip_label("？？？", 12, UiKit.GRAY_400, 600, 1))
+	tile.add_child(UiKit.pill("功法", UiKit.WHITE, UiKit.GRAY_400, 10))
+	tile.add_child(_clip_label("合成需残页 %d 页" % int(def.get("pages", 0)), 11, UiKit.GRAY_400, 400, 1))
+	return _tappable(tile, _open_locked_gongfa.bind(def))
+
+
+## ---- 功法详情弹窗(点击已得功法): 倍率/研习进度/风味札记 ----
+
+func _open_gongfa_detail(def: Dictionary) -> void:
+	_close_detail()
+	if Game.speed > 0:
+		_detail_speed_prev = Game.speed
+		Game.set_speed(0)
+	var dlg := UiKit.dialog_layer(self, 300.0)
+	_detail = dlg.layer
+	UiKit.dim_click_close(dlg.dim, _close_detail)
+	var cv: VBoxContainer = dlg.vb
+	var id := String(def.id)
+	var mult := float(def.get("mult", 1.0))
+	var mastered := Game.gongfa_mastered(id)
+	var equipped: bool = String(Game.gongfa().get("equipped", "")) == id
+	cv.add_child(UiKit.circle(72, UiKit.GOLD_200 if mastered else UiKit.PINK_100, UiKit.GOLD_500 if mastered else UiKit.PINK_200, "jade_tablet", 30, UiKit.GOLD_600 if mastered else UiKit.PINK_400))
+	cv.add_child(UiKit.label(String(def.name), 18, UiKit.PINK_700, 600, HORIZONTAL_ALIGNMENT_CENTER))
+	var pills := HBoxContainer.new()
+	pills.alignment = BoxContainer.ALIGNMENT_CENTER
+	pills.add_theme_constant_override("separation", 6)
+	pills.add_child(UiKit.pill("聚灵 ×%.2f" % mult, UiKit.WHITE, UiKit.GOLD_500, 11, 600))
+	pills.add_child(UiKit.pill("主功法" if equipped else ("研通" if mastered else "残卷"), UiKit.WHITE, UiKit.GREEN_500 if mastered else UiKit.PINK_400, 11, 600))
+	cv.add_child(pills)
+	cv.add_child(UiKit.vspace(2))
+	cv.add_child(_detail_line("武力", "+%.0f%%(§5.4 战力加成)" % ((mult - 1.0) * 100.0)))
+	cv.add_child(_detail_line("研习", "%s · 研速见洞府藏经阁" % Game.gongfa_prog_txt(id)))
+	cv.add_child(_detail_line("合成", "功法残页 ×%d" % int(def.get("pages", 0))))
+	cv.add_child(_detail_line("札记", String(def.get("desc", ""))))
+	cv.add_child(UiKit.vspace(4))
+	cv.add_child(_mini_button("关闭"))
+
+
+## 未得功法: 剪影 + 获取方式提示, 不剧透名称/倍率。
+func _open_locked_gongfa(def: Dictionary) -> void:
+	_close_detail()
+	if Game.speed > 0:
+		_detail_speed_prev = Game.speed
+		Game.set_speed(0)
+	var dlg := UiKit.dialog_layer(self, 300.0)
+	_detail = dlg.layer
+	UiKit.dim_click_close(dlg.dim, _close_detail)
+	var cv: VBoxContainer = dlg.vb
+	cv.add_child(UiKit.circle(72, UiKit.GRAY_200, UiKit.GRAY_300, "jade_tablet", 30, UiKit.GRAY_400))
+	cv.add_child(UiKit.label("？？？", 18, UiKit.GRAY_400, 600, HORIZONTAL_ALIGNMENT_CENTER))
+	var pills := HBoxContainer.new()
+	pills.alignment = BoxContainer.ALIGNMENT_CENTER
+	pills.add_child(UiKit.pill("功法 · 未得", UiKit.WHITE, UiKit.GRAY_400, 11, 600))
+	cv.add_child(pills)
+	cv.add_child(UiKit.vspace(2))
+	cv.add_child(UiKit.label("获取方式", 13, UiKit.PINK_600, 600))
+	cv.add_child(UiKit.label("· 残页合成: 攒 %d 页功法残页, 库房「功法·藏经」裱卷" % int(def.get("pages", 0)), 12, UiKit.INK))
+	if bool(def.get("market", false)):
+		cv.add_child(UiKit.label("· 坊市书卷: 有缘人可整卷购入", 12, UiKit.INK))
+	cv.add_child(UiKit.label("· 残页四源: 坊市/地摊 · 秘境大获 · 秋期论道 · 道侣赠礼", 12, UiKit.INK))
+	cv.add_child(UiKit.vspace(4))
+	cv.add_child(_mini_button("关闭"))
 
 
 func _tier_color(tier: String) -> Color:

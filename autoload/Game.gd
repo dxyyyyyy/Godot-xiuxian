@@ -13,12 +13,16 @@ signal interrupted(event: Dictionary)   # {title,text,options:Array,kind,data}
 
 const SCHEMA := 4
 const START_AGE_M := 192                 # 16 岁测灵根入道(月)
-const ENDING_MULT := {"飞升": 2.0, "圆满隐退": 1.2, "渡劫陨落": 0.5, "寿尽坐化": 0.3}  # §4.2 未改
+const ENDING_MULT := {"飞升": 2.0, "圆满隐退": 1.2, "渡劫陨落": 0.5, "寿尽坐化": 0.3, "开炉": 2.0, "开炉·回甘": 2.0}  # §4.2 未改; 开炉双结局随暗线 v0.2 §4.1(真结局=飞升同档×2, 回甘软着陆非 Bad End)
 const START_DAO := 100                   # 新档起始道韵(入世即可购灵根/特质的预算)
 const FORGE_COST := 20                   # 铸体: 20 道韵 → 灵根+0.1(一世)
 const FORGE_STEP := 0.1
+const FORGE_CAP := 5                     # 铸体每次转世限购 5 次(§2.3)
 const BLESS_COST := 50                   # 天道眷顾: 50 道韵 → 冲关率+2%(永久, §11)
 const BLESS_STEP := 0.02
+const BLESS_CAP := 5                     # 眷顾每次转世限购 5 次(效果永久叠加, 跨世可续购)
+const SCROLL_COST := 50                  # 功法残卷: 50 道韵 → 下一世开局残页 ×5(一世结算, 道韵商城留位转正)
+const SCROLL_PAGES := 5                  # 每卷残页数(转世卡限购 1 卷/世)
 const ELEMENTS := ["金", "木", "水", "火", "土"]
 ## 灵根即「身负几行」: 默认五行俱全(五灵根)免费; 每炼去一行更贵(边际 30/50/70/90, 累计 30/80/150/240)。
 ## 行数定聚灵系数(每炼一行 +0.25), 持有哪几行定灵田亲和覆盖面 —— 五行广而垫底, 单行窄而极强。
@@ -104,6 +108,9 @@ func _ensure_run() -> void:
 		run.root_count = int(run.roots.size())
 	if not run.has("traits"):
 		run.traits = []   # 天生特质(一世, 转世卡兑换; 老档无=没买)
+	if not run.has("gongfa"):
+		# 功法档案(一世): 功法系统实装前的老档补空默认; run.tech 原值恒为 1.0 不动, 不 bump SCHEMA
+		run.gongfa = {"pages": 0, "owned": [], "equipped": "", "prog": {}, "studying": ""}
 	if not run.has("facilities"):
 		run.facilities = {"julingzhen": 0, "lingquan": 0, "cangjingge": 0, "daiketingyuan": 0}
 	if not run.has("wall"):
@@ -1200,16 +1207,201 @@ func cave_upgrade(id: String) -> void:
 func cave_mult() -> float:
 	return 1.0 + facility_level_eff("julingzhen")
 
-## 藏经阁灰盒折算: 常驻顿悟率 +0/2/3/4.5pp(原研速 ×1/1.2/1.45/1.7 只作用功法研习, P1 落地后切回)
+## 藏经阁灰盒折算已退役(v2.9.5 功法实装): 折算项切回功法研习 research_mult(), 顿悟率只留气质位
 func insight_pp() -> float:
-	var pp := [0.0, 0.02, 0.03, 0.045]
-	return float(pp[clampi(facility_level("cangjingge"), 0, 3)]) + aura_self("insight")
+	return aura_self("insight")
 
 ## 待客庭院并行约会名额(levels: 0 级=1 名 … 3 级=4 名; 等级不跨世)
 func parlor_dates() -> int:
 	var f := DataManager.facility("daiketingyuan")
 	var levels: Array = f.get("levels", [1, 2, 3, 4])
 	return clampi(int(levels[clampi(facility_level("daiketingyuan"), 0, levels.size() - 1)]), 1, 4)
+
+# ---- 功法(详解卷 5.3, 数据 gongfa.json): 残页→合成→研习(藏经阁研速)→装备写 run.tech ----
+
+## 功法档案(一世, run.gongfa): pages=残页库存 owned=已合成 equipped=装备位(唯一主功法)
+## prog=研习进度(有效研月) studying=当前研席(同一时间只研一部)
+func gongfa() -> Dictionary:
+	return run.get("gongfa", {"pages": 0, "owned": [], "equipped": "", "prog": {}, "studying": ""})
+
+## 研通与否: 已合成且 prog 攒满档内 research 有效研月; 未研通=残卷态, 不可装备
+func gongfa_mastered(id: String) -> bool:
+	var g := gongfa()
+	if not (String(id) in Array(g.get("owned", []))):
+		return false
+	return float((g.get("prog", {}) as Dictionary).get(String(id), 0.0)) >= float(DataManager.gongfa_def(String(id)).get("research", 0.0))
+
+func gongfa_name(id: String) -> String:
+	return String(DataManager.gongfa_def(String(id)).get("name", String(id)))
+
+## 研习进度文案(月报/日志/洞府共用): 「已研 3.0/6.0 有效研月」
+func gongfa_prog_txt(id: String) -> String:
+	var p := float((gongfa().get("prog", {}) as Dictionary).get(String(id), 0.0))
+	return "已研 %.1f/%.1f 有效研月" % [p, float(DataManager.gongfa_def(String(id)).get("research", 0.0))]
+
+## 残页入账统一入口(月报来源各处自带); n 可为负, 钳 0 下限
+func gongfa_pages_add(n: int, why := "") -> void:
+	if n == 0:
+		return
+	var g := gongfa()
+	g.pages = maxi(0, int(g.get("pages", 0)) + n)
+	if why != "":
+		_report("功法残页 %+d(%s) —— 存 %d 页" % [n, why, int(g.pages)])
+
+## run.tech 由装备功法重导出 —— 死乘数退役, 装备位是唯一写入点(GDD §11 ×1–×3)
+func _recalc_tech() -> void:
+	var def := DataManager.gongfa_def(String(gongfa().get("equipped", "")))
+	run.tech = float(def.get("mult", 1.0)) if not def.is_empty() else 1.0
+
+## 坊市书卷区(GDD §5.3 坊市位): 残页购价 = 地摊事件价 relic_cost × 溢价(随境界水涨)
+func gongfa_page_price() -> int:
+	return relic_cost() * int(tune("market_page_mult", 2))
+
+func gongfa_page_buy() -> void:
+	if _blocked("购残页"):
+		return
+	var cost := gongfa_page_price()
+	if int(farm().stones) < cost:
+		_log("灵石不足: 功法残页一页 %d 灵石(存 %d)" % [cost, int(farm().stones)])
+		return
+	farm().stones = int(farm().stones) - cost
+	gongfa_pages_add(1)
+	_log("◇ 坊市购得功法残页 ×1(花 %d 灵石, 存 %d 页)" % [cost, int(gongfa().get("pages", 0))])
+	changed.emit()
+
+## 坊市上架功法整卷购入(得残卷未研通, 与合成同态; 仅标 market 的 6 部)
+func gongfa_market_buy(id: String) -> void:
+	if _blocked("购功法"):
+		return
+	id = String(id)
+	var def := DataManager.gongfa_def(id)
+	var g := gongfa()
+	if def.is_empty() or not bool(def.get("market", false)) or id in Array(g.get("owned", [])):
+		return
+	var cost := int(def.get("price", 0))
+	if int(farm().stones) < cost:
+		_log("灵石不足: 【%s】坊市售价 %d 灵石(存 %d)" % [gongfa_name(id), cost, int(farm().stones)])
+		return
+	farm().stones = int(farm().stones) - cost
+	var owned: Array = g.get("owned", [])
+	owned.append(id)
+	g.owned = owned
+	var opened := ""
+	if String(g.get("studying", "")) == "":
+		g.studying = id
+		opened = ", 已入研席"
+	_log("◇ 坊市购得【%s】(花 %d 灵石) —— 藏经阁研习 %d 有效研月可通%s" % [gongfa_name(id), cost, int(def.get("research", 0)), opened])
+	changed.emit()
+
+# ---------------------------------------------------------------- 坊市杂货(v2.9.6: 突破丹, GDD 6.0.4 留位转正; 「灵材」中间货币同日拍板取消)
+
+## 突破丹: 坊市购入不限量(v2.9.6 拍板, 原「每境界限购」废止 —— 约束靠境界水涨价与灵石), +10% 一次性冲关加成(§6.4.2 丹药项)
+## 与照骨羹同走 check_pct 检定通道: 未冲关不随月消散, 多购同类叠加, 冲关成功一并消费; 硬门槛「需突破丹或机缘」仍留 P1 复议
+## 突破丹价随境界水涨(残页 relic_cost 同款二次曲线, 基价锚在炼气):
+## 炼气 500 → 筑基 1125 → 金丹 2000 → 元婴 3125 → 化神 4500 → 炼虚 6125 → 合体 8000 → 渡劫 10125
+func pill_price() -> int:
+	var ord := int(realm().ordinal)
+	return int(round(float(econ("pill_price", 500)) * float(ord + 1) * float(ord + 1) / 4.0))
+
+func pill_buy() -> void:
+	if _blocked("购突破丹"):
+		return
+	var cost := pill_price()
+	if int(farm().stones) < cost:
+		_log("灵石不足: 突破丹一枚 %d 灵石, 现有 %d" % [cost, int(farm().stones)])
+		changed.emit()
+		return
+	farm().stones = int(farm().stones) - cost
+	var bonus := float(econ("pill_bonus", 0.10))
+	_buff_apply("check_pct", bonus, 0, "突破丹")
+	_log("◇ 坊市购得突破丹一枚服下(花 %d 灵石) —— 冲关成功率 +%.0f%%(可叠加), 破境方消" % [cost, bonus * 100.0])
+	changed.emit()
+
+## 装备主功法: 研通才可装; 唯一装备位, 切换免费; 聚灵/武力两公式即刻受益
+func gongfa_equip(id: String) -> void:
+	if _blocked("装备功法"):
+		return
+	id = String(id)
+	if not (id in Array(gongfa().get("owned", []))):
+		_log("尚未合成【%s】—— 残页在库房合成后才能研习装备" % gongfa_name(id))
+		return
+	if not gongfa_mastered(id):
+		_log("【%s】尚未研通(%s) —— 藏经阁研满方可装备" % [gongfa_name(id), gongfa_prog_txt(id)])
+		return
+	gongfa().equipped = id
+	_recalc_tech()
+	var mult := float(DataManager.gongfa_def(id).get("mult", 1.0))
+	_log("◇ 主功法切换为【%s】—— 聚灵 ×%.2f · 武力 +%.0f%%" % [gongfa_name(id), mult, (mult - 1.0) * 100.0])
+	changed.emit()
+
+## 残页合成: 扣页裱成残卷(入 owned 未研通); 研席空闲则顺手开研
+func gongfa_synthesize(id: String) -> void:
+	if _blocked("合成功法"):
+		return
+	id = String(id)
+	var def := DataManager.gongfa_def(id)
+	var g := gongfa()
+	if def.is_empty() or id in Array(g.get("owned", [])):
+		return
+	var need := int(def.get("pages", 0))
+	if int(g.get("pages", 0)) < need:
+		_log("残页不足: 【%s】需 %d 页, 存 %d 页" % [gongfa_name(id), need, int(g.get("pages", 0))])
+		return
+	g.pages = int(g.pages) - need
+	var owned: Array = g.get("owned", [])
+	owned.append(id)
+	g.owned = owned
+	if String(g.get("studying", "")) == "":
+		g.studying = id
+	_log("◇ 残页 %d 页裱成【%s】残卷 —— 藏经阁研习 %d 有效研月可通(存 %d 页)%s" % [
+		need, gongfa_name(id), int(def.get("research", 0)), int(g.pages),
+		", 已入研席" if String(g.studying) == id else ""])
+	changed.emit()
+
+## 研席起止: 切换不退进度
+func gongfa_study(id: String) -> void:
+	if _blocked("研习功法"):
+		return
+	id = String(id)
+	if not (id in Array(gongfa().get("owned", []))) or gongfa_mastered(id):
+		return
+	gongfa().studying = id
+	_log("◇ 入藏经阁研习【%s】(%s)" % [gongfa_name(id), gongfa_prog_txt(id)])
+	changed.emit()
+
+func gongfa_stop_study() -> void:
+	if _blocked("研习功法"):
+		return
+	var g := gongfa()
+	if String(g.get("studying", "")) == "":
+		return
+	_log("◇ 收卷离席 ——【%s】进度保留(%s)" % [gongfa_name(String(g.studying)), gongfa_prog_txt(String(g.studying))])
+	g.studying = ""
+	changed.emit()
+
+## 功法研速乘项(GDD §5.3/§6.4): 藏经阁 ×1/1.2/1.45/1.7 ×(1+研速 buff) —— 只推进研习, 不进聚灵公式
+func research_mult() -> float:
+	var levels: Array = DataManager.facility("cangjingge").get("levels", [0, 0.2, 0.45, 0.7])
+	var cang := 1.0 + float(levels[clampi(facility_level("cangjingge"), 0, levels.size() - 1)])
+	return cang * (1.0 + _buff_pct("research"))
+
+## 月度功法线(tick 2d): 研席推进 + 秋期论道(9 月) + 道侣赠页 —— 合成/装备/研席起止是玩家动作, 不在这里
+func _gongfa_tick() -> void:
+	var g := gongfa()
+	var sid := String(g.get("studying", ""))
+	if sid != "" and not gongfa_mastered(sid):
+		var prog: Dictionary = g.get("prog", {})
+		prog[sid] = minf(float(prog.get(sid, 0.0)) + research_mult(), float(DataManager.gongfa_def(sid).get("research", 0.0)))
+		g.prog = prog
+		if gongfa_mastered(sid):
+			_report("◆【%s】研通功成 —— 可去库房装备主功法" % gongfa_name(sid))
+	# 秋期论道(每年 9 月): 扶摇仙盟例会偶散功法残页(GDD §5.3 论道奖励)
+	if _cal_month() == 9 and not deterministic and rng.randf() < float(tune("lundao_page_chance", 0.3)):
+		gongfa_pages_add(1, "秋期论道偶得")
+	# 道侣赠礼(GDD §5.3 恋爱与养成互锁): 道侣在位时月度小概率从坊市捎来一页
+	var dk := _dao_key()
+	if dk != "" and not deterministic and rng.randf() < float(tune("daolu_page_chance", 0.05)):
+		gongfa_pages_add(1, "【%s】自坊市捎来" % npc_name(dk))
 
 # ---- 闲话壁(论坛体系统: 百话楼照壁, 呈现层零结算 · 永不弹窗 · 帖是「当世的」) ----
 
@@ -1383,7 +1575,7 @@ func _wound() -> void:
 
 func buffs_summary() -> String:
 	var buffs: Dictionary = run.get("buffs", {})
-	var names := {"cult_pct": "修为", "check_pct": "检定", "wuxing": "悟性", "eff_pct": "聚灵", "regen": "回复"}
+	var names := {"cult_pct": "修为", "check_pct": "检定", "wuxing": "悟性", "eff_pct": "聚灵", "regen": "回复", "research": "研速"}
 	var parts: Array = []
 	if recover_months() > 0:
 		parts.append("闭关注养·%d月" % recover_months())
@@ -1721,6 +1913,44 @@ func resolve_option(i: int) -> void:
 			else:
 				_bump_aff(lk, 10.0)
 				_log("◇ 说了些旧年趣事, 【%s】点点头: 「下回别把我忘啦。」(好感 +10)" % npc_name(lk))
+		"ax":
+			var axch: Dictionary = (run.get("ax", {}) as Dictionary).get("chain", {})
+			if axch.is_empty():
+				pass
+			elif String(axch.phase) == "choice":
+				var axentry := _ax_entry(String(axch.eid))
+				var axchoices: Array = axentry.get("choices", []) as Array
+				var axc: Dictionary = axchoices[clampi(i, 0, axchoices.size() - 1)]
+				var axbr: Dictionary
+				if axc.has("check"):   # 检定式选项: 成/败双分支(deterministic 恒成)
+					var axok := true if deterministic else rng.randf() < float(axc.check)
+					axbr = (axc.get("success", {}) if axok else axc.get("fail", axc.get("success", {}))) as Dictionary
+				else:   # 平铺式选项: 选项自带 beats/effects, 无失败面
+					axbr = axc
+				_log("◇ 抉择「%s」" % String(axc.get("t", "…")))
+				_qy_apply_effects(axbr.get("effects", {}))
+				axch.phase = "branch"
+				axch.branch = axbr.get("beats", [])
+				axch.idx = 0
+				run.ax.resume = true
+			else:
+				axch.idx = int(axch.idx) + 1
+				run.ax.resume = true
+		"dujie":
+			match i:
+				0:
+					_log("◇ 抉择「飞升渡劫」—— 你闭上眼, 引动了九重天雷。")
+					_do_breakthrough()
+				1:
+					var pcd := int(tune("dujie_panel_cd", 6))
+					run.dujie_panel_cd = int(run.age_m) + pcd
+					_log("◇ 抉择「拖延蓄力」—— 修为压着不引劫, %d 月后再问。" % pcd)
+				2:
+					_log("◇ 抉择「寿尽坐化」—— 你朝雷云拱了拱手, 转身下山。")
+					_ending("寿尽坐化")
+				3:
+					_log("◇ 抉择「开炉」—— 把这一劫, 还给灶上。")
+					_kailu()
 		"millennium":
 			run.farm.millennium = int(run.farm.millennium) + 1
 			_log("◆ 千年灵植入库 —— 可卖坊市 %d 灵石, 或赠礼(好感+80)。" % int(econ("millennium_price", 500)))
@@ -1737,6 +1967,8 @@ func resolve_option(i: int) -> void:
 				_log("◆ 闭关注养 %d 载 —— 方案封存为「认真修炼」, 其间不游历、不相闻问(赠礼/解契候出关再办)。" % (int(run.recover) / 12))
 	pending = {}
 	speed = _resume_speed
+	if bool((run.get("ax", {}) as Dictionary).get("resume", false)):   # AX 链续播点: 弹窗不能在 match 内点火(会被上面的 pending={} 抹掉), 收尾后统一继播(标记由泵自行消费)
+		_ax_resume()
 	changed.emit()
 
 ## 月末结算: 本月琐碎并为一条月报行进右侧「一世纪事」(2026-09-11: 替代暂停月报弹窗, 只存结果不存过程)
@@ -1793,7 +2025,9 @@ func default_origin() -> Dictionary:
 	return DataManager.origins[0] if not DataManager.origins.is_empty() else {"name": "宗门弟子", "root_coef": 1.0, "element": "木", "bonus_plot": false}
 
 
-func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice := {}, trait_ids := [], keep_name := true) -> void:
+func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice := {}, trait_ids := [], keep_name := true, gongfa_pages := 0) -> void:
+	forge_times = clampi(forge_times, 0, FORGE_CAP)   # 柜位限购: UI 之外也守住 §2.3 上限
+	bless_times = clampi(bless_times, 0, BLESS_CAP)
 	if origin.is_empty():
 		origin = default_origin()   # 出身设定已废: 一律宗门弟子
 	var nr := _normalize_roots(root_choice)
@@ -1802,7 +2036,8 @@ func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice
 	var trait_cost := 0
 	for tid in traits:
 		trait_cost += int(DataManager.traits_def(String(tid)).cost)
-	var spend := forge_times * FORGE_COST + bless_times * BLESS_COST + root_cost + trait_cost
+	var scroll_cost := SCROLL_COST if gongfa_pages > 0 else 0
+	var spend := forge_times * FORGE_COST + bless_times * BLESS_COST + root_cost + trait_cost + scroll_cost
 	if spend > int(meta.get("dao", 0)):
 		_log("道韵不足(需 %d, 有 %d)" % [spend, int(meta.get("dao", 0))])
 		return
@@ -1810,8 +2045,9 @@ func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice
 	meta.bless_pct = float(meta.get("bless_pct", 0.0)) + bless_times * BLESS_STEP
 	SaveSystem.save_meta(meta)
 	var trim_txt := "" if int(nr[0]) >= 5 else "炼灵根至 %d 行·" % int(nr[0])
-	_log("—— 前世遗产折价 %d 道韵: %s铸体×%d, 天道眷顾×%d(+%.0f%%冲关率)%s ——" % [spend, trim_txt, forge_times, bless_times, bless_times * BLESS_STEP * 100.0, ("·" + trait_display(traits)) if not traits.is_empty() else ""])
-	_start_life(origin, forge_times, root_choice, traits, keep_name)
+	var scroll_txt := ", 功法残卷(开局残页 %d)" % gongfa_pages if gongfa_pages > 0 else ""
+	_log("—— 前世遗产折价 %d 道韵: %s铸体×%d, 天道眷顾×%d(+%.0f%%冲关率)%s%s ——" % [spend, trim_txt, forge_times, bless_times, bless_times * BLESS_STEP * 100.0, ("·" + trait_display(traits)) if not traits.is_empty() else "", scroll_txt])
+	_start_life(origin, forge_times, root_choice, traits, keep_name, true, gongfa_pages)
 
 ## 开始界面「新开一世」: Meta 重置(道韵回到起始值, 历世/最佳境界全清)并起第 1 世(灵根五行俱全)。
 ## 只管内存与落盘; 文件级清档由 SaveSystem.clear_all() 先行。名字回默认(转世才沿用上一世名)。
@@ -1884,6 +2120,8 @@ func _tick_core() -> void:
 	run.qi = mini(qi_max(), _qi() + int(econ("qi_regen", 5)) + int(round(_buff_pct("regen"))))
 	# 2c) 灶上烹制推进: 已起火的锅逐月计时, 到期可收取
 	_kitchen_tick()
+	# 2d) 功法线: 研席逐月推进(藏经阁研速) + 秋期论道/道侣残页来源(详解卷 5.3)
+	_gongfa_tick()
 	# 3) 琐碎小事件: 每月 3% 顿悟/走火(+悟性 buff + 藏经阁折算) —— 入本月月报行(§3.3 不打断)
 	if not deterministic and rng.randf() < float(tune("monthly_event_chance", 0.03)) + _buff_pct("wuxing") + insight_pp():
 		if rng.randf() < 0.6:
@@ -1894,9 +2132,12 @@ func _tick_core() -> void:
 			var l := float(run.cult) * 0.12
 			run.cult = maxf(0.0, float(run.cult) - l)
 			_report("行功不稳 -%s" % _fmt(l))
-	# 4) 修为圆满 → 自动冲关(不打断挂机; 失败耗寿挂心魔+败中悟道+5%, 成功延寿清零)
+	# 4) 修为圆满 → 冲关: 非最终境自动引动(不打断挂机); 最终境=渡劫口 → AX-F5 强制弹出+四选一面板(backlog④, 8.3 v0.2 §4.0)
 	if realm_ready():
-		_do_breakthrough()
+		if is_final_realm():
+			_dujie_gate()
+		else:
+			_do_breakthrough()
 		if is_ended():
 			changed.emit()
 			return
@@ -1928,6 +2169,8 @@ func _tick_core() -> void:
 	_worldsim_tick()
 	_reunion_tick()   # 魂印跨世: 转世体擦肩/开局 pending 兑现/迟疑甜补(每月恒定 roll, 铁律同制)
 	_qy_tick()   # 奇缘族(全静默): 命中随机选选项直接结算入月报, 同月 ≤2 行(《奇缘事件设计》v0.2)
+	_ax_tick()   # 暗线五碎片弹框链(F1–F4 月抽; F5 走渡劫口强制弹出; deterministic 静默跳过, 8.3 v0.2 §0.2)
+	_ax_zhm_check()   # 灶火长明: 回甘来世开局演出(真结局专属旗标)
 	if rng.randf() < float(tune("world_npc_churn", 0.02)):
 		_world_churn()   # 世界脉动: 偶有新客搬来, 顺手攀一条交情
 	_aff_drift()
@@ -1963,6 +2206,115 @@ func _tick_core() -> void:
 
 # ---------------------------------------------------------------- 方案执行器
 
+## 玩家月历月(与 calendar()/上元年节帖同口径) —— 十四景的月窗口(months)与季节窗口都用它
+func _cal_month() -> int:
+	return (int(run.age_m) - START_AGE_M) % 12 + 1
+
+## 十四景选景(细案《恋爱系统》§4.1 + 《性格系统》§4.3): 地图随境界解锁(天境镜台=渡劫终章限定)、
+## 与会全员段位过门槛、月历/季节窗口过滤; 权重 = 景 weight × 与会者性格偏好加成(偏好景纯演出, 数值红线不动);
+## 无匹配回退炊烟台(百味宗·四季·相熟, 全时可去)。纯函数(cands=[{stage,persona}], 不读 run 态)便于冒烟测试直测。
+func _pick_date_scene(cands: Array, realm_idx: int, month: int, final_realm: bool) -> Dictionary:
+	var season := "春" if month >= 3 and month <= 5 else ("夏" if month >= 6 and month <= 8 else ("秋" if month >= 9 and month <= 11 else "冬"))
+	var pool: Array = []
+	for scn in DataManager.date_scenes:
+		var s: Dictionary = scn
+		if bool(s.get("final", false)) and not final_realm:
+			continue
+		var mid := String(s.get("map", ""))
+		if mid != "tianjing" and realm_idx < map_unlock_realm(mid):
+			continue
+		var ok := true
+		for c in cands:
+			if int((c as Dictionary).get("stage", 0)) < int(s.get("stage_min", 2)):
+				ok = false
+				break
+		if not ok:
+			continue
+		var months: Array = s.get("months", [])
+		if not months.is_empty():
+			var mhit := false
+			for mv in months:
+				if int(mv) == month:   # JSON 数值为 float, 沿用 qy 引擎的 int 比较惯用法
+					mhit = true
+			if not mhit:
+				continue
+		var seasons: Array = s.get("seasons", [])
+		if not seasons.is_empty() and not seasons.has(season):
+			continue
+		pool.append(s)
+	if pool.is_empty():
+		for scn in DataManager.date_scenes:
+			if String((scn as Dictionary).get("id", "")) == "chuiyantai":
+				return scn
+		return {}
+	var pref_bonus := float(tune("date_pref_bonus", 1.0))
+	var weights: Array = []
+	var total := 0.0
+	for s in pool:
+		var w := float(s.get("weight", 1.0))
+		var pref: Dictionary = s.get("pref", {})
+		for c in cands:
+			var persona: Dictionary = (c as Dictionary).get("persona", {})
+			for grp in pref:
+				if (pref[grp] as Array).has(String(persona.get(String(grp), ""))):
+					w += pref_bonus
+		weights.append(w)
+		total += w
+	var roll := rng.randf() * total
+	for i in range(pool.size()):
+		roll -= float(weights[i])
+		if roll <= 0.0:
+			return pool[i]
+	return pool[pool.size() - 1]
+
+## 约会差分取词: 固定 NPC 招牌 > 性格偏好专属 > 通用池随机; {npc}/{ming} 占位替换(persona 由调用方传, 便于测试)
+func _date_flavor(scn: Dictionary, key: String, persona: Dictionary) -> String:
+	var fixed: Dictionary = scn.get("fixed", {})
+	var pref: Dictionary = scn.get("pref", {})
+	var pref_lines: Dictionary = scn.get("pref_lines", {})
+	var line := ""
+	if (fixed as Dictionary).has(key):
+		line = String(fixed[key])
+	else:
+		for grp in pref:
+			var tag := String(persona.get(String(grp), ""))
+			if tag != "" and (pref[grp] as Array).has(tag) and (pref_lines as Dictionary).has(tag):
+				line = String(pref_lines[tag])
+				break
+		if line.is_empty():
+			var lines: Array = scn.get("lines", [])
+			if not lines.is_empty():
+				line = String(lines[rng.randi_range(0, lines.size() - 1)])
+	if line.is_empty():
+		return ""
+	return line.replace("{npc}", npc_name(key)).replace("{ming}", player_ming())
+
+## 交谈取词(细案《恋爱系统》§1.2 演出层, chat_texts.json): 固定 NPC 段位池(道侣段并 daily 专属日常)
+## → 性格语气池(biaoda→dairen→xingshi→dongxin 首个命中标签) → 通用段位池随机; {npc}/{ming} 占位替换。
+## persona 由调用方传(固定 NPC 读 arch、随机 NPC 读 run 快照, 仿 _fire_node_event 处的取法), 便于冒烟测试直测。
+func _chat_line(key: String, stage: int, persona: Dictionary) -> String:
+	var ct: Dictionary = DataManager.chat_texts
+	var pool: Array = []
+	var fx: Dictionary = (ct.get("fixed", {}) as Dictionary).get(key, {})
+	if not (fx as Dictionary).is_empty():
+		var st := clampi(stage, 0, 5)
+		pool = ((fx as Dictionary).get(str(st), []) as Array).duplicate()   # 复制后才并 daily, 免改写内存数据池
+		if st == 5:
+			pool.append_array((fx as Dictionary).get("daily", []) as Array)
+	if (pool as Array).is_empty():
+		for grp in ["biaoda", "dairen", "xingshi", "dongxin"]:
+			var tag := String(persona.get(String(grp), ""))
+			if tag != "":
+				var pl: Array = (ct.get("persona", {}) as Dictionary).get(tag, [])
+				if not (pl as Array).is_empty():
+					pool = pl
+					break
+	if (pool as Array).is_empty():
+		pool = (ct.get("generic", {}) as Dictionary).get(str(clampi(stage, 0, 5)), [])
+	if (pool as Array).is_empty():
+		return ""
+	return String((pool as Array)[rng.randi_range(0, (pool as Array).size() - 1)]).replace("{npc}", npc_name(key)).replace("{ming}", player_ming())
+
 func _execute_plan() -> void:
 	match String(run.get("plan", "pure")):
 		"cook":
@@ -1979,8 +2331,19 @@ func _execute_plan() -> void:
 					npc.talk_cd = int(tune("talk_cd", 3))
 					npc.talk_q = int(npc.get("talk_q", 0)) + 1
 					_bump_aff(String(key), float(tune("talk_gain", 6)))
+					# 交谈台词(chat_texts.json §1.2 演出层): 专注对象必出; 其余按 chat_line_other_rate 概率出, 免月报刷屏
+					# 行首已带对方名的台词不加「名:」前缀, 免月报里名字连写两遍
+					var fl := _chat_line(String(key), int(npc.stage), npc_arch(String(key)).get("persona", (npc.get("persona", {}) as Dictionary)))
+					var row := ""
+					if fl != "":
+						var nm := npc_name(String(key))
+						row = ("—— %s" % fl) if fl.begins_with(nm) else ("—— %s: %s" % [nm, fl])
 					if String(key) == fk:
 						_report("与【%s】谈心(好感+%d)" % [npc_name(String(key)), int(tune("talk_gain", 6))])
+						if row != "":
+							_report(row)
+					elif row != "" and rng.randf() < float(tune("chat_line_other_rate", 0.35)):
+						_report(row)
 			run.date_cd = int(run.date_cd) - 1
 			if int(run.date_cd) <= 0:
 				# 约会: 心动段(600)起解锁, 且只有男性 NPC 可赴约(恋爱/结侣仅限男性); 并行名额=待客庭院 1–4(§4.1), 第一顺位=专注, 其余按好感补足; 道侣在场则过修罗场检定
@@ -1999,25 +2362,35 @@ func _execute_plan() -> void:
 					ranked.push_front(f2)
 					if f2 != "" and ranked.size() > 0:
 						run.date_cd = int(tune("date_cd", 3))
-						var went: Array = []
+						var went: Array = []   # 赴约者 key(十四景: 小组同景同游)
 						var third := ""
 						for i in range(mini(parlor_dates(), ranked.size())):
 							var k3 := String(ranked[i])
 							_bump_aff(k3, float(tune("date_gain", 35)), "love")
-							went.append(npc_name(k3))
+							went.append(k3)
 							if third == "" and k3 != _dao_key():
 								third = k3
+						# 十四景选景(细案《恋爱系统》§4.1): 按地图解锁/全员段位/月历窗口过滤, 偏好景加权, 兜底炊烟台
+						var scn := _pick_date_scene(went.map(func(k): return {"stage": int(run.npcs[String(k)].stage), "persona": (run.npcs[String(k)].get("persona", {}) as Dictionary)}), int(run.realm), _cal_month(), is_final_realm())
+						var scn_name := String(scn.get("name", "灯会"))
 						if went.size() > 0:
-							_report("同游灯会(%d 人): %s 情意各+%.0f" % [went.size(), "、".join(went), float(tune("date_gain", 35))])
-						# 多人同游被撞破 → 火葬场: 发现者情分重挫, 吃瓜帖延迟 1 月上壁(人越多越容易被撞破)
+							var names: Array = []
+							for k3 in went:
+								names.append(npc_name(String(k3)))
+							_report("同游「%s」(%d 人): %s 情意各+%d" % [scn_name, went.size(), "、".join(names), int(tune("date_gain", 35))])
+							for k3 in went:
+								var fl := _date_flavor(scn, String(k3), (run.npcs[String(k3)].get("persona", {}) as Dictionary))
+								if fl != "":
+									_report("—— %s: %s" % [npc_name(String(k3)), fl])
+						# 多人同游被撞破 → 火葬场: 发现者情分重挫, 吃瓜帖延迟 1 月上壁(人越多越容易被撞破; 帖子带景名)
 						if went.size() >= 2:
 							var found_rate := minf(0.9, float(econ("date_found_rate", 0.45)) + (0.25 if went.size() >= 3 else 0.0))
 							if rng.randf() < found_rate:
-								var found := String(ranked[rng.randi_range(0, went.size() - 1)])
+								var found := String(went[rng.randi_range(0, went.size() - 1)])
 								var hit := float(tune("jealousy_hit", 200))
 								_bump_aff(found, -hit, "love")
-								_report("【%s】撞见了另一场灯会 —— 火葬场了(情分 -%.0f)" % [npc_name(found), hit])
-								_queue_wall_event("huozangchang", {"npc": npc_name(found)})
+								_report("【%s】撞见了「%s」的另一场约会 —— 火葬场了(情分 -%.0f)" % [npc_name(found), scn_name, hit])
+								_queue_wall_event("huozangchang", {"npc": npc_name(found), "scene": scn_name})
 						if third != "":
 							_luochang_check(third)
 		"travel":
@@ -2040,7 +2413,11 @@ func _execute_plan() -> void:
 					if adv >= float(tune("seek_big_line", 0.97)):
 						var g := layer_need() * 0.4
 						_add_cult(g)
-						_report("秘境一行有获, 修为 +%s(气血−%d)%s" % [_fmt(g), scost, _seek_forage()])
+						var page_txt := ""
+						if rng.randf() < float(tune("seek_page_chance", 0.35)):
+							gongfa_pages_add(1, "秘境拾得")
+							page_txt = " · 拾得功法残页 ×1"
+						_report("秘境一行有获, 修为 +%s(气血−%d)%s%s" % [_fmt(g), scost, _seek_forage(), page_txt])
 					elif adv < float(tune("seek_hurt_line", 0.79)):
 						_wound()   # 检定失败受伤: 气血−30, 善后抉择只管寿元/心魔
 						if not deterministic:
@@ -2436,22 +2813,63 @@ func seed_buy(seed_id: String) -> bool:
 	changed.emit()
 	return true
 
+## 开垦耗自种灵植株数(v2.9.6 拍板: 取消灵材, 开垦改吃自种灵植 —— 种地养地自循环, §6.1.1)
+func farm_reclaim_crops() -> int:
+	return int(econ("reclaim_crops", 2))
+
+## 仓库存灵植株数(千年灵植/妖丹另账, 不充当开垦材料)
+func farm_inv_total() -> int:
+	var n := 0
+	for seed_id in farm().inv:
+		n += _inv_seed_total(String(seed_id))
+	return n
+
+## 按市值升序扣灵植株数(品种基准价 × 品质倍数, 先吃最便宜的 —— 贵品种留给卖出; 调用方先校验够数)
+func _inv_take_crops(n: int) -> void:
+	var pool: Array = []
+	var mults: Dictionary = econ("grade_price_mult", {})
+	for seed_id in farm().inv.keys():
+		var sid := String(seed_id)
+		var base := float(DataManager.seed(sid).get("price", 0))
+		for grade in (farm().inv[sid] as Dictionary).keys():
+			var cnt := int((farm().inv[sid] as Dictionary)[grade])
+			if cnt > 0:
+				pool.append({"sid": sid, "grade": String(grade), "n": cnt, "val": base * float(mults.get(String(grade), 1.0))})
+	pool.sort_custom(func(a, b) -> bool: return float(a.val) < float(b.val))
+	var left := n
+	for p in pool:
+		if left <= 0:
+			break
+		var take := mini(left, int(p.n))
+		var stock: Dictionary = farm().inv[p.sid]
+		stock[p.grade] = int(stock[p.grade]) - take
+		if int(stock[p.grade]) <= 0:
+			stock.erase(p.grade)
+		if (farm().inv[p.sid] as Dictionary).is_empty():
+			farm().inv.erase(p.sid)
+		left -= take
+
 func farm_reclaim() -> void:
 	if _blocked("开垦"):
 		return
 	var cost := farm_reclaim_cost()
+	var crops := farm_reclaim_crops()
 	if cost < 0 or farm_open_count() >= farm_cap():
 		_log("地块已达当前境界上限(%d 块) —— 想扩地, 去突破(§6.1.1)" % farm_cap())
 		return
 	if int(farm().stones) < cost:
 		_log("灵石不足: 开垦需 %d, 现有 %d(卖余货换灵石)" % [cost, int(farm().stones)])
 		return
+	if farm_inv_total() < crops:
+		_log("灵植不足: 开垦需灵植 %d 株, 仓库存 %d 株(先种一茬再开荒)" % [crops, farm_inv_total()])
+		return
 	farm().stones = int(farm().stones) - cost
+	_inv_take_crops(crops)
 	for p in farm().plots:
 		if not bool(p.open):
 			p.open = true
 			break
-	_log("◇ 开垦新地块(第 %d 块), 花 %d 灵石" % [farm_open_count(), cost])
+	_log("◇ 开垦新地块(第 %d 块), 花 %d 灵石 + 自种灵植 %d 株" % [farm_open_count(), cost, crops])
 	changed.emit()
 
 func farm_sell(seed_id: String) -> void:
@@ -2610,6 +3028,8 @@ func _stoves() -> Array:
 		run.farm.eaten = {}
 	if not run.farm.has("dishes"):
 		run.farm.dishes = {}
+	if not run.farm.has("dark_found"):
+		run.farm.dark_found = {}   # 黑暗料理黑历史: 亲手烹出过的 dark 谱 id —— 未揭晓者灶面/月报只显「？？？」
 	return run.farm.stoves
 
 ## 洞府仓库: 菜谱 id → 份数(只存已收取的成菜, 食材仍在灵田库房)
@@ -2644,10 +3064,20 @@ func _mat_available(seed_id: String) -> int:
 				if String(s.type) == "flower":
 					t += _inv_seed_total(String(s.id))
 			return t
-		"any", "winter_any":
+		"any":
 			return _inv_type_count("food") + _inv_type_count("herb")
+		"winter_any":
+			return _inv_season_count("冬")   # 「冬·任何」做实: 只认冬播种子(全表仅雪里青, 种子图鉴)
 		_:
 			return _inv_seed_total(seed_id)
+
+## 某季节种子的库存总数(占位料 winter_any 用)
+func _inv_season_count(season: String) -> int:
+	var t := 0
+	for s in DataManager.seeds:
+		if (s.get("seasons", []) as Array).has(season):
+			t += _inv_seed_total(String(s.id))
+	return t
 
 ## 缺料提示(空串=足量); 同一菜谱内食材 id 不重复, 逐味检查即可
 func recipe_missing(r: Dictionary) -> String:
@@ -2676,6 +3106,17 @@ func _mat_take(seed_id: String, n: int) -> bool:
 					return true
 			return n <= 0
 		"any", "winter_any":
+			if seed_id == "winter_any":
+				for s in DataManager.seeds:   # 「冬·任何」只从冬播种子里扣(与 _mat_available 同口径)
+					if not (s.get("seasons", []) as Array).has("冬"):
+						continue
+					var wn := mini(_inv_seed_total(String(s.id)), n)
+					if wn > 0:
+						_inv_take(String(s.id), wn)
+						n -= wn
+					if n <= 0:
+						return true
+				return n <= 0
 			for typ in ["food", "herb"]:
 				for s in DataManager.seeds:
 					if String(s.type) != typ:
@@ -2696,10 +3137,51 @@ func _stove_dish(stove: int) -> Dictionary:
 		return {}
 	return DataManager.recipe(String(stoves[stove].get("recipe", "")))
 
-## 烹制耗时: 按菜谱档位取月数(economy_tuning.cook_months), 稀有度越高越久; 暗谱/缺失回落 1 月
+## 烹制耗时: 按菜谱档位取月数(economy_tuning.cook_months), 稀有度越高越久; 黑暗料理按低阶计(图鉴 6.2.5), 其余缺失回落 1 月
 func cook_months(r: Dictionary) -> int:
 	var cm: Dictionary = econ("cook_months", {"low": 1, "mid": 2, "high": 3})
-	return maxi(1, int(cm.get(String(r.get("tier", "low")), 1)))
+	var tier := String(r.get("tier", "low"))
+	if tier == "dark":
+		tier = "low"
+	return maxi(1, int(cm.get(tier, 1)))
+
+## 黑暗料理是否已揭晓(亲手烹出过) —— 未揭晓者灶面/月报一律只显「？？？」(图鉴 §黑暗料理: 对玩家隐藏)
+func dark_found(rid: String) -> bool:
+	return (run.farm.get("dark_found", {}) as Dictionary).has(rid)
+
+## 灶面/月报用的菜名: 黑暗料理未揭晓时只显「？？？」
+func dish_display_name(r: Dictionary) -> String:
+	if String(r.get("tier", "")) == "dark" and not dark_found(String(r.get("id", ""))):
+		return "？？？"
+	return String(r.get("name", ""))
+
+## 库存恰好凑齐的黑暗料理 id 列表(选谱面板「？？？」暗格与冒烟测试共用): 隐藏组合试错 —— 不预告, 凑齐才亮
+func dark_cookable() -> Array:
+	var out: Array = []
+	for r in DataManager.recipes:
+		if String(r.get("tier", "")) == "dark" and recipe_missing(r) == "":
+			out.append(String(r.id))
+	return out
+
+## 黑暗料理喜剧取词: which="text"(赠礼反应)/"moxiu"(猎奇反应)/"eat"(自吃)。
+## 百味乱炖走 assemble 三池 —— 按 GDD「台词每世随机拼装」, 一世拼一次缓存在 run.farm.dark_assembled。
+func dark_comedy(rid: String, which: String, npc_n: String) -> String:
+	var ev := DataManager.dark_event(rid)
+	if ev.is_empty():
+		return ""
+	var text := String(ev.get(which, ""))
+	if text == "" and ev.has("assemble"):
+		var cache: Dictionary = run.farm.get("dark_assembled", {})
+		if not cache.has(rid):
+			var parts: PackedStringArray = []
+			for pool in (ev.assemble as Array):
+				var ps: Array = pool
+				if not ps.is_empty():
+					parts.append(String(ps[rng.randi() % ps.size()]))
+			cache[rid] = " ".join(parts)
+			run.farm.dark_assembled = cache
+		text = String(cache.get(rid, ""))
+	return text.replace("{npc}", npc_n)
 
 ## 灶上是否已烹好可收取(旧档无 age 字段按已好处理)
 func stove_done(stove: int) -> bool:
@@ -2722,7 +3204,7 @@ func _kitchen_tick() -> void:
 			continue   # 已可收取, 静候玩家
 		st.age = int(st.get("age", 0)) + 1
 		if int(st.age) >= cook_months(DataManager.recipe(rid)):
-			_report("【%s】出锅可收取" % String(DataManager.recipe(rid).get("name", rid)))
+			_report("【%s】出锅可收取" % dish_display_name(DataManager.recipe(rid)))
 
 func kitchen_cook(stove: int, recipe_id: String) -> void:
 	if _blocked("烹饪"):
@@ -2734,10 +3216,10 @@ func kitchen_cook(stove: int, recipe_id: String) -> void:
 		_log("灶 #%d 上已有菜在烹/待收 —— 先收取入库, 再烹下一道" % (stove + 1))
 		return
 	var r := DataManager.recipe(recipe_id)
-	if r.is_empty() or String(r.tier) == "dark":
+	if r.is_empty():
 		return
 	if int(run.realm) < int(r.get("min_realm", 0)):
-		_log("【%s】尚未习得 —— 晋升【%s】后其谱自会入灶" % [String(r.name), String(DataManager.realm(int(r.min_realm)).name)])
+		_log("【%s】尚未习得 —— 晋升【%s】后其谱自会入灶" % [dish_display_name(r), String(DataManager.realm(int(r.min_realm)).name)])
 		return
 	var missing := recipe_missing(r)
 	if missing != "":
@@ -2747,7 +3229,10 @@ func kitchen_cook(stove: int, recipe_id: String) -> void:
 		_mat_take(String(m.seed), int(m.n))
 	_stoves()[stove].recipe = recipe_id
 	_stoves()[stove].age = 0
-	_log("◇ 灶 #%d 起火烹【%s】(%s) —— 需 %d 月, 到期点「收取」入洞府仓库" % [stove + 1, String(r.name), String(r.effect), cook_months(r)])
+	if String(r.tier) == "dark":
+		_log("◇ 灶 #%d 起火, 灶上只显「？？？」—— 说不上来要烹什么, 但总觉得能成 —— 需 %d 月, 到期点「收取」" % [stove + 1, cook_months(r)])
+	else:
+		_log("◇ 灶 #%d 起火烹【%s】(%s) —— 需 %d 月, 到期点「收取」入洞府仓库" % [stove + 1, String(r.name), String(r.effect), cook_months(r)])
 	changed.emit()
 
 func kitchen_collect(stove: int) -> void:
@@ -2760,25 +3245,39 @@ func kitchen_collect(stove: int) -> void:
 		return
 	if not stove_done(stove):
 		var left := cook_months(r) - int(_stoves()[stove].get("age", 0))
-		_log("【%s】还在灶上烹着 —— 还需 %d 月才得" % [String(r.name), left])
+		_log("【%s】还在灶上烹着 —— 还需 %d 月才得" % [dish_display_name(r), left])
 		changed.emit()
 		return
 	_stoves()[stove] = {}
 	var dishes := _dishes()
 	var rid := String(r.id)
 	dishes[rid] = int(dishes.get(rid, 0)) + 1
-	_log("◇ 灶 #%d 收取【%s】入洞府仓库(共 ×%d)" % [stove + 1, String(r.name), int(dishes[rid])])
+	_log("◇ 灶 #%d 收取【%s】入洞府仓库(共 ×%d)" % [stove + 1, dish_display_name(r), int(dishes[rid])])
+	if String(r.tier) == "dark" and not dark_found(rid):
+		# 黑暗料理首收揭晓(图鉴 §黑暗料理: 发现即解锁图鉴条目 + 一条「黑历史」收藏)
+		(run.farm.dark_found as Dictionary)[rid] = true
+		GameState.sync_discoveries()   # 仓库已入 dark 谱, 此处回填图鉴并亮红点
+		_report("◇ 黑历史 +1: 竟亲手烹出了传说中的黑暗料理【%s】—— 图鉴添暗谱一页" % String(r.name))
+		_log("◆ 黑历史收藏 +1: 【%s】 %s" % [String(r.name), String(r.get("note", ""))])
 	changed.emit()
 
 func kitchen_eat(recipe_id: String) -> void:
 	if _blocked("吃"):
 		return
 	var r := DataManager.recipe(recipe_id)
-	if r.is_empty() or String(r.tier) == "dark":
+	if r.is_empty():
 		return
 	var dishes := _dishes()
 	if int(dishes.get(recipe_id, 0)) <= 0:
 		_log("洞府仓库里没有【%s】" % String(r.name))
+		return
+	if String(r.tier) == "dark":
+		# 黑暗料理自吃: 无 buff、不进任何 buff 计算(图鉴 6.2.1), 只留一句喜剧纪事
+		dishes[recipe_id] = int(dishes.get(recipe_id, 0)) - 1
+		if int(dishes[recipe_id]) <= 0:
+			dishes.erase(recipe_id)
+		_log("◇ 吃了【%s】: %s" % [String(r.name), String(DataManager.dark_event(recipe_id).get("eat", "修为没涨, 人生阅历 +1。"))])
+		changed.emit()
 		return
 	if String(r.tier) == "high":
 		var eaten: Dictionary = run.farm.eaten   # _dishes() 已保证字段存在
@@ -2819,6 +3318,9 @@ func _apply_dish_fx(r: Dictionary) -> void:
 		"wuxing":
 			_buff_apply("wuxing", v, months)
 			gain = "顿悟率 +%dpp(%d 月)" % [int(round(v * 100.0)), months]
+		"research":
+			_buff_apply("research", v, months)
+			gain = "功法研速 +%d%%(%d 月) —— 研席逐月多推进(研习位在库房)" % [int(round(v * 100.0)), months]
 		"heal":
 			if v >= 999.0:
 				run.qi = qi_max()
@@ -2872,7 +3374,7 @@ func kitchen_gift(recipe_id: String) -> void:
 	if _recover_guard("赠礼"):
 		return
 	var r := DataManager.recipe(recipe_id)
-	if r.is_empty() or String(r.tier) == "dark":
+	if r.is_empty():
 		return
 	var dishes := _dishes()
 	if int(dishes.get(recipe_id, 0)) <= 0:
@@ -2896,8 +3398,24 @@ func kitchen_gift(recipe_id: String) -> void:
 	var fav := npc_taste_base(fk)
 	var hit: bool = Array(r.get("tags", [])).has(fav)
 	var v := int(tune("gift_gain", 30)) * (int(tune("gift_fav_mult", 2)) if hit else 1)
+	var comedy := ""
+	var suffix := ""
+	if String(r.tier) == "dark":
+		# 黑暗料理(图鉴 §黑暗料理): 好感 −3 是唯一代价, 换一段专属喜剧(永不锁好感、永不罚数值);
+		# 猎奇口味者(幽布衣等)反把黑暗料理当珍馐 —— 投喜级正向(势力卷 8.4)
+		var ev := DataManager.dark_event(recipe_id)
+		if fav == "猎奇":
+			v = int(tune("gift_gain", 30)) * int(tune("gift_fav_mult", 2))
+			comedy = dark_comedy(recipe_id, "moxiu", npc_name(fk))
+			suffix = "(猎奇! Ta 竟把黑暗料理当珍馐)"
+		else:
+			v = int(ev.get("aff", -int(tune("gift_dark_pen", 3))))
+			comedy = dark_comedy(recipe_id, "text", npc_name(fk))
 	_bump_aff(fk, float(v))
-	_log("◇ 将【%s】赠予【%s】, 好感+%d%s" % [String(r.name), npc_name(fk), v, ("(投喜! Ta 最爱「%s」味)" % fav) if hit else ""])
+	_log("◇ 将【%s】赠予【%s】, 好感%+d%s" % [String(r.name), npc_name(fk), v, ("(投喜! Ta 最爱「%s」味)" % fav) if hit else suffix])
+	if comedy != "":
+		_report("◇ 黑暗喜剧 · 【%s】收下【%s】: %s" % [npc_name(fk), String(r.name), comedy])
+		_log("◆ 黑暗喜剧 · 【%s】收下【%s】: %s" % [npc_name(fk), String(r.name), comedy])
 	changed.emit()
 
 # ---------------------------------------------------------------- 缘分(NPC 系统: 恋爱系统 v1.7 灰盒口径 —— 量程 0-1000 · 六态 · 首遇制 · 投喜 · 修罗场喜剧化)
@@ -3117,7 +3635,7 @@ func _neglect_check() -> bool:
 			return true
 	return false
 
-## 喜欢的甜头: 好感每跨过一道 100 的坎, 触发一次「心动时分」小事件(仅对象)
+## 喜欢的甜头: 好感每跨过一道 100 的坎, 触发一次「心动时分」小事件(仅对象)。文案外置 node_events.json(§7), 内嵌兜底
 func _focus_mile_check() -> bool:
 	var fk := _explicit_focus()
 	if fk == "" or not run.npcs.has(fk):
@@ -3126,13 +3644,13 @@ func _focus_mile_check() -> bool:
 	if not bool(npc.get("mile_pending", false)):
 		return false
 	npc.mile_pending = false
-	var stage_name := String(tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])[clampi(int(npc.get("stage", 0)), 0, 5)])
-	_fire_interrupt("心动时分 · %s" % npc_name(fk),
-		"好感悄悄跨过了一道坎(现 %.0f · %s) —— 与【%s】之间, 似乎有什么不一样了。此刻做点什么?" % [float(npc.aff), stage_name, npc_name(fk)],
-		[
-			{"t": "顺势靠近", "need": "多问一句心里话", "result": "好感 +10"},
-			{"t": "静待花开", "need": "不急这一时", "result": "把这份暖意记在心里"},
-		], "focus_mile", {"key": fk})
+	var fm := _node_tpl(DataManager.node_events.get("focus_mile", {}),
+		{"title": "心动时分 · {npc}",
+		"body": "好感悄悄跨过了一道坎(现 {aff} · {stage_name}) —— 与【{npc}】之间, 似乎有什么不一样了。此刻做点什么?",
+		"opts": [{"t": "顺势靠近", "need": "多问一句心里话", "result": "好感 +10"},
+			{"t": "静待花开", "need": "不急这一时", "result": "把这份暖意记在心里"}]},
+		fk, int(npc.get("stage", 0)), "")
+	_fire_interrupt(fm[0], fm[1], fm[2], "focus_mile", {"key": fk})
 	return true
 
 ## NPC 修行: 与主角完全同构 —— 修为逐月积累(主角节奏 ×npc_cult_mult), 圆满自动冲关,
@@ -3341,28 +3859,51 @@ func _advance_node(key: String) -> void:
 			var urec := _seal_for_fixed(key) if not bool(npc.get("soulmark", false)) else _seal_for_reborn(npc)
 			_log("◆ " + _reunion_sub(String(ub[rng.randi_range(0, ub.size() - 1)]), key, urec))
 
+## 门槛事件占位符替换(node_events.json 外置用): {npc}/{ming}/{stage_name}/{aff}(友情轨)/{love}(恋爱轨)/{moe}/{scene}
+func _node_fmt(t: String, key: String, stage: int, moe: String) -> String:
+	var names: Array = tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])
+	var e: Dictionary = run.npcs.get(key, {})
+	var s := String(t).replace("{npc}", npc_name(key)).replace("{ming}", player_ming()).replace("{stage_name}", String(names[clampi(stage, 0, 5)]))
+	s = s.replace("{aff}", "%.0f" % float(e.get("aff", 0.0))).replace("{love}", "%.0f" % float(e.get("love", 0.0)))
+	return s.replace("{moe}", moe).replace("{scene}", String(npc_arch(key).get("scene", "")))
+
+## 门槛事件模板取用: blk=node_events.json 某块, def=内嵌兜底(与原文案一字不差); 返回 [title, body, opts]
+func _node_tpl(blk: Dictionary, def: Dictionary, key: String, stage: int, moe: String) -> Array:
+	var src: Array = (blk.get("opts", []) as Array)
+	if (src as Array).is_empty():
+		src = (def.get("opts", []) as Array)
+	var opts: Array = []
+	for o in (src as Array):
+		var d: Dictionary = o
+		opts.append({"t": _node_fmt(String(d.get("t", "")), key, stage, moe), "need": String(d.get("need", "")), "result": String(d.get("result", ""))})
+	return [
+		_node_fmt(String(blk.get("title", def.get("title", ""))), key, stage, moe),
+		_node_fmt(String(blk.get("body", def.get("body", ""))), key, stage, moe),
+		opts
+	]
+
 ## 门槛事件(§1.4): 3 选 1 对话检定 —— 命中萌点 0.85 / 笨拙但真诚 0.70 / 本心直给 0.55(数值·M0 拍板进 tuning);
 ## 成功 ±50 直给并推进; 失败微幅波动、不重置好感、这道闸顺延(暂缓不消耗资格, 每 tick 重弹)。
+## 文案外置 node_events.json(2026-10), def 内嵌兜底与原文案一字不差; 检定概率不走文案表(归 tuning)。
 func _fire_node_event(key: String, stage: int) -> void:
-	var arch := npc_arch(key)
-	var names: Array = tune("aff_stages", ["陌生", "相识", "相熟", "心动", "相恋", "道侣"])
-	var to_name := String(names[clampi(stage + 1, 0, 5)])
-	var moe := String(arch.get("moe", "那个人"))
+	var moe := String(npc_arch(key).get("moe", "那个人"))
 	if stage == 4 and _dao_key() == "":
 		# 结契之约(道侣节点): 大事必须主角亲口应允 —— 弹框暂停时钟, 应允即成, 婉拒不罚顺延(dao_ask 同时豁免静默白名单)
-		_fire_interrupt("道侣之约 · %s" % String(arch.get("scene", "")),
-			"【%s】(%s · 情分 %.0f) —— 情缘已满, Ta 愿与%s缔结道侣之契, 从此结伴同修。是否应允?" % [npc_name(key), String(names[clampi(stage, 0, 5)]), float(run.npcs[key].get("love", 0.0)), player_ming()],
-			[
-				{"t": "应允结契", "need": "道侣位唯一 · 此生一人", "result": "结为道侣 · 段位推进「道侣」· 闲话壁贺帖"},
-				{"t": "婉拒再议", "need": "还未准备好", "result": "不罚不锁 · 情分照旧累积 · 时光闸顺延, 来日再提"},
-			], "node", {"key": key, "rates": [1.0, 0.0], "dao_ask": true})
+		var da := _node_tpl(DataManager.node_events.get("dao_ask", {}),
+			{"title": "道侣之约 · {scene}",
+			"body": "【{npc}】({stage_name} · 情分 {love}) —— 情缘已满, Ta 愿与{ming}缔结道侣之契, 从此结伴同修。是否应允?",
+			"opts": [{"t": "应允结契", "need": "道侣位唯一 · 此生一人", "result": "结为道侣 · 段位推进「道侣」· 闲话壁贺帖"},
+				{"t": "婉拒再议", "need": "还未准备好", "result": "不罚不锁 · 情分照旧累积 · 时光闸顺延, 来日再提"}]},
+			key, stage, moe)
+		_fire_interrupt(da[0], da[1], da[2], "node", {"key": key, "rates": [1.0, 0.0], "dao_ask": true})
 		return
-	_fire_interrupt("缘分节点 · %s" % String(arch.get("scene", "")),
-		"【%s】(%s · 好感 %.0f) —— 时光闸已到, 这一步迈不迈? 说到 Ta 心坎上, 关系便是另一番天地。" % [npc_name(key), String(names[clampi(stage, 0, 5)]), float(run.npcs[key].aff)],
-		[
-			{"t": "谈起「%s」" % moe, "need": "勾起 Ta 最在意的那件事", "result": "检定 85% · 成功好感+50 并推进段位 · 失败顺延"},
-			{"t": "本心直给", "need": "不加修饰, 坦陈心迹", "result": "检定 55% · 成功同上 · 失败顺延"},
-		], "node", {"key": key, "rates": [tune("node_moe_rate", 0.85), tune("node_base_rate", 0.55)]})
+	var ne := _node_tpl(DataManager.node_events.get("node", {}),
+		{"title": "缘分节点 · {scene}",
+		"body": "【{npc}】({stage_name} · 好感 {aff}) —— 时光闸已到, 这一步迈不迈? 说到 Ta 心坎上, 关系便是另一番天地。",
+		"opts": [{"t": "谈起「{moe}」", "need": "勾起 Ta 最在意的那件事", "result": "检定 85% · 成功好感+50 并推进段位 · 失败顺延"},
+			{"t": "本心直给", "need": "不加修饰, 坦陈心迹", "result": "检定 55% · 成功同上 · 失败顺延"}]},
+		key, stage, moe)
+	_fire_interrupt(ne[0], ne[1], ne[2], "node", {"key": key, "rates": [tune("node_moe_rate", 0.85), tune("node_base_rate", 0.55)]})
 
 ## 节点/时光闸/魂印 —— 命中即打断; 节点「满阈 + 闸到期」每 tick 重弹; 魂印走年终检定(道侣位 + 隐藏≥10000)
 func _npc_prompt_check() -> bool:
@@ -3675,6 +4216,21 @@ func _qy_cond_ok(c: Dictionary) -> bool:
 		return false
 	if bool(c.get("buried", false)) and _meta_flag("buried") < 1:
 		return false
+	if c.has("flag_gte"):
+		var fg: Dictionary = c.flag_gte
+		if int((meta.get("flags", {}) as Dictionary).get(String(fg.get("key", "")), 0)) < int(fg.get("v", 1)):
+			return false
+	if c.has("flag_lt"):
+		var flt: Dictionary = c.flag_lt
+		if int((meta.get("flags", {}) as Dictionary).get(String(flt.get("key", "")), 0)) >= int(flt.get("v", 1)):
+			return false
+	if c.has("trace_gte") and int((meta.get("anxian", {}) as Dictionary).get("trace", 0)) < int(c.trace_gte):
+		return false
+	if c.has("npc_aff_gte"):
+		var na: Dictionary = c.npc_aff_gte
+		var nk := String(na.get("key", ""))
+		if not run.npcs.has(nk) or float(run.npcs[nk].get("aff", 0.0)) < float(na.get("v", 0.0)):
+			return false
 	if bool(c.get("dao", false)) and _dao_key() == "":
 		return false
 	if c.has("lives_gte") and int(meta.get("lives", 0)) < int(c.lives_gte):
@@ -3776,6 +4332,14 @@ func _qy_apply_effects(e: Dictionary) -> void:
 		fs[fkey] = int(fs.get(fkey, 0)) + int(fl.get("v", 1))
 		if is_meta:
 			SaveSystem.save_meta(meta)
+	if e.has("flags"):   # 多旗标写法(8.3 v0.2 §0.1): 按序循环单旗标逻辑, 零新键
+		for fl2 in (e.flags as Array):
+			var fl3: Dictionary = fl2
+			var is_meta2 := bool(fl3.get("meta", false))
+			var fs2 := _flags_store(is_meta2)
+			var fkey2 := String(fl3.get("key", ""))
+			fs2[fkey2] = int(fs2.get(fkey2, 0)) + int(fl3.get("v", 1))
+		SaveSystem.save_meta(meta)
 	if e.has("anxian"):
 		if not meta.has("anxian"):
 			meta.anxian = {"frag": 0, "trace": 0}
@@ -3815,6 +4379,248 @@ func _qy_tick() -> void:
 		if bool(tr.get("per_year", false)):
 			(led.year as Dictionary)[eid] = int(run.age_m / 12)
 		lines += 1
+
+# ---------------------------------------------------------------- 暗线五碎片(8.3 v0.2 §0.2 缺口①②③实装: AX-F1~F5 弹框链 + 渡劫口四选一 + 开炉双结局)
+## 账本 run.ax={use,chain} + meta.ax_last_life{}(跨世补投); 铁律: 每条活跃条目每月恒一次 roll; deterministic 全程静默跳过 AX(不掷骰不弹框, 渡劫口面板自动按首选项=飞升, 与旧自动冲关等价)。
+## 拍(beats)播放走 _fire_interrupt(kind:"ax", quiet)—— 不挤月报行、不计打断 KPI, 文本经 _log 直入纪事; 单拍单选项「▸ 继续」挂机自动续。
+
+func _ax_ledger() -> void:
+	if not run.has("ax"):
+		run.ax = {"use": {}, "chain": {}}
+	if not (run.ax as Dictionary).has("chain"):
+		run.ax.chain = {}
+
+func _ax_entry(eid: String) -> Dictionary:
+	for e in DataManager.ax:
+		if String(e.get("id", "")) == eid:
+			return e
+	return {}
+
+func _ax_sub(t: String) -> String:
+	return t.replace("{name}", player_name())   # 称谓规约 §8.1: 公共文本 {name} 占位
+
+func _ax_start_id(eid: String, then: String = "") -> void:
+	_ax_start(_ax_entry(eid), then)
+
+## 设链头(不弹窗) —— 弹窗统一由 _ax_resume() 续播泵点火(resolve_option 尾部 pending={} 会抹掉 match 内新点的弹窗)
+func _ax_start(entry: Dictionary, then: String = "") -> void:
+	if entry.is_empty():
+		return
+	_ax_ledger()
+	run.ax.chain = {"eid": String(entry.get("id", "")), "phase": "beat", "idx": 0, "then": then, "last_text": ""}
+	run.ax.resume = true
+
+## 链续播泵: resolve_option 尾部与 tick 调用点运行 —— 播当前拍 / 出抉择 / 尽头则收尾落账再跑 then 动作
+func _ax_resume() -> void:
+	var guard := 0
+	while bool((run.get("ax", {}) as Dictionary).get("resume", false)) and guard < 40:
+		run.ax.resume = false
+		_ax_ledger()
+		var ch: Dictionary = run.ax.chain
+		if not ch.is_empty():
+			_ax_show()
+		else:
+			_run_ax_then()
+		guard += 1
+
+## 链推进: 跳过 requires 不成立的拍 → 弹当前拍; 拍尽 → 出抉择/转收束拍(outro)/收尾落账
+func _ax_show() -> void:
+	var ch: Dictionary = (run.get("ax", {}) as Dictionary).get("chain", {})
+	if ch.is_empty():
+		return
+	var entry := _ax_entry(String(ch.eid))
+	if entry.is_empty():
+		run.ax.chain = {}
+		return
+	var beats: Array = []
+	match String(ch.phase):
+		"beat":
+			beats = entry.get("beats", []) as Array
+		"branch":
+			beats = ch.get("branch", []) as Array
+		"outro":
+			beats = entry.get("outro", []) as Array
+		"choice":
+			_ax_fire_choice(entry, ch)   # 中途存档恢复: 抉择弹窗重发
+			return
+	var idx := int(ch.idx)
+	while idx < beats.size():
+		if _qy_cond_ok((beats[idx] as Dictionary).get("requires", {})):
+			break
+		idx += 1
+	ch.idx = idx
+	if idx < beats.size():
+		var text := _ax_sub(String((beats[idx] as Dictionary).get("text", "")))
+		ch.last_text = text
+		_log("◇【暗线 · %s】%s" % [String(entry.get("name", "")), text])
+		_fire_interrupt("【暗线】%s" % String(entry.get("name", "")), text, [{"t": "▸ 继续"}], "ax", {"quiet": true})
+		return
+	match String(ch.phase):
+		"beat":
+			var choices: Array = entry.get("choices", []) as Array
+			if not choices.is_empty():
+				ch.phase = "choice"
+				_ax_fire_choice(entry, ch)
+			elif not (entry.get("outro", []) as Array).is_empty():
+				ch.phase = "outro"
+				ch.idx = 0
+				_ax_show()
+			else:
+				_ax_conclude()
+		"branch":
+			if not (entry.get("outro", []) as Array).is_empty():
+				ch.phase = "outro"
+				ch.idx = 0
+				_ax_show()
+			else:
+				_ax_conclude()
+		_:
+			_ax_conclude()
+
+func _ax_fire_choice(entry: Dictionary, ch: Dictionary) -> void:
+	var opts: Array = []
+	for c in (entry.get("choices", []) as Array):
+		opts.append({"t": _ax_sub(String(c.get("t", "…"))), "need": String(c.get("need", "")), "result": String(c.get("result", ""))})
+	_fire_interrupt("【暗线】%s · 抉择" % String(entry.get("name", "")), String(ch.get("last_text", "")), opts, "ax", {"quiet": true})
+
+## 收尾落账(碎片每世一次 + 跨世补投戳), then 动作转交续播泵
+func _ax_conclude() -> void:
+	var ch: Dictionary = run.ax.chain
+	var entry := _ax_entry(String(ch.get("eid", "")))
+	if bool(entry.get("fragment", false)):
+		var eid := String(entry.get("id", ""))
+		(run.ax.use as Dictionary)[eid] = int((run.ax.use as Dictionary).get(eid, 0)) + 1
+		if not meta.has("ax_last_life"):
+			meta.ax_last_life = {}
+		(meta.ax_last_life as Dictionary)[eid] = int(meta.get("lives", 0))
+		SaveSystem.save_meta(meta)
+		_queue_wall_event("ax_frag_" + eid)   # 无面人帖: 得碎片次月闲话壁应景上帖(「没人信的怪谈」, wall_045/046; 论坛体 §1 暗线红线)
+	run.ax.then = String(ch.get("then", ""))
+	run.ax.chain = {}
+	run.ax.resume = true
+
+func _run_ax_then() -> void:
+	var then := String(run.ax.get("then", ""))
+	run.ax.then = ""
+	match then:
+		"dujie_panel":
+			_dujie_panel()
+		"kailu_roll":
+			_kailu_roll()
+		"kailu_win":
+			var fs := _flags_store(true)
+			fs["ax_kailu"] = 1
+			SaveSystem.save_meta(meta)
+			_ending("开炉")
+		"kailu_gan":
+			var fs2 := _flags_store(true)
+			fs2["ax_kailu"] = 1
+			fs2["ax_zhaohuiming"] = 1
+			meta.zhaohuiming_life = int(meta.get("lives", 0))   # 回甘盖戳的这世号; 来世 run.life == 戳+1 时播开局演出
+			SaveSystem.save_meta(meta)
+			_ending("开炉·回甘")
+
+## 月度派发(F1–F4): trigger 门控→恒一次 roll→每世 limit_life→错过 ≥2 世补投翻倍; F5 不走月抽(渡劫口强制弹出)
+func _ax_tick() -> void:
+	if is_ended() or deterministic:
+		return
+	_ax_ledger()
+	if bool(run.ax.get("resume", false)) or not (run.ax.chain as Dictionary).is_empty():
+		_ax_resume()   # 中途存档恢复: 链/续播标记在而弹窗已失(重开游戏), 重新弹出当前拍
+		return
+	for entry in DataManager.ax:
+		if bool(entry.get("manual", false)):
+			continue
+		var tr: Dictionary = entry.get("trigger", {})
+		if tr.is_empty() or not _ax_trig_ok(tr):
+			continue
+		var eid := String(entry.get("id", ""))
+		if int((run.ax.use as Dictionary).get(eid, 0)) >= int(entry.get("limit_life", 1)):
+			continue
+		var p := float(tr.get("chance", 0.0))
+		if bool(entry.get("miss_boost", false)):
+			var last := int((meta.get("ax_last_life", {}) as Dictionary).get(eid, -1))
+			if last >= 0 and int(meta.get("lives", 0)) - last >= 2:
+				p *= 2.0   # 8.3 v0.2 §3.6: 错过 ≥2 世起补投概率翻倍
+		if rng.randf() >= p:
+			continue
+		_ax_start(entry)
+		_ax_resume()
+		return   # 一月至多开一条链
+
+func _ax_trig_ok(tr: Dictionary) -> bool:
+	if tr.has("months"):
+		var mo := (int(run.age_m) % 12) + 1
+		var hit := false
+		for m in (tr.months as Array):
+			if int(m) == mo:
+				hit = true
+		if not hit:
+			return false
+	var rr: Array = tr.get("realm", [0, 7])
+	if int(run.realm) < int(rr[0]) or int(run.realm) > int(rr[1]):
+		return false
+	var maps: Array = tr.get("maps", [])
+	if not maps.is_empty():
+		var unok := false
+		for mp in maps:
+			if int(run.realm) >= map_unlock_realm(String(mp)):
+				unok = true
+		if not unok:
+			return false
+	return _qy_cond_ok(tr.get("requires", {}))
+
+## 灶火长明(回甘结局专属旗标): 来世开局演出 —— 宗主一眼认得你(8.3 v0.2 §4.1)
+func _ax_zhm_check() -> void:
+	if is_ended() or deterministic:
+		return
+	if _meta_flag("ax_zhaohuiming") < 1:
+		return
+	if int(meta.get("zhaohuiming_life", -9)) + 1 != int(run.life):
+		return
+	_ax_ledger()
+	if not (run.ax.chain as Dictionary).is_empty():
+		return
+	if int((run.ax.use as Dictionary).get("AX-ZHM", 0)) > 0:
+		return
+	_ax_start_id("AX-ZHM")
+	_ax_resume()
+
+## 渡劫口(backlog④: 自动引动改玩家四选一, 8.3 v0.2 §4.0) —— 仅最终境修为圆满时走到这里
+func _dujie_gate() -> void:
+	if int(run.get("dujie_panel_cd", -1)) > int(run.age_m):
+		return   # 拖延蓄力: 压着修为不引劫, 冷却后再问
+	_ax_ledger()
+	if not (run.ax.chain as Dictionary).is_empty():
+		return   # 有链在播(如 AX-F3 收束中): 渡劫口顺延下月再面
+	if _qy_frag() >= 4 and _meta_flag("ax_f5") < 1 and not deterministic:
+		_ax_start_id("AX-F5", "dujie_panel")   # 千年的饭: 集齐 F1–F4 强制弹出, 播完续面板
+		_ax_resume()
+		return
+	_dujie_panel()
+
+func _dujie_panel() -> void:
+	var cd := int(tune("dujie_panel_cd", 6))
+	var opts: Array = [
+		{"t": "飞升渡劫", "result": "引九重天雷 —— 首渡十不存一, 败则五成陨落、五成重伤跌境"},
+		{"t": "拖延蓄力", "result": "修为已圆满, 压着不引劫(%d 月后再问)" % cd},
+		{"t": "寿尽坐化", "result": "就此落幕, 转入转世结算(道韵 ×0.3)"},
+	]
+	if _meta_flag("ax_f5") >= 1:
+		opts.append({"t": "开炉", "result": "把这一劫, 还给灶上 —— 以满门烟火反煮万味炉"})
+	_fire_interrupt("渡劫抉择", "九重天雷在头顶盘旋, 修为已圆满。这一劫——你打算怎么渡?", opts, "dujie", {"afk_pick_first": true})
+
+## 开炉检定(8.3 v0.2 §4.1): 门槛刻意低于飞升 —— M0 标定目标: 追满暗线(F1–F5+羁绊≥3)成率 ≈90%
+func _kailu() -> void:
+	_ax_start_id("AX-KL0", "kailu_roll")
+
+func _kailu_roll() -> void:
+	var p := 1.0 if deterministic else clampf(break_chance() + float(tune("kailu_base", 0.55)) + float(_qy_frag()) * 0.04 + float(sealed_count()) * 0.05, 0.50, 0.95)
+	_log("◎ 你引满门烟火, 逆煮万味炉 —— 翻案之率 %.0f%%…" % [p * 100.0])
+	if rng.randf() < p:
+		_ax_start_id("AX-KL1", "kailu_win")
+	else:
+		_ax_start_id("AX-KL2", "kailu_gan")
 
 # ---------------------------------------------------------------- 游历(游历系统: 行动方案第 7 格 —— 名录的主动泵, 全程静默零弹窗)
 
@@ -4228,7 +5034,7 @@ func _normalize_roots(root_choice: Dictionary) -> Array:
 			roots.append(String(e))
 	return [n, roots]
 
-func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_ids := [], keep_name := true, save_now := true) -> void:
+func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_ids := [], keep_name := true, save_now := true, gongfa_pages := 0) -> void:
 	pending = {}
 	month_notes.clear()
 	# 容貌跨世延续: 本函数整换 run, 先把上一世已应用的容貌留底(三生石/转世卡预览的正是它), 新世重新落上
@@ -4260,7 +5066,8 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 		"root_count": n,
 		"roots": roots,
 		"traits": _normalize_traits(trait_ids),
-		"tech": 1.0,
+		"gongfa": {"pages": maxi(0, gongfa_pages), "owned": [], "equipped": "", "prog": {}, "studying": ""},
+		"tech": 1.0,   # 死乘数退役: 装备功法后由 gongfa_equip 重写为功法倍率(GDD §11 ×1–×3)
 		"element": String(roots[0]),
 		"age_m": START_AGE_M,
 		"realm": 0, "layer": 0, "cult": 0.0,
@@ -4272,7 +5079,7 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 		"npcs": npcs,
 		"farm": {
 			"stones": 100, "millennium": 0, "yaodan": 0, "tonic_cd": 0, "cook": 0,
-			"stoves": [{}, {}, {}, {}], "eaten": {}, "dishes": {},
+			"stoves": [{}, {}, {}, {}], "eaten": {}, "dishes": {}, "dark_found": {},
 			"plots": _make_plots(1 + (1 if bool(origin.get("bonus_plot", false)) else 0)),
 			"inv": {},
 		},
@@ -4333,11 +5140,12 @@ func _fire_interrupt(title: String, text: String, options: Array, kind: String, 
 		speed = keep
 		return
 	var kpi: Dictionary = run.kpi
-	kpi.interrupts = int(kpi.interrupts) + 1
-	if speed > 0:
-		_resume_speed = speed
-	speed = 0
-	_report("⏸ %s: %s" % [title, text.replace("\n", " ")])
+	if not bool(data.get("quiet", false)):   # quiet=AX 弹框链逐拍推进: 每拍不算「特殊事件」KPI、不挤月报行(文本走 _log 直入纪事)
+		kpi.interrupts = int(kpi.interrupts) + 1
+		if speed > 0:
+			_resume_speed = speed
+		speed = 0
+		_report("⏸ %s: %s" % [title, text.replace("\n", " ")])
 	interrupted.emit(pending)
 
 ## 选池: "chance"=机缘打断(level=interrupt); 其余=月报琐碎(level=report)。
@@ -4380,13 +5188,17 @@ func _apply_event_effect(id: String, fallback: Dictionary = {}) -> void:
 	_log("◆ %s" % msg)
 
 ## 效果表 → 结果行文案(事件档 effect 与选项 opt_effect 共用一层)。
-## 键: cult_pct_layer=该层占比修为; cult_pct=当前修为乘项; inner_years/inner_months=心魔;
+## 键: cult_pct_layer=该层占比修为; cult_pct=当前修为乘项; pages=功法残页; inner_years/inner_months=心魔;
 ##     qi=气血加减(钳于 0~上限); buff={kind,pct,months,name}=挂一条(正负皆可的)持续 buff/debuff。
 func _apply_effect_dict(eff: Dictionary, msg: String) -> String:
 	if eff.has("cult_pct_layer"):
 		var g := layer_need() * float(eff.cult_pct_layer)
 		_add_cult(g)
 		msg += "(修为 +%s)" % _fmt(g)
+	if eff.has("pages"):
+		var gfa: Dictionary = gongfa()
+		gfa.pages = maxi(0, int(gfa.get("pages", 0)) + int(eff.pages))
+		msg += "(功法残页 +%d, 存 %d)" % [int(eff.pages), int(gfa.pages)]
 	if eff.has("cult_pct"):
 		run.cult = maxf(0.0, float(run.cult) * (1.0 + float(eff.cult_pct)))
 		msg += "(修为%.0f%%)" % (float(eff.cult_pct) * 100.0)
@@ -4423,6 +5235,7 @@ func _ending(kind: String) -> void:
 		base += 1.4 * r * r        # §11 道韵 = Σ(境界²×1.4)
 	var bonds := sealed_count()
 	base += int(run.secret) * 5.0 + float(bonds) * float(tune("seal_dao", 50))   # +羁绊×seal_dao(§11)
+	base += float(_qy_frag()) * float(tune("ax_dao_per_frag", 30.0))   # +暗线碎片×30(§11/速查表「已定未实装」落位; H06-a 即时 dao 已移除, 不重复计)
 	var dao := int(base * float(ENDING_MULT.get(kind, 1.0)))
 	meta.dao = int(meta.get("dao", 0)) + dao
 	meta.lives = int(meta.get("lives", 0)) + 1
@@ -4447,7 +5260,7 @@ func _ending(kind: String) -> void:
 	_log("")
 	_log("═══ 第 %d 世落幕:【%s】═══" % [run.life, kind])
 	_log("%s · 享年 %d 岁 · 止步%s · 印记羁绊 %d · 特殊事件 %d 次" % [summary.name if String(summary.name) != "" else "无名氏", summary.years, summary.realm, bonds, int(k.interrupts)])
-	_log("结算道韵 +%d(×%.1f), 累计 %d 道韵" % [dao, float(ENDING_MULT.get(kind, 1.0)), int(meta.dao)])
+	_log("结算道韵 +%d(×%.1f), 累计 %d 道韵%s" % [dao, float(ENDING_MULT.get(kind, 1.0)), int(meta.dao), (" · 含暗线碎片×%d" % _qy_frag()) if _qy_frag() > 0 else ""])
 	_log("魂魄印记、三生石与来世重逢(P2)—— 灰盒留白, 情感承诺已记账。")
 	ended.emit(summary)
 	changed.emit()

@@ -1,0 +1,14 @@
+[
+ {"id": "qingmu",   "name": "青木餐霞功", "mult": 1.2,  "pages": 2, "research": 4,  "market": false, "price": 0,    "desc": "朝饮木兰之坠露, 夕餐秋菊之落英 —— 草木灵气随餐入体。"},
+ {"id": "chihuo",   "name": "赤火燎原诀", "mult": 1.35, "pages": 2, "research": 4,  "market": true,  "price": 800,  "desc": "灶膛一点星火, 燎作满腹春雷。"},
+ {"id": "houtu",    "name": "厚土培元功", "mult": 1.5,  "pages": 3, "research": 6,  "market": false, "price": 0,    "desc": "五谷自厚土来, 炼土即是炼身。"},
+ {"id": "gengjin",  "name": "庚金百炼篇", "mult": 1.65, "pages": 3, "research": 6,  "market": true,  "price": 1400, "desc": "刀勺皆兵, 百炼成钢 —— 切配之间锋芒内蕴。"},
+ {"id": "guishui",  "name": "癸水润炉经", "mult": 1.8,  "pages": 4, "research": 8,  "market": false, "price": 0,    "desc": "汤羹养炉, 炉暖养人, 水火既济方成味。"},
+ {"id": "wuwei",    "name": "五味养气诀", "mult": 1.95, "pages": 4, "research": 8,  "market": true,  "price": 2200, "desc": "酸甜苦辣咸, 五味各归五脏, 调和即养气。"},
+ {"id": "paoding",  "name": "庖丁解牛鉴", "mult": 2.1,  "pages": 5, "research": 10, "market": false, "price": 0,    "desc": "以无厚入有间, 拆解万法如拆全牛。"},
+ {"id": "zaohuo",   "name": "灶火纯青功", "mult": 2.25, "pages": 5, "research": 10, "market": true,  "price": 3200, "desc": "火候到了, 青焰无烟 —— 一门烧了千年的真功。"},
+ {"id": "baiwei",   "name": "百味归元功", "mult": 2.4,  "pages": 6, "research": 12, "market": false, "price": 0,    "desc": "百味过腹皆归一炁, 万法吃透只此一功。"},
+ {"id": "dingnai",  "name": "鼎鼐调和录", "mult": 2.6,  "pages": 6, "research": 12, "market": true,  "price": 4600, "desc": "调鼎之术即调息之术, 治大国若烹小鲜。"},
+ {"id": "yuzhuan",  "name": "玉馔长生经", "mult": 2.8,  "pages": 7, "research": 14, "market": false, "price": 0,    "desc": "以玉为馔, 以馔为丹 —— 一饭一长生。"},
+ {"id": "shouzao",  "name": "守灶千年道", "mult": 3.0,  "pages": 8, "research": 16, "market": true,  "price": 6400, "desc": "守灶千年, 烟火不熄 —— 与宗门千年灶火同源的一脉真传。"}
+]

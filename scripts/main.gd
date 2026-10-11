@@ -251,8 +251,8 @@ func _on_interrupted(ev: Dictionary) -> void:
 	var opts: Array = ev.get("options", [])
 	for i in opts.size():
 		_event_options.add_child(_event_option_button(i, opts[i]))
-	# 挂机兜底倒计时: 默认取第二项(单选项事件则取第一项)
-	_afk_default = mini(1, maxi(0, opts.size() - 1))
+	# 挂机兜底倒计时: 默认取第二项(单选项事件则取第一项); afk_pick_first=渡劫面板等保底取首项(挂机自动飞升, 等价旧自动冲关行为)
+	_afk_default = 0 if bool((ev.get("data", {}) as Dictionary).get("afk_pick_first", false)) else mini(1, maxi(0, opts.size() - 1))
 	_afk_default_text = String((opts[_afk_default] as Dictionary).get("t", "放下")) if opts.size() > 0 else "放下"
 	_afk_left = AFK_AUTO_SEC
 	_update_event_cd()

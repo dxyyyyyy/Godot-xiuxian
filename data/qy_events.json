@@ -55,7 +55,7 @@
   "trigger": {"realm": [2, 7], "maps": ["qingwucheng"], "chance": 0.03, "cd": 0, "limit": 1},
   "opts": [
    {"outcomes": [
-     {"p": 0.3, "cond": {"frag_lt": 3}, "line": "茶楼正讲《百味宗女修传》——情节和你这一世对不上, 「上一世」的细节却准得吓人。散场时, 袖里多了一片说不清的「记得」", "effects": {"anxian": {"frag": 1}, "dao": 30}},
+     {"p": 0.3, "cond": {"frag_lt": 3}, "line": "茶楼正讲《百味宗女修传》——情节和你这一世对不上, 「上一世」的细节却准得吓人。散场时, 袖里多了一片说不清的「记得」", "effects": {"anxian": {"frag": 1}}},
      {"p": 0.7, "line": "茶楼正讲《百味宗女修传》。你把这场「前世」听出了熟稔感, 散场时往说书人钱筐里多押了一锭", "effects": {"dao": 10}}
    ]},
    {"line": "你追到后巷, 说书老先生捋须直笑: 「故事是虚的, 在意是实的。」你替他润了半场词, 满堂茶客听不出哪句是编的", "effects": {"npc": {"target": "focus_or_random", "v": 3}}},
@@ -159,5 +159,96 @@
   "promote": {"requires": {"focus_aff_gte": 600}, "once": true, "opts": [
    {"line": "那药商忽然低声问: 「方子别外传。……上回那张, 你身边那人吃了可好?」毒舌底下, 垫着一片真心", "effects": {"npc": {"target": "focus", "v": 3}}}
   ]}
+ },
+ {
+  "id": "AX-W01", "name": "空碗添饭",
+  "trigger": {"realm": [0, 7], "maps": ["qingxicun"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "清溪村有人家连着几年往门口空碗里添饭, 饭都馊了也不撤 —— 问起来只说「给回不来的人」(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W02", "name": "闻香的客",
+  "trigger": {"realm": [1, 7], "maps": ["qingwucheng"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "青梧城茶楼角落坐着个不点单的客, 只闻菜香, 一坐到打烊 —— 伙计们早习惯了(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W03", "name": "雾里安静",
+  "trigger": {"realm": [2, 7], "maps": ["yunmengze"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "你的菜香飘进雾里, 雾里那东西安静了下来 —— 船工说这是好兆头(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W04", "name": "多摆的碗筷",
+  "trigger": {"realm": [2, 7], "maps": ["yunmengze"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "渔家夜里多摆一副碗筷, 问起来只说「给回不来的」(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W05", "name": "渡口纸船",
+  "trigger": {"realm": [0, 7], "maps": ["qingxicun"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "渡口有人放纸船, 船上搁着小块米糕, 不知给谁 —— 水一推就远了(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W06", "name": "供桌上的筷子",
+  "trigger": {"realm": [4, 7], "maps": ["buzhou"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "山神庙供桌上多了双筷子, 庙祝说不清是谁供的(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W07", "name": "雪夜足印",
+  "trigger": {"realm": [0, 7], "maps": ["baimenzong"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "雪夜灶房外有一行足印, 走到门口就没了(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W08", "name": "浅了一寸的米缸",
+  "trigger": {"realm": [0, 7], "maps": ["baimenzong"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "米缸的米莫名浅了一寸, 灶膛却比昨夜更暖(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W09", "name": "没有脸的叔叔",
+  "trigger": {"realm": [1, 7], "maps": ["qingwucheng"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "孩童说在雾里和一个「没有脸的叔叔」分吃过糖 —— 大人们都当童言(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-W10", "name": "仙人饿死成仙路",
+  "trigger": {"realm": [1, 7], "maps": ["qingwucheng"], "chance": 0.015, "cd": 24, "requires": {"flag_lt": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "说书人拍醒木讲「仙人饿死在成仙路上」, 满堂哄笑 —— 只有角落一声碗沿轻磕(暗线: 无面人痕迹+1)", "effects": {"anxian": {"trace": 1}}}
+  ]
+ },
+ {
+  "id": "AX-HJ01", "name": "好久不见",
+  "trigger": {"realm": [0, 7], "chance": 0.10, "cd": 0, "limit": 1, "requires": {"flag_gte": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "初入册的新客见了你, 没头没脑说了一句「好久不见」—— 他也说不清是哪一辈子见过你(真结局后·空炉放生)", "effects": {"flag": {"key": "ax_hj01", "meta": true}}}
+  ]
+ },
+ {
+  "id": "AX-HJ02", "name": "上回的",
+  "trigger": {"realm": [0, 7], "chance": 0.10, "cd": 0, "limit": 1, "requires": {"flag_gte": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "市集小贩多找你一文钱: 「找你的——上回的。」上回, 是哪回? 他自己也想不起来(真结局后·空炉放生)", "effects": {"flag": {"key": "ax_hj02", "meta": true}}}
+  ]
+ },
+ {
+  "id": "AX-HJ03", "name": "这手, 我握过",
+  "trigger": {"realm": [0, 7], "chance": 0.10, "cd": 0, "limit": 1, "requires": {"flag_gte": {"key": "ax_kailu", "v": 1}}},
+  "opts": [
+   {"line": "卖花的老妪拉住你的手看了半天: 「这手, 我握过。」她也说不出是在哪儿(真结局后·空炉放生)", "effects": {"flag": {"key": "ax_hj03", "meta": true}}}
+  ]
  }
 ]

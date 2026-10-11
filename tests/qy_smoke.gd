@@ -17,7 +17,7 @@ func _ready() -> void:
 	Game.debug_seed(5)
 	Game.new_game()
 
-	# ═══ 1. 数据完整性: 17 条 schema 白名单(npc 目标恒为角色, 无固定 id 绑定) ═══
+	# ═══ 1. 数据完整性: 30 条 schema 白名单(17 奇缘 + 10 无面人池 + 3 好久不见; npc 目标恒为角色) ═══
 	var n := 0
 	var schema_ok := true
 	var npc_targets := {}
@@ -36,7 +36,7 @@ func _ready() -> void:
 					npc_targets[t] = true
 					if t not in ["random_met", "focus", "dao_or_focus", "focus_or_random", "reunited"]:
 						schema_ok = false
-	_chk("1a 17 条齐(schema+opts+trigger)", n == 17 and schema_ok)
+	_chk("1a 30 条齐(schema+opts+trigger)", n == 30 and schema_ok)
 	_chk("1b npc 落点全部是角色(去绑定红线)", npc_targets.size() > 0 and not npc_targets.has("jianshu"))
 	_chk("1c H08 不入本池", not DataManager.qy.any(func(e): return String(e.get("id", "")) == "QY-H08"))
 
@@ -80,6 +80,11 @@ func _ready() -> void:
 		{"id": "T-B", "name": "测B", "trigger": {"chance": 1.0}, "opts": [{"line": "b", "effects": {}}]},
 		{"id": "T-C", "name": "测C", "trigger": {"chance": 1.0}, "opts": [{"line": "c", "effects": {}}]},
 	]
+	var ax_saved: Array = []
+	for e in DataManager.qy.duplicate(true):
+		if String(e.get("id", "")).begins_with("AX-"):
+			DataManager.qy.erase(e)   # 暗线 W 池(10×1.5%)可能抢同月配额: 配额测试期间临时摘除, 测完还原
+			ax_saved.append(e)
 	for e in fake_hi:
 		DataManager.qy.append(e)
 	Game.pending = {}
@@ -103,6 +108,8 @@ func _ready() -> void:
 	_chk("4d frag=3 命中谜分支 dao+1", dao_delta >= 1)
 	DataManager.qy.pop_back()
 	Game._qy_apply_effects({"anxian": {"frag": -3}})
+	for e in ax_saved:
+		DataManager.qy.append(e)   # 还原暗线 W 池/好久不见条目
 
 	# ═══ 5. promote 一生一次 ═══
 	Game.run.npcs["yaoshi"].stage = 5

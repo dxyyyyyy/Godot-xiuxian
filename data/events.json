@@ -9,9 +9,9 @@
 	{"t": "放下", "need": "无", "result": "机缘作废 · 零损失"}
   ], "effect": {"cult_pct_layer": 0.60}},
   {"id": "relic",     "text": "【特殊事件】坊市地摊上有张发黄的秘境残页",       "level": "interrupt", "weight": 2, "options": [
-	{"t": "买下", "need": "当场议价购下", "result": "机缘入账: 修为 ≈ 该层需求 35%"},
+	{"t": "买下", "need": "当场议价购下", "result": "功法残页 ×1 入库 —— 可在库房裱卷合成, 入藏经阁研习"},
 	{"t": "错过", "need": "无", "result": "零损失 · 残页归他人"}
-  ], "effect": {"cult_pct_layer": 0.35}},
+  ], "effect": {"pages": 1}},
   {"id": "chill",     "text": "【特殊事件】冬夜寒邪入体, 气机有些滞了",         "level": "interrupt", "weight": 2, "options": [
 	{"t": "硬扛", "need": "咬牙硬受", "result": "修为 −18% · 心魔 1 年"},
 	{"t": "运功逼散", "need": "耗神运功一夜", "result": "寒邪尽散 · 气血 −30 · 三个月聚灵 −15%",

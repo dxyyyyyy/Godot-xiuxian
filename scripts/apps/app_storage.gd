@@ -35,6 +35,9 @@ func _rebuild() -> void:
 		return
 	var f: Dictionary = Game.farm()
 
+	# —— 功法 · 藏经(残页→合成→研习→装备, GDD §5.3; run.tech 随装备功法变活)——可折叠 ——
+	_content.add_child(_fold_section("功法 · 藏经", "gongfa", _gongfa_section(), _gongfa_badge()))
+
 	# —— 菜肴（一排五个图文格，点击吃/送）——可折叠 ——
 	var dishes: Dictionary = f.get("dishes", {})
 	var dv := VBoxContainer.new()
@@ -143,7 +146,98 @@ func _fold_section(title: String, key: String, body: VBoxContainer, badge := "")
 	return c
 
 
-## 坊市已迁至独立 App(app_market); 本页只管仓库两栏。
+## 坊市已迁至独立 App(app_market); 本页管功法藏经与仓库两栏。
+
+
+# ---- 功法 · 藏经(详解卷 5.3): 残页合成 / 藏经阁研习 / 装备主功法 ----
+
+func _gongfa_section() -> VBoxContainer:
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 8)
+	if Game.run.is_empty() or not Game.run.has("gongfa"):
+		vb.add_child(UiKit.label("功法档案待开世建立。", 13, UiKit.PINK_400))
+		return vb
+	var g: Dictionary = Game.gongfa()
+	var studying := String(g.get("studying", ""))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 6)
+	head.add_child(UiKit.pill("功法残页 ×%d" % int(g.get("pages", 0)), UiKit.WHITE, UiKit.GOLD_500, 12, 600))
+	if studying != "":
+		head.add_child(UiKit.pill("研席·%s" % Game.gongfa_name(studying), UiKit.WHITE, UiKit.JADE_500, 12, 600))
+	head.add_child(UiKit.expander())
+	vb.add_child(head)
+	for def in DataManager.gongfa:
+		vb.add_child(_gongfa_row(def))
+	var hint := UiKit.label("残页四源: 坊市/地摊购入 · 秘境大获 · 秋期论道 · 道侣赠礼; 藏经阁与悟性料理提研速 —— 研通方可装备, 装备位唯一、切换免费。", 11, UiKit.PINK_400)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(hint)
+	return vb
+
+
+func _gongfa_badge() -> String:
+	if Game.run.is_empty() or not Game.run.has("gongfa"):
+		return ""
+	var g: Dictionary = Game.gongfa()
+	var owned_n := Array(g.get("owned", [])).size()
+	var badge := "%d 部" % owned_n if owned_n > 0 else ""
+	var pages := int(g.get("pages", 0))
+	if pages > 0:
+		badge = (("残页 ×%d · " % pages) + badge) if badge != "" else ("残页 ×%d" % pages)
+	return badge
+
+
+func _gongfa_row(def: Dictionary) -> Control:
+	var id := String(def.id)
+	var g: Dictionary = Game.gongfa()
+	var owned: bool = id in Array(g.get("owned", []))
+	var mastered := Game.gongfa_mastered(id)
+	var equipped: bool = String(g.get("equipped", "")) == id
+	var studying: bool = String(g.get("studying", "")) == id
+	var mult := float(def.get("mult", 1.0))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 1)
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 6)
+	name_row.add_child(UiKit.label(String(def.name), 14, UiKit.PINK_700 if owned else UiKit.GRAY_400, 600))
+	name_row.add_child(UiKit.label("×%.2f" % mult, 12, UiKit.GOLD_600, 600))
+	if equipped:
+		name_row.add_child(UiKit.pill("装备中", UiKit.WHITE, UiKit.GREEN_500, 11, 600))
+	elif mastered:
+		name_row.add_child(UiKit.pill("研通", UiKit.WHITE, UiKit.JADE_500, 11, 600))
+	elif studying:
+		name_row.add_child(UiKit.pill("研习中", UiKit.WHITE, UiKit.JADE_400, 11, 600))
+	info.add_child(name_row)
+	var state := ""
+	if owned and not mastered:
+		state = "%s · 研满 %d 有效研月可装备" % [Game.gongfa_prog_txt(id), int(def.get("research", 0))]
+	elif owned:
+		state = "研通 · 聚灵 ×%.2f · 武力 +%.0f%%" % [mult, (mult - 1.0) * 100.0]
+	else:
+		state = "%s · 合成需残页 %d 页%s" % [String(def.get("desc", "")), int(def.get("pages", 0)), " · 坊市有售" if bool(def.get("market", false)) else " · 仅残页合成"]
+	var sl := UiKit.label(state, 11, UiKit.PINK_400 if owned else UiKit.GRAY_400)
+	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.add_child(sl)
+	row.add_child(info)
+	if equipped:
+		row.add_child(UiKit.pill("主功法", UiKit.WHITE, UiKit.GREEN_500, 12, 600))
+	elif owned and not mastered:
+		row.add_child(_mini_button("收卷" if studying else "研习",
+			func() -> void:
+				if studying:
+					Game.gongfa_stop_study()
+				else:
+					Game.gongfa_study(id)))
+	elif owned:
+		row.add_child(_mini_button("装备", func() -> void: Game.gongfa_equip(id)))
+	else:
+		var need := int(def.get("pages", 0))
+		var syn := _mini_button("合成 %d页" % need, func() -> void: Game.gongfa_synthesize(id))
+		syn.disabled = int(g.get("pages", 0)) < need
+		row.add_child(syn)
+	return row
 
 
 ## 物品网格：一排五个。

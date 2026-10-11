@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cgongfasmk01"]
+
+[ext_resource type="Script" path="res://tests/gongfa_smoke.gd" id="1_gsm"]
+
+[node name="GongfaSmoke" type="Node"]
+script = ExtResource("1_gsm")

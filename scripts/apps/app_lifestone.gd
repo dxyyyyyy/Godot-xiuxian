@@ -1,5 +1,5 @@
 extends "res://scripts/apps/app_base.gd"
-## 三生石：轮回页（灰盒转世 Meta 循环）——道韵总账/结局史 + 炼灵根(五→单, 每炼去一行更贵) + 先天特质 + 转世。
+## 三生石：轮回页（灰盒转世 Meta 循环）——道韵总账/结局史 + 炼灵根(五→单, 每炼去一行更贵) + 铸体/眷顾 + 先天特质 + 转世。
 ## 五行持有改五围图(root_radar)交互选择: 顶点=一行, 点击切换。
 
 const RootRadar := preload("res://scripts/root_radar.gd")
@@ -11,7 +11,10 @@ var _content: VBoxContainer
 var _rebuild_pending := false
 var _root_n := 5                      # 身负行数: 5/4/3/2/1(五行俱全免费)
 var _root_els: Array = ["金", "木", "水", "火", "土"]   # 持有哪几行(自择, 不超过 _root_n)
+var _forge_n := 0                     # 铸体订购次数(20韵/次, 灵根+0.1, 一世位限5)
+var _bless_n := 0                     # 天道眷顾订购次数(50韵/次, 冲关率+2%永久, 每次转世限5)
 var _traits_sel: Array[String] = []   # 已订先天特质 id(一世, 多选)
+var _scroll_sel := false              # 功法残卷已订(一世一卷: 50韵 → 下一世开局残页 ×5, 道韵商城留位转正)
 var _sur_edit: LineEdit = null        # 姓输入(卡片随交互重建, 文本走 _sur/_giv_pending 保持)
 var _giv_edit: LineEdit = null        # 名输入
 var _sur_pending := ""                # 姓暂存: 新开局预填默认姓, 转世预填上世姓
@@ -63,9 +66,9 @@ func _rebuild() -> void:
 		var ts: Dictionary = DataManager.reunion_texts
 		var lf: Dictionary = ts.get("lifestone", {})
 		var reg_sec := bleed_section()
-		var reg_vb := UiKit.margin_wrap(VBoxContainer.new(), 16)
+		var reg_vb := VBoxContainer.new()
 		reg_vb.add_theme_constant_override("separation", 2)
-		reg_sec.add_child(reg_vb)
+		reg_sec.add_child(UiKit.margin_wrap(reg_vb, 16))
 		reg_vb.add_child(UiKit.label(String(lf.get("title", "历世烙印者名录")), 11, UiKit.PINK_600))
 		for rec in seals:
 			var strength := Game._seal_strength(rec)
@@ -87,6 +90,39 @@ func _rebuild() -> void:
 			row = row.replace("{found}", ("今世已寻回 · " + tname) if found else ("转世在世 · 待重逢" if String(rec.get("fixed", "")) == "" else "旧人在世 · 待重逢"))
 			reg_vb.add_child(UiKit.label(row, 10, UiKit.GRAY_400))
 		_content.add_child(reg_sec)
+
+	# —— 暗线图鉴(8.3 v0.2 §5.2 三生石=羁绊/暗线图鉴): 五词条按旗标解锁, 转世后显重读版; 「初代真名」尾部可回看开炉彩蛋帧 ——
+	var stone: Dictionary = DataManager.ax_stone
+	if not stone.is_empty():
+		var ax_entries: Array = stone.get("entries", [])
+		var any_unlocked := false
+		for st in ax_entries:
+			if Game._meta_flag(String((st as Dictionary).get("flag", ""))) >= 1:
+				any_unlocked = true
+				break
+		var ax_sec := bleed_section()
+		var ax_vb := VBoxContainer.new()
+		ax_vb.add_theme_constant_override("separation", 2)
+		ax_sec.add_child(UiKit.margin_wrap(ax_vb, 16))
+		ax_vb.add_child(UiKit.label(String(stone.get("title", "三生石 · 灶火的账本")), 11, UiKit.PINK_600))
+		ax_vb.add_child(UiKit.label(String(stone.get("subtitle", "")), 10, UiKit.GRAY_400))
+		if not any_unlocked:
+			ax_vb.add_child(UiKit.label(String(stone.get("empty", "石上无字。")), 10, UiKit.GRAY_400))
+		for st2 in ax_entries:
+			var st: Dictionary = st2
+			var flag_key := String(st.get("flag", ""))
+			if Game._meta_flag(flag_key) < 1:
+				ax_vb.add_child(UiKit.label("？？？", 10, UiKit.GRAY_400))
+				continue
+			ax_vb.add_child(UiKit.label("【%s】" % String(st.get("name", "")), 10, UiKit.PINK_600))
+			var lives_at := int((meta.get("ax_last_life", {}) as Dictionary).get(String(st.get("id", "")), 0))
+			var stext := String(st.get("reread", "")) if int(meta.get("lives", 0)) > lives_at else String(st.get("unlock", ""))
+			var stl := UiKit.label(stext, 10, UiKit.GRAY_400)
+			stl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			ax_vb.add_child(stl)
+			if String(st.get("id", "")) == "AX-F5" and Game._meta_flag("ax_kailu") >= 1:
+				ax_vb.add_child(UiKit.tappable_row(UiKit.label("▸ " + String(st.get("look_again", "再看一眼")), 11, UiKit.GOLD_600), _ax_look_again))
+		_content.add_child(ax_sec)
 
 	# —— 此世状态 / 转世操作 ——
 	if GameState.fresh_start:
@@ -110,6 +146,14 @@ func _rebuild() -> void:
 
 	# 此世已了 → 出身 / 遗产 / 转世
 	_content.add_child(_rebirth_card(meta))
+
+
+## 「再看一眼」: 回放开炉彩蛋帧(AX-CK 单拍, 8.3 v0.2 §5.2 复用同帧资产) —— 有链在播时不覆盖
+func _ax_look_again() -> void:
+	if not (Game.run.get("ax", {}) as Dictionary).get("chain", {}).is_empty():
+		return
+	Game._ax_start_id("AX-CK")
+	Game._ax_resume()
 
 
 func _rebirth_card(meta: Dictionary) -> PanelContainer:
@@ -136,6 +180,9 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 	radar_center.add_child(radar)
 	top_row.add_child(radar_center)
 	cv.add_child(top_row)
+
+	# —— 前世遗产(道韵兑换主货架: 炼灵根/铸体/天道眷顾, GDD §2.3; 先天特质货架在其下) ——
+	cv.add_child(UiKit.label("前世遗产", 14, UiKit.PINK_700, 600))
 
 	# —— 炼灵根(下拉) ——
 	var n_cns := {5: "五", 4: "四", 3: "三", 2: "二", 1: "单"}
@@ -174,12 +221,29 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 	root_drop.add_theme_stylebox_override("disabled", UiKit.stylebox(Color(UiKit.GRAY_200, 0.4), 8, false, 1, UiKit.GRAY_300))
 	cv.add_child(root_drop)
 	var cn := String(n_cns.get(_root_n, "?"))
-	var rnote_txt := "五行俱全免费 · 聚灵 ×%.2f" % Game.root_coef_preview(_root_n, 0)
+	var rnote_txt := "五行俱全免费 · 聚灵 ×%.2f" % Game.root_coef_preview(_root_n, _forge_n)
 	if _root_n < 5:
-		rnote_txt = "%s灵根 · 聚灵 ×%.2f · 缺行灵植 −1 月/升品" % [cn, Game.root_coef_preview(_root_n, 0)]
+		rnote_txt = "%s灵根 · 聚灵 ×%.2f · 缺行灵植 −1 月/升品" % [cn, Game.root_coef_preview(_root_n, _forge_n)]
 	var rnote := UiKit.label(rnote_txt, 11, UiKit.PINK_400)
 	rnote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cv.add_child(rnote)
+
+	# —— 铸体 / 天道眷顾柜位(落幕文案承诺的「铸体、纳眷顾」在此接通; + 号受预算链钳制) ——
+	_shop_rows(cv, meta)
+
+	# —— 功法残卷(一世一卷: 下一世开局自带残页 ×5, 藏经阁合成研习线起步快人一步) ——
+	var scroll_row := HBoxContainer.new()
+	scroll_row.add_theme_constant_override("separation", 4)
+	var svb := VBoxContainer.new()
+	svb.add_theme_constant_override("separation", 1)
+	svb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	svb.add_child(UiKit.label("功法残卷%s" % (" ✓" if _scroll_sel else ""), 12, UiKit.PINK_600 if _scroll_sel else UiKit.PINK_400, 600))
+	var snl := UiKit.label("下一世开局自带功法残页 ×%d —— 功法修为跨世接续攒的第一步" % Game.SCROLL_PAGES, 10, UiKit.PINK_400)
+	snl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	svb.add_child(snl)
+	scroll_row.add_child(svb)
+	scroll_row.add_child(UiKit.pill("%d韵" % Game.SCROLL_COST, UiKit.WHITE, UiKit.GOLD_500 if not _scroll_sel else UiKit.PINK_500, 10, 600))
+	cv.add_child(UiKit.tappable_row(scroll_row, _toggle_scroll))
 
 	# —— 先天特质(一世) ——
 	cv.add_child(UiKit.label("先天特质", 14, UiKit.PINK_700, 600))
@@ -205,7 +269,7 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 		tgrid.add_child(UiKit.tappable_row(row, _toggle_trait.bind(id)))
 	cv.add_child(tgrid)
 
-	var spend := _root_cost() + _traits_cost()
+	var spend := _root_cost() + _traits_cost() + _forge_n * Game.FORGE_COST + _bless_n * Game.BLESS_COST + (Game.SCROLL_COST if _scroll_sel else 0)
 	var budget := UiKit.label("合计 %d / %d 道韵%s" % [spend, dao, "（超支）" if spend > dao else ""])
 	budget.add_theme_color_override("font_color", UiKit.RED_400 if spend > dao else UiKit.PINK_400)
 	cv.add_child(budget)
@@ -248,17 +312,116 @@ func _name_row() -> Control:
 
 
 ## 入世/转世: 姓/名两栏皆空=不修改; 任一非空即落(允许只填其一), 再 rebirth(keep_name=true 带进新世)。
+## 铸体/眷顾的订购次数一并提交, 提交后清零(下一世重新选购)。
 func _enter_world() -> void:
 	var sur := _sur_pending.strip_edges()
 	var giv := _giv_pending.strip_edges()
 	if sur != "" or giv != "":
 		Game.set_player_name_parts(sur, giv)
 	# 只 rebirth: meta 已由开始界面 new_game 重置, 这里再 new_game 会白起一世、开局志重复入纪事
-	Game.rebirth({}, 0, 0, {"n": _root_n, "els": _root_els}, _traits_sel.duplicate())
+	Game.rebirth({}, _forge_n, _bless_n, {"n": _root_n, "els": _root_els}, _traits_sel.duplicate(), true, Game.SCROLL_PAGES if _scroll_sel else 0)
+	_forge_n = 0
+	_bless_n = 0
 	_traits_sel.clear()
+	_scroll_sel = false
 	_name_dirty = false   # 已提交 → 下张卡重新回读 run
 	GameState.fresh_start = false
 	exit_app.emit()
+
+
+## 功法残卷: 点击行切换订购(一世一卷, 预算不足由 go.disabled 兜底)
+func _toggle_scroll() -> void:
+	_scroll_sel = not _scroll_sel
+	_rebuild()
+
+
+## 铸体(20韵→灵根+0.1, 一世)与天道眷顾(50韵→冲关率+2%, 永久)两柜位行。
+## + 号与炼灵根同构钳制: 余量须同时扣得起已订的炼灵根/特质费/残卷; 各限 5 次(rebirth 内再钳一次兜底)。
+func _shop_rows(cv: VBoxContainer, meta: Dictionary) -> void:
+	var dao := int(meta.get("dao", 0))
+	var other := _root_cost() + _traits_cost() + (Game.SCROLL_COST if _scroll_sel else 0)   # 预算链上另几货架已订部分
+	var forge_sub := ""
+	if _forge_n > 0:
+		forge_sub = "本次 ×%d → 聚灵 +%.2f" % [_forge_n, _forge_n * Game.FORGE_STEP]
+	cv.add_child(_stepper_row("铸体（一世）", Game.FORGE_COST, "灵根系数 +%.1f/次 · 限 5 次" % Game.FORGE_STEP,
+		forge_sub, _forge_n,
+		_forge_n < Game.FORGE_CAP and other + (_forge_n + 1) * Game.FORGE_COST + _bless_n * Game.BLESS_COST <= dao,
+		_forge_n > 0, _step_forge.bind(1), _step_forge.bind(-1)))
+	var acc := int(round(float(meta.get("bless_pct", 0.0)) * 100.0))
+	var bless_sub := ""
+	if acc > 0:
+		bless_sub = "已累计 +%d%%" % acc
+	if _bless_n > 0:
+		bless_sub += (" · " if bless_sub != "" else "") + "本次再 +%d%%" % (_bless_n * int(round(Game.BLESS_STEP * 100.0)))
+	cv.add_child(_stepper_row("天道眷顾（永久）", Game.BLESS_COST, "冲关率 +%d%%/次 · 每次转世限 5 次" % int(round(Game.BLESS_STEP * 100.0)),
+		bless_sub, _bless_n,
+		_bless_n < Game.BLESS_CAP and other + _forge_n * Game.FORGE_COST + (_bless_n + 1) * Game.BLESS_COST <= dao,
+		_bless_n > 0, _step_bless.bind(1), _step_bless.bind(-1)))
+
+
+## 步进订购: d=±1, 钳到柜位上限后整卡重建(预算行/预览/+−可用态同步)。
+func _step_forge(d: int) -> void:
+	_forge_n = clampi(_forge_n + d, 0, Game.FORGE_CAP)
+	_rebuild()
+
+
+func _step_bless(d: int) -> void:
+	_bless_n = clampi(_bless_n + d, 0, Game.BLESS_CAP)
+	_rebuild()
+
+
+## 柜位行: 名+价签 / 效果注+本次预览 / −×n/+ 步进器(不可加=置灰)。
+func _stepper_row(title: String, price: int, note: String, sub: String, count: int, can_plus: bool, can_minus: bool, on_plus: Callable, on_minus: Callable) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 2)
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 6)
+	name_row.add_child(UiKit.label(title, 14, UiKit.PINK_700, 600))
+	name_row.add_child(UiKit.pill("%d韵" % price, UiKit.WHITE, UiKit.GOLD_500, 10, 600))
+	info.add_child(name_row)
+	var nl := UiKit.label(note, 11, UiKit.PINK_400)
+	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.add_child(nl)
+	if sub != "":
+		info.add_child(UiKit.label(sub, 11, UiKit.GOLD_600, 600))
+	row.add_child(info)
+	var st := HBoxContainer.new()
+	st.add_theme_constant_override("separation", 4)
+	var minus := _step_btn("−", can_minus)
+	minus.pressed.connect(on_minus)
+	st.add_child(minus)
+	var cnt := UiKit.label("×%d" % count, 14, UiKit.PINK_600, 600)
+	cnt.custom_minimum_size = Vector2(30, 0)
+	cnt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	st.add_child(cnt)
+	var plus := _step_btn("+", can_plus)
+	plus.pressed.connect(on_plus)
+	st.add_child(plus)
+	row.add_child(st)
+	return row
+
+
+## 步进小方钮(洞府 _mini_button 同款皮肤, 收窄成 32×32)。
+func _step_btn(txt: String, enabled: bool) -> Button:
+	var b := Button.new()
+	b.text = txt
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(32, 32)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	b.add_theme_font_override("font", UiKit.font(600))
+	b.add_theme_font_size_override("font_size", 14)
+	b.add_theme_color_override("font_color", UiKit.PINK_600)
+	b.add_theme_color_override("font_disabled_color", UiKit.GRAY_400)
+	b.add_theme_stylebox_override("normal", UiKit.stylebox(UiKit.PINK_100, 8))
+	b.add_theme_stylebox_override("hover", UiKit.stylebox(UiKit.PINK_200, 8))
+	b.add_theme_stylebox_override("pressed", UiKit.stylebox(UiKit.PINK_500, 8))
+	b.add_theme_stylebox_override("disabled", UiKit.stylebox(UiKit.GRAY_200, 8))
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.disabled = not enabled
+	return b
 
 
 ## 行数变更(档位按钮): 持有截断/补齐到恰好 n 行

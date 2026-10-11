@@ -31,6 +31,11 @@
  "note_pity": "每次突破失败成功率+5%, 成功清零(败中悟道)",
  "recover_months": 24,
  "relic_cost_base": 60,
+ "seek_page_chance": 0.35,
+ "lundao_page_chance": 0.3,
+ "daolu_page_chance": 0.05,
+ "market_page_mult": 2,
+ "note_gongfa": "功法线(GDD §5.3): 秘境大获/论道/道侣掉残页概率; 坊市残页购价=relic_cost×market_page_mult; 合成/研习数值在 gongfa.json",
  "layer_need_base": 100,
  "layer_growth": 1.55,
  "minutes_interrupt": 2.0,
@@ -59,6 +64,8 @@
  "talk_quarter_cap": 4,
  "date_cd": 3,
  "date_gain": 35,
+ "date_pref_bonus": 1.0,
+ "note_date_pref_bonus": "十四景抽景的性格偏好加成(《性格系统》§4.3, 命中偏好景每位与会者 +1 权重, 纯演出不碰数值红线)",
  "jealousy_hit": 200,
  "gift_gain": 30,
  "gift_fav_mult": 2,
@@ -129,12 +136,19 @@
  "friend_drift_rate": 0.25,
  "friend_drift_step_min": 1,
  "friend_drift_step_max": 3,
- "love_thresholds": [200, 500, 1000],
+ "love_thresholds": [
+  200,
+  500,
+  1000
+ ],
  "npc_court_gain_min": 4,
  "npc_court_gain_max": 12,
  "npc_court_seed_rate": 0.15,
  "npc_conceive_rate": 0.02,
  "npc_gestation_years": 5,
  "npc_kids_max": 2,
- "npc_adult_years": 16
+ "npc_adult_years": 16,
+ "ax_dao_per_frag": 30,
+ "kailu_base": 0.55,
+ "dujie_panel_cd": 6
 }

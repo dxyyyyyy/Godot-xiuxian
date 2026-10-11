@@ -89,8 +89,11 @@ func _facility_bonus(f: Dictionary, lv: int) -> String:
 		"lingquan":
 			return "当前加成: 收获产量 +%d%% · 品质升档 +%dpp" % [int(round(v * 100.0)), int(round(v * 100.0))]
 		"cangjingge":
-			var pp: Array = [0.0, 2.0, 3.0, 4.5]
-			return "当前加成: 研速 ×%.2f · 顿悟 +%.1fpp" % [1.0 + v, float(pp[clampi(lv, 0, pp.size() - 1)])]
+			var txt := "当前加成: 功法研速 ×%.2f(藏经阁 ×%.2f) —— 只推进研席, 不进聚灵公式" % [Game.research_mult(), 1.0 + v]
+			var sid: String = String(Game.gongfa().get("studying", "")) if not Game.run.is_empty() and Game.run.has("gongfa") else ""
+			if sid != "":
+				txt += " · 研席【%s】%s" % [Game.gongfa_name(sid), Game.gongfa_prog_txt(sid)]
+			return txt
 		"daiketingyuan":
 			return "当前加成: 并行约会 %d 人" % int(v)
 	return ""
