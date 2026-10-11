@@ -63,9 +63,7 @@ func econ(key: String, def: Variant = null) -> Variant:
 func _ready() -> void:
 	rng.randomize()
 	duijie_cap = int(tune("duijie_cap_years", 1800))
-	meta = SaveSystem.load_meta()
-	if meta.is_empty() or int(meta.get("schema", 0)) != SCHEMA:
-		meta = {"schema": SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
+	_load_meta_or_init()
 	var loaded := SaveSystem.load_open_run(SCHEMA)   # 读不出/版本不合的档由 SaveSystem 保全改名, 不静默覆盖
 	if not loaded.is_empty():
 		run = loaded
@@ -77,6 +75,18 @@ func _ready() -> void:
 		_start_life(default_origin(), 0, {}, [], true, false)
 	_ensure_run()
 	changed.emit()
+
+## meta 闸②: 读不出/schema 不符先保全改名再兜底新 meta, 绝不静默覆盖(文件不存在时保全自然空转, 首启无副作用)。
+## schema 用 SaveSystem.META_SCHEMA 与 run 的 SCHEMA 各自演进, bump run 版本不再清空玩家跨世资产。
+func _load_meta_or_init() -> void:
+	meta = SaveSystem.load_meta()
+	if meta.is_empty() or int(meta.get("schema", 0)) != SaveSystem.META_SCHEMA:
+		SaveSystem.preserve_unreadable(SaveSystem.META_PATH)
+		meta = _fresh_meta()
+
+## meta 新档模板(唯一出处, _load_meta_or_init 与 new_game 共用)
+func _fresh_meta() -> Dictionary:
+	return {"schema": SaveSystem.META_SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
 
 ## 老档惰性补齐(食修效果字段, 不 bump SCHEMA)
 func _ensure_run() -> void:
@@ -2052,7 +2062,7 @@ func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice
 ## 开始界面「新开一世」: Meta 重置(道韵回到起始值, 历世/最佳境界全清)并起第 1 世(灵根五行俱全)。
 ## 只管内存与落盘; 文件级清档由 SaveSystem.clear_all() 先行。名字回默认(转世才沿用上一世名)。
 func new_game() -> void:
-	meta = {"schema": SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
+	meta = _fresh_meta()
 	SaveSystem.save_meta(meta)
 	rebirth({}, 0, 0, {}, [], false)
 

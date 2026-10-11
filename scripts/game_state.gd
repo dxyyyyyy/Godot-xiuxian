@@ -13,6 +13,9 @@ func request_npc_detail(key: String) -> void:
 	npc_detail_requested.emit(key)
 
 const SAVE_PATH := "user://savegame.json"
+## savegame 版本闸: 只拒"高于当前版本"的档(由 _load_or_init 保全重建); 缺键视为 1(本版引入前的存量直读)。
+## 低于当前版本留给未来迁移钩子(先例: _load_game 的 day:int→string)。
+const SAVEGAME_SCHEMA := 1
 const AUTOSAVE_INTERVAL := 30.0
 
 # ---- 设置（音量暂存数值，接音频总线时再生效）----
@@ -186,6 +189,8 @@ func set_wall_full_name(v: bool) -> void:
 func _load_or_init() -> void:
 	if FileAccess.file_exists(SAVE_PATH) and _load_game():
 		return
+	# 文件在但读不出/版本不符 → 改名保全再重建, 绝不让 30s autosave 静默覆盖坏档(与 run/meta 闸②同口径)
+	SaveSystem.preserve_unreadable(SAVE_PATH)
 	_init_fresh()
 
 
@@ -212,6 +217,7 @@ func _init_fresh() -> void:
 
 func save_game() -> void:
 	var data := {
+		"schema": SAVEGAME_SCHEMA,
 		"settings": {"sound": sound_volume, "music": music_volume, "quality": quality, "notifications": notifications, "wall_full_name": wall_full_name},
 		"chronicle": chronicle,
 		"tablet": {
@@ -221,6 +227,8 @@ func save_game() -> void:
 		},
 		"discovered": {"items": discovered_items.keys(), "recipes": discovered_recipes.keys()},
 	}
+	# 闸①: 写前轮转 .bak1/.bak2/.bak3(半截写/误覆盖可回滚; reset_all 清档时旧纪事也进 .bak1 可反悔)
+	SaveSystem.rotate_bak(SAVE_PATH)
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(data))
@@ -236,6 +244,9 @@ func _load_game() -> bool:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return false
 	var data: Dictionary = parsed
+	# 版本闸: 高于当前版本的档拒读(在任何字段应用前判, 半载状态不会落内存), 由 _load_or_init 保全重建
+	if int(data.get("schema", 1)) > SAVEGAME_SCHEMA:
+		return false
 
 	var st: Dictionary = data.get("settings", {})
 	sound_volume = int(st.get("sound", sound_volume))
@@ -251,7 +262,8 @@ func _load_game() -> bool:
 		for e in ch:
 			if typeof(e) == TYPE_DICTIONARY:
 				var d: Variant = e.get("day", "")
-				var day_s := String(d) if typeof(d) == TYPE_STRING else "旧岁·%s" % str(d)
+				# JSON 回读把整数天变 float, %d+int() 归整, 避免"旧岁·5.0"这类显示
+				var day_s := String(d) if typeof(d) == TYPE_STRING else "旧岁·%d" % int(d)
 				chronicle.append({"day": day_s, "text": String(e.get("text", ""))})
 	var tb_v: Variant = data.get("tablet", {})
 	var tb: Dictionary = tb_v if typeof(tb_v) == TYPE_DICTIONARY else {}
