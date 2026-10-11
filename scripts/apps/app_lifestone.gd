@@ -5,6 +5,14 @@ extends "res://scripts/apps/app_base.gd"
 const RootRadar := preload("res://scripts/root_radar.gd")
 const Portrait := preload("res://scripts/portrait.gd")
 const NGScript := preload("res://sim/NpcGenerator.gd")
+## 永久位四货架的说明文案与效果名(数值口径见 Game.gd 常量区与 §11)
+const META_SHELF_NOTES := {
+	"lingqiao": "聚灵效率（修炼速度）+10%/层 · 满层 +100%",
+	"wudao": "落幕结算道韵 +10%/层 · 满层 +100%",
+	"shouyuan": "寿元上限 +2 年/层 · 满层 +20 年",
+	"tianchan": "灵田收获 +10%/层 · 满层 +100%",
+}
+const META_FX_LABEL := {"lingqiao": "聚灵效率", "wudao": "落幕道韵", "shouyuan": "寿元", "tianchan": "灵田收获"}
 ## 出身设定已废(一律宗门弟子), 只剩风味文本; 灵根 = 行数(道韵) + 自择五行(免费)。
 
 var _content: VBoxContainer
@@ -13,6 +21,7 @@ var _root_n := 5                      # 身负行数: 5/4/3/2/1(五行俱全免�
 var _root_els: Array = ["金", "木", "水", "火", "土"]   # 持有哪几行(自择, 不超过 _root_n)
 var _forge_n := 0                     # 铸体订购次数(20韵/次, 灵根+0.1, 一世位限5)
 var _bless_n := 0                     # 天道眷顾订购次数(50韵/次, 冲关率+2%永久, 每次转世限5)
+var _meta_n := {"lingqiao": 0, "wudao": 0, "shouyuan": 0, "tianchan": 0}   # 永久位四货架本次再订层数(阶梯价, +100% 封顶; meta 存累计层数)
 var _traits_sel: Array[String] = []   # 已订先天特质 id(一世, 多选)
 var _scroll_sel := false              # 功法残卷已订(一世一卷: 50韵 → 下一世开局残页 ×5, 道韵商城留位转正)
 var _sur_edit: LineEdit = null        # 姓输入(卡片随交互重建, 文本走 _sur/_giv_pending 保持)
@@ -140,6 +149,12 @@ func _rebuild() -> void:
 		lv.add_child(lb)
 		if float(meta.get("bless_pct", 0.0)) > 0.0:
 			lv.add_child(UiKit.label("天道眷顾：冲关率永久 +%.0f%%" % (float(meta.bless_pct) * 100.0), 11, UiKit.GOLD_600))
+		for k in Game.META_SHELF_ORDER:   # 永久位四货架(灵窍/悟道/寿基/田诀): 已购层 >0 才显
+			var nb := Game.meta_bought(String(k))
+			if nb > 0:
+				var is_year := String(k) == "shouyuan"
+				var fxv := float(nb) * Game.meta_step(String(k)) * (1.0 if is_year else 100.0)
+				lv.add_child(UiKit.label("%s：%s永久 +%s%s" % [String(Game.META_SHELF_NAME[String(k)]), String(META_FX_LABEL[String(k)]), "%d" % int(round(fxv)), "年" if is_year else "%"], 11, UiKit.GOLD_600))
 		live.add_child(UiKit.margin_wrap(lv, 10))
 		_content.add_child(live)
 		return
@@ -269,7 +284,7 @@ func _rebirth_card(meta: Dictionary) -> PanelContainer:
 		tgrid.add_child(UiKit.tappable_row(row, _toggle_trait.bind(id)))
 	cv.add_child(tgrid)
 
-	var spend := _root_cost() + _traits_cost() + _forge_n * Game.FORGE_COST + _bless_n * Game.BLESS_COST + (Game.SCROLL_COST if _scroll_sel else 0)
+	var spend := _root_cost() + _traits_cost() + _forge_n * Game.FORGE_COST + _bless_n * Game.BLESS_COST + (Game.SCROLL_COST if _scroll_sel else 0) + _meta_pending()
 	var budget := UiKit.label("合计 %d / %d 道韵%s" % [spend, dao, "（超支）" if spend > dao else ""])
 	budget.add_theme_color_override("font_color", UiKit.RED_400 if spend > dao else UiKit.PINK_400)
 	cv.add_child(budget)
@@ -319,9 +334,10 @@ func _enter_world() -> void:
 	if sur != "" or giv != "":
 		Game.set_player_name_parts(sur, giv)
 	# 只 rebirth: meta 已由开始界面 new_game 重置, 这里再 new_game 会白起一世、开局志重复入纪事
-	Game.rebirth({}, _forge_n, _bless_n, {"n": _root_n, "els": _root_els}, _traits_sel.duplicate(), true, Game.SCROLL_PAGES if _scroll_sel else 0)
+	Game.rebirth({}, _forge_n, _bless_n, {"n": _root_n, "els": _root_els}, _traits_sel.duplicate(), true, Game.SCROLL_PAGES if _scroll_sel else 0, _meta_n.duplicate())
 	_forge_n = 0
 	_bless_n = 0
+	_meta_n = {"lingqiao": 0, "wudao": 0, "shouyuan": 0, "tianchan": 0}   # 永久位层数已并入 meta, 暂存清零(跨世可续订)
 	_traits_sel.clear()
 	_scroll_sel = false
 	_name_dirty = false   # 已提交 → 下张卡重新回读 run
@@ -335,18 +351,20 @@ func _toggle_scroll() -> void:
 	_rebuild()
 
 
-## 铸体(20韵→灵根+0.1, 一世)与天道眷顾(50韵→冲关率+2%, 永久)两柜位行。
-## + 号与炼灵根同构钳制: 余量须同时扣得起已订的炼灵根/特质费/残卷; 各限 5 次(rebirth 内再钳一次兜底)。
+## 铸体(一世) + 永久位四货架(灵窍/悟道/寿基/田诀, 阶梯价 +100% 封顶) + 天道眷顾(永久)柜位行。
+## + 号统一钳制: 一世位已订 + 全部永久层已订 + 本行下一层价 ≤ 道韵余量, 任一货架都挤不爆全卡预算。
 func _shop_rows(cv: VBoxContainer, meta: Dictionary) -> void:
 	var dao := int(meta.get("dao", 0))
-	var other := _root_cost() + _traits_cost() + (Game.SCROLL_COST if _scroll_sel else 0)   # 预算链上另几货架已订部分
+	var fixed := _root_cost() + _traits_cost() + (Game.SCROLL_COST if _scroll_sel else 0)   # 一世位货架已订部分
 	var forge_sub := ""
 	if _forge_n > 0:
 		forge_sub = "本次 ×%d → 聚灵 +%.2f" % [_forge_n, _forge_n * Game.FORGE_STEP]
 	cv.add_child(_stepper_row("铸体（一世）", Game.FORGE_COST, "灵根系数 +%.1f/次 · 限 5 次" % Game.FORGE_STEP,
 		forge_sub, _forge_n,
-		_forge_n < Game.FORGE_CAP and other + (_forge_n + 1) * Game.FORGE_COST + _bless_n * Game.BLESS_COST <= dao,
+		_forge_n < Game.FORGE_CAP and fixed + _meta_pending() + (_forge_n + 1) * Game.FORGE_COST + _bless_n * Game.BLESS_COST <= dao,
 		_forge_n > 0, _step_forge.bind(1), _step_forge.bind(-1)))
+	for k in ["lingqiao", "wudao", "shouyuan", "tianchan"]:
+		cv.add_child(_meta_shelf_row(String(k)))
 	var acc := int(round(float(meta.get("bless_pct", 0.0)) * 100.0))
 	var bless_sub := ""
 	if acc > 0:
@@ -355,8 +373,55 @@ func _shop_rows(cv: VBoxContainer, meta: Dictionary) -> void:
 		bless_sub += (" · " if bless_sub != "" else "") + "本次再 +%d%%" % (_bless_n * int(round(Game.BLESS_STEP * 100.0)))
 	cv.add_child(_stepper_row("天道眷顾（永久）", Game.BLESS_COST, "冲关率 +%d%%/次 · 每次转世限 5 次" % int(round(Game.BLESS_STEP * 100.0)),
 		bless_sub, _bless_n,
-		_bless_n < Game.BLESS_CAP and other + _forge_n * Game.FORGE_COST + (_bless_n + 1) * Game.BLESS_COST <= dao,
+		_bless_n < Game.BLESS_CAP and fixed + _meta_pending() + _forge_n * Game.FORGE_COST + (_bless_n + 1) * Game.BLESS_COST <= dao,
 		_bless_n > 0, _step_bless.bind(1), _step_bless.bind(-1)))
+
+
+## 永久位货架行: 价签=下一层阶梯价(满层→「已满」), 副行=已购+本次再订效果; 订购暂存 _meta_n。
+func _meta_shelf_row(key: String) -> Control:
+	var bought := Game.meta_bought(key)
+	var pend := int(_meta_n.get(key, 0))
+	var full := bought + pend >= Game.meta_cap(key)
+	var is_year := key == "shouyuan"
+	var fx := Game.meta_fx(key) + float(pend) * Game.meta_step(key)
+	var fmt_fx := func(v: float) -> String:
+		return "%d年" % int(round(v)) if is_year else "+%d%%" % int(round(v * 100.0))
+	var sub := ""
+	if fx > 0:
+		sub = "已%s" % fmt_fx.call(fx)
+	if pend > 0:
+		sub += (" · " if sub != "" else "") + "本次再%s" % fmt_fx.call(float(pend) * Game.meta_step(key))
+	if full:
+		sub += (" · " if sub != "" else "") + "已满层"
+	var price := -1 if full else Game.meta_price(key, bought + pend)
+	return _stepper_row("%s（永久）" % String(Game.META_SHELF_NAME.get(key, key)), price, String(META_SHELF_NOTES.get(key, "")),
+		sub, pend, _meta_can_plus(key), pend > 0, _step_meta.bind(key, 1), _step_meta.bind(key, -1))
+
+
+## 四条永久位货架在 UI 暂存的合计价(阶梯价, 按各自已购层数续算) —— 全卡预算链共用项
+func _meta_pending() -> int:
+	var s := 0
+	for k in Game.META_SHELF_ORDER:
+		s += Game.meta_price_batch(String(k), int(_meta_n.get(String(k), 0)))
+	return s
+
+
+## key 再订一层后全卡总支出是否仍在道韵内(炼灵根/特质/残卷/铸体/眷顾/其余永久层全算, 防漏算)
+func _meta_can_plus(key: String) -> bool:
+	var bought := Game.meta_bought(key)
+	var pend := int(_meta_n.get(key, 0))
+	if bought + pend >= Game.meta_cap(key):
+		return false
+	var total := (_root_cost() + _traits_cost() + (Game.SCROLL_COST if _scroll_sel else 0)
+		+ _forge_n * Game.FORGE_COST + _bless_n * Game.BLESS_COST + _meta_pending()
+		+ Game.meta_price(key, bought + pend))
+	return total <= int(Game.meta.get("dao", 0))
+
+
+## 步进订购: d=±1, 钳到[0, 剩余层数]后整卡重建(预算行/下层价/+−可用态同步)
+func _step_meta(key: String, d: int) -> void:
+	_meta_n[key] = clampi(int(_meta_n.get(key, 0)) + d, 0, Game.meta_cap(key) - Game.meta_bought(key))
+	_rebuild()
 
 
 ## 步进订购: d=±1, 钳到柜位上限后整卡重建(预算行/预览/+−可用态同步)。
@@ -380,7 +445,7 @@ func _stepper_row(title: String, price: int, note: String, sub: String, count: i
 	var name_row := HBoxContainer.new()
 	name_row.add_theme_constant_override("separation", 6)
 	name_row.add_child(UiKit.label(title, 14, UiKit.PINK_700, 600))
-	name_row.add_child(UiKit.pill("%d韵" % price, UiKit.WHITE, UiKit.GOLD_500, 10, 600))
+	name_row.add_child(UiKit.pill("已满" if price < 0 else "%d韵" % price, UiKit.WHITE, UiKit.GOLD_500, 10, 600))
 	info.add_child(name_row)
 	var nl := UiKit.label(note, 11, UiKit.PINK_400)
 	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

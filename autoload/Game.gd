@@ -21,6 +21,19 @@ const FORGE_CAP := 5                     # 铸体每次转世限购 5 次(§2.3)
 const BLESS_COST := 50                   # 天道眷顾: 50 道韵 → 冲关率+2%(永久, §11)
 const BLESS_STEP := 0.02
 const BLESS_CAP := 5                     # 眷顾每次转世限购 5 次(效果永久叠加, 跨世可续购)
+const META_UPSTEP := 1.5                 # 永久位阶梯涨价: 每层价 ×1.5(取整到 5), 效果 +100% 封顶(§11)
+const LINGQIAO_BASE := 80                # 灵窍: 聚灵效率 +10%/层(永久) —— 修炼速度永久位
+const LINGQIAO_STEP := 0.10
+const LINGQIAO_CAP := 10                 # 10 层满 +100%
+const WUDAO_BASE := 50                   # 悟道: 落幕道韵获取 +10%/层(永久) —— 道韵收益永久位
+const WUDAO_STEP := 0.10
+const WUDAO_CAP := 10
+const SHOUYUAN_BASE := 80                # 寿基: 寿元上限 +2 年/层(永久, 加数) —— 寿命永久位
+const SHOUYUAN_STEP := 2.0
+const SHOUYUAN_CAP := 10                 # 10 层满 +20 年
+const TIANCHAN_BASE := 60                # 田诀: 灵田收获 +10%/层(永久) —— 经营产出永久位
+const TIANCHAN_STEP := 0.10
+const TIANCHAN_CAP := 10
 const SCROLL_COST := 50                  # 功法残卷: 50 道韵 → 下一世开局残页 ×5(一世结算, 道韵商城留位转正)
 const SCROLL_PAGES := 5                  # 每卷残页数(转世卡限购 1 卷/世)
 const ELEMENTS := ["金", "木", "水", "火", "土"]
@@ -86,7 +99,53 @@ func _load_meta_or_init() -> void:
 
 ## meta 新档模板(唯一出处, _load_meta_or_init 与 new_game 共用)
 func _fresh_meta() -> Dictionary:
-	return {"schema": SaveSystem.META_SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
+	return {"schema": SaveSystem.META_SCHEMA, "dao": START_DAO, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {},
+		"lingqiao_n": 0, "wudao_n": 0, "shouyuan_n": 0, "tianchan_n": 0}   # 永久位四货架存层数(阶梯价 +100% 封顶)
+
+
+# ---- 永久位四货架(灵窍/悟道/寿基/田诀): meta 存层数, 效果与阶梯价由此换算(旧档缺键 get 兜底, 不 bump SCHEMA) ----
+const META_SHELF_ORDER := ["lingqiao", "wudao", "shouyuan", "tianchan"]
+const META_SHELF_NAME := {"lingqiao": "灵窍", "wudao": "悟道", "shouyuan": "寿基", "tianchan": "田诀"}
+
+func meta_base(key: String) -> int:
+	match key:
+		"lingqiao": return LINGQIAO_BASE
+		"wudao": return WUDAO_BASE
+		"shouyuan": return SHOUYUAN_BASE
+	return TIANCHAN_BASE
+
+func meta_step(key: String) -> float:
+	match key:
+		"lingqiao": return LINGQIAO_STEP
+		"wudao": return WUDAO_STEP
+		"shouyuan": return SHOUYUAN_STEP
+	return TIANCHAN_STEP
+
+func meta_cap(key: String) -> int:
+	match key:
+		"lingqiao": return LINGQIAO_CAP
+		"wudao": return WUDAO_CAP
+		"shouyuan": return SHOUYUAN_CAP
+	return TIANCHAN_CAP
+
+func meta_bought(key: String) -> int:
+	return int(meta.get(key + "_n", 0))
+
+## 第 nth 层(0 起)价格 = round(base × 1.5^nth), 取整到 5
+func meta_price(key: String, nth: int) -> int:
+	return int(round(float(meta_base(key)) * pow(META_UPSTEP, float(nth)) / 5.0)) * 5
+
+## 已购 cur 层后再买 add 层的合计价(cur 缺省读 meta)
+func meta_price_batch(key: String, add: int, cur := -1) -> int:
+	var c := meta_bought(key) if cur < 0 else cur
+	var s := 0
+	for i in range(c, c + add):
+		s += meta_price(key, i)
+	return s
+
+## 永久位效果换算: 灵窍/悟道/田诀 = 层数×step(加法乘区小数), 寿基 = 层数×2(年)
+func meta_fx(key: String) -> float:
+	return float(meta_bought(key)) * meta_step(key)
 
 ## 老档惰性补齐(食修效果字段, 不 bump SCHEMA)
 func _ensure_run() -> void:
@@ -125,6 +184,14 @@ func _ensure_run() -> void:
 		run.facilities = {"julingzhen": 0, "lingquan": 0, "cangjingge": 0, "daiketingyuan": 0}
 	if not run.has("wall"):
 		run.wall = {"posts": [], "queue": [], "read": 0, "rotate_cd": 1}
+	if not run.has("lundao"):
+		run.lundao = {"last": -1, "best": 0}   # 大比届次账本(§3.2 第 7 方案; 老档补, 不 bump SCHEMA)
+	if not run.has("repute"):
+		run.repute = 0   # 名望(8.4 §12.2 名望三源; 老档补 0)
+	if not run.has("repute_log"):
+		run.repute_log = []
+	if not run.has("shishan_last"):
+		run.shishan_last = 0   # 司膳好评年账(一年一评)
 	if Array(run.wall.get("posts", [])).is_empty():
 		_wall_seed_opening()   # 照壁不是空壁: 新世/旧空档(含被旧版本补过空 wall 的档)一律预置旧帖
 	if not run.has("travel_dest"):
@@ -239,10 +306,11 @@ func age_years() -> float:
 
 func lifespan_cap_years() -> int:
 	# 仙膳「寿命」永久加成(全世合计 ≤+3 年, 图鉴 6.5 已记冲突拍板: 触碰寿元硬时钟, M0 纳入模拟重标); 长寿相同为加数
+	# 寿基永久位(道韵商城): 层数×2 年, 渡劫档同受
 	# 渡劫寿元用时读 tuning(dujie_cap_years): Game._ready 与 DataManager 装载时序有竞态, 缓存值可能取到旧默认
 	if String(realm().get("key", "")) == "dujie":
-		return int(tune("dujie_cap_years", float(duijie_cap))) + int(run.get("life_bonus", 0)) + int(round(_trait_fx("life")))
-	return int(realm().lifespan_cap) + int(run.get("life_bonus", 0)) + int(round(_trait_fx("life")))
+		return int(tune("dujie_cap_years", float(duijie_cap))) + int(run.get("life_bonus", 0)) + int(round(_trait_fx("life"))) + int(round(meta_fx("shouyuan")))
+	return int(realm().lifespan_cap) + int(run.get("life_bonus", 0)) + int(round(_trait_fx("life"))) + int(round(meta_fx("shouyuan")))
 
 func calendar() -> String:
 	var y := (int(run.age_m) - START_AGE_M) / 12 + 1
@@ -1111,9 +1179,9 @@ func _npc_death(key: String) -> void:
 	changed.emit()
 
 
-## 聚灵效率 = 境界基数 × 灵根系数 × 功法倍率 × 洞府聚灵阵 ×(1+资质)×(1+食修效率 buff)×(1+灵息体)×(1+气质)
+## 聚灵效率 = 境界基数 × 灵根系数 × 功法倍率 × 洞府聚灵阵 ×(1+资质)×(1+食修效率 buff)×(1+灵息体)×(1+灵窍永久位)×(1+气质)
 func efficiency() -> float:
-	return float(realm().gain_base) * float(run.root) * float(run.tech) * cave_mult() * (1.0 + float(run.get("aptitude", 0.0))) * (1.0 + _buff_pct("eff_pct")) * (1.0 + _trait_fx("eff")) * (1.0 + aura_self("cult"))
+	return float(realm().gain_base) * float(run.root) * float(run.tech) * cave_mult() * (1.0 + float(run.get("aptitude", 0.0))) * (1.0 + _buff_pct("eff_pct")) * (1.0 + _trait_fx("eff")) * (1.0 + meta_fx("lingqiao")) * (1.0 + aura_self("cult"))
 
 ## 月修为 = E × 方案倍率 × 境界速度系数 ×(1+食修「当月修为」buff)
 func month_gain() -> float:
@@ -1408,6 +1476,10 @@ func _gongfa_tick() -> void:
 	# 秋期论道(每年 9 月): 扶摇仙盟例会偶散功法残页(GDD §5.3 论道奖励)
 	if _cal_month() == 9 and not deterministic and rng.randf() < float(tune("lundao_page_chance", 0.3)):
 		gongfa_pages_add(1, "秋期论道偶得")
+	# 秋期例会司膳好评(§12.2 名望三源之二): 百味宗年年承办流水席, 库房有菜(或正专职下厨)即上得了席 —— 一年一评, 无方案门槛
+	if _cal_month() == 9 and int(run.shishan_last) != _lundao_year() and (not _dishes().is_empty() or String(run.get("plan", "pure")) == "cook"):
+		run.shishan_last = _lundao_year()
+		_add_repute(int(tune("lundao_shishan_repute", 1)), "秋期例会司膳好评(流水席)")
 	# 道侣赠礼(GDD §5.3 恋爱与养成互锁): 道侣在位时月度小概率从坊市捎来一页
 	var dk := _dao_key()
 	if dk != "" and not deterministic and rng.randf() < float(tune("daolu_page_chance", 0.05)):
@@ -1805,6 +1877,40 @@ func resolve_option(i: int) -> void:
 				else:
 					_log("◇ 抉择「%s」" % choice)
 					_apply_event_effect("", {"label": String(oe.get("label", "抉择结果 · %s" % choice)), "effect": oe})
+		"lundao":
+			# 大比论道(§3.2/8.4 §12): 检定口径同 §5.4(有效战力=武力×扰动 vs 对手武力×扰动) —— 带菜=检定加成+席间道贺
+			var dish_l: Dictionary = pending.data.get("dish", {})
+			var opp: Dictionary = pending.data.get("opp", {})
+			var brought := not dish_l.is_empty() and i == 0
+			var adv_l := wu_li() * (1.0 + (float(tune("lundao_dish_fx", 0.15)) if brought else 0.0)) * rng.randf_range(0.7, 1.3)
+			var opp_p := float(opp.get("power", 1.0)) * _realm_base_now() * rng.randf_range(0.85, 1.15)
+			var res := 0
+			if adv_l >= opp_p * 1.15:
+				res = 2
+			elif adv_l >= opp_p * 0.95:
+				res = 1
+			var lead := ""
+			if brought:
+				lead = "你把【%s】递上评委席, 携味赴战 —— " % dish_display_name(dish_l)
+			else:
+				lead = "你空手赴会, 全凭本事 —— "
+			var opp_f: Dictionary = DataManager.faction(String(opp.get("fac", "")))
+			var duel_line := "%s对决【%s】来的%s" % [lead, String(opp_f.get("name", "同门")), String(opp_f.get("npc_label", "修士"))]
+			if res == 2:
+				var stones := rng.randi_range(int(tune("lundao_stones_lo", 60)), int(tune("lundao_stones_hi", 150)))
+				_log("◇ %s —— 干脆利落, 头名! 席间各派修士纷纷向你道贺, 仙盟彩头入账灵石 %d" % [duel_line, stones])
+				farm().stones = int(farm().stones) + stones
+				_add_repute(int(tune("lundao_repute_win", 12)), "大比头名(仙盟官账)", true)
+				_lundao_congrats(3.0)
+			elif res == 1:
+				_log("◇ %s —— 险胜一筹, 列席上位。" % duel_line)
+				_add_repute(int(tune("lundao_repute_up", 6)), "大比上位(仙盟官账)", true)
+				_lundao_congrats(1.0)
+			else:
+				_log("◇ %s —— 力有不逮, 陪榜如常。「重在参与」是百味宗的传统, 好在流水席照旧清盘。" % duel_line)
+				_add_repute(int(tune("lundao_repute_rest", 2)), "大比陪榜(重在参与)", true)
+			run.lundao.best = maxi(int(run.lundao.get("best", 0)), res + 1)
+			_queue_wall_event("lundao_win" if res == 2 else ("lundao_up" if res == 1 else "lundao_misc"))
 		"node":
 			var nk := String(pending.data.key)
 			var rates: Array = pending.data.rates
@@ -2035,7 +2141,7 @@ func default_origin() -> Dictionary:
 	return DataManager.origins[0] if not DataManager.origins.is_empty() else {"name": "宗门弟子", "root_coef": 1.0, "element": "木", "bonus_plot": false}
 
 
-func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice := {}, trait_ids := [], keep_name := true, gongfa_pages := 0) -> void:
+func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice := {}, trait_ids := [], keep_name := true, gongfa_pages := 0, meta_buys := {}) -> void:
 	forge_times = clampi(forge_times, 0, FORGE_CAP)   # 柜位限购: UI 之外也守住 §2.3 上限
 	bless_times = clampi(bless_times, 0, BLESS_CAP)
 	if origin.is_empty():
@@ -2047,16 +2153,31 @@ func rebirth(origin: Dictionary, forge_times: int, bless_times: int, root_choice
 	for tid in traits:
 		trait_cost += int(DataManager.traits_def(String(tid)).cost)
 	var scroll_cost := SCROLL_COST if gongfa_pages > 0 else 0
-	var spend := forge_times * FORGE_COST + bless_times * BLESS_COST + root_cost + trait_cost + scroll_cost
+	# 永久位四货架(灵窍/悟道/寿基/田诀): 阶梯价逐层累算, 层数封顶 +100%; meta 存层数, 跨世保留
+	var mb := {}
+	var meta_cost := 0
+	for k in META_SHELF_ORDER:
+		var cur := meta_bought(String(k))
+		var n := clampi(int(meta_buys.get(k, 0)), 0, meta_cap(String(k)) - cur)   # 旧档已满层 → 再订自动归零
+		mb[k] = n
+		meta_cost += meta_price_batch(String(k), n, cur)
+	var spend := forge_times * FORGE_COST + bless_times * BLESS_COST + root_cost + trait_cost + scroll_cost + meta_cost
 	if spend > int(meta.get("dao", 0)):
 		_log("道韵不足(需 %d, 有 %d)" % [spend, int(meta.get("dao", 0))])
 		return
 	meta.dao = int(meta.dao) - spend
 	meta.bless_pct = float(meta.get("bless_pct", 0.0)) + bless_times * BLESS_STEP
+	for k in mb:
+		if int(mb[k]) > 0:
+			meta[String(k) + "_n"] = meta_bought(String(k)) + int(mb[k])
 	SaveSystem.save_meta(meta)
 	var trim_txt := "" if int(nr[0]) >= 5 else "炼灵根至 %d 行·" % int(nr[0])
 	var scroll_txt := ", 功法残卷(开局残页 %d)" % gongfa_pages if gongfa_pages > 0 else ""
-	_log("—— 前世遗产折价 %d 道韵: %s铸体×%d, 天道眷顾×%d(+%.0f%%冲关率)%s%s ——" % [spend, trim_txt, forge_times, bless_times, bless_times * BLESS_STEP * 100.0, ("·" + trait_display(traits)) if not traits.is_empty() else "", scroll_txt])
+	var meta_txt := ""
+	for k in mb:
+		if int(mb[k]) > 0:
+			meta_txt += ", %s×%d" % [String(META_SHELF_NAME.get(String(k), String(k))), int(mb[k])]
+	_log("—— 前世遗产折价 %d 道韵: %s铸体×%d, 天道眷顾×%d(+%.0f%%冲关率)%s%s%s ——" % [spend, trim_txt, forge_times, bless_times, bless_times * BLESS_STEP * 100.0, ("·" + trait_display(traits)) if not traits.is_empty() else "", scroll_txt, meta_txt])
 	_start_life(origin, forge_times, root_choice, traits, keep_name, true, gongfa_pages)
 
 ## 开始界面「新开一世」: Meta 重置(道韵回到起始值, 历世/最佳境界全清)并起第 1 世(灵根五行俱全)。
@@ -2126,6 +2247,10 @@ func _tick_core() -> void:
 	_report("修为 +%s(%s ×%.2f)" % [_fmt(gain), String(plan().name), plan_mult()])
 	# 2) 方案执行器(冷却驱动, 自动)
 	_execute_plan()
+	# 2e) 大比论道大会(§3.2 第 7 方案/8.4 §12): 十年一届, 大比方案挂机才自动参加 —— 命中即弹框, 当月止步(同灵田打断月惯例)
+	if _lundao_festival_check():
+		changed.emit()
+		return
 	# 2b) 气血自然回复 +5/月(cap=气血上限, 详解卷 6.2.4)
 	run.qi = mini(qi_max(), _qi() + int(econ("qi_regen", 5)) + int(round(_buff_pct("regen"))))
 	# 2c) 灶上烹制推进: 已起火的锅逐月计时, 到期可收取
@@ -2329,6 +2454,8 @@ func _execute_plan() -> void:
 	match String(run.get("plan", "pure")):
 		"cook":
 			_cook_once()   # 专职下厨(6.2.3): 每月按已有食材自动烹一道已习得低/中阶谱(缺库优先)入洞府仓库(不自动赠予)
+		"lundao":
+			_lundao_plan_tick()   # 大比论道(§3.2 第 7 方案): 平月备赛切磋; 大会本身走 _tick_core 2e 的 _lundao_festival_check
 		"romance":
 			var fk := _explicit_focus()
 			for key in run.npcs:
@@ -2437,6 +2564,143 @@ func _execute_plan() -> void:
 							], "secret", {})
 					else:
 						_yaoguai_encounter(scost)   # 其间档: 游遇小妖 —— 武力对妖力的检定战(§5.4)
+
+# ---------------------------------------------------------------- 大比论道与名望(GDD §3.2 第 7 方案 / 8.4 §12, 数据: factions.json)
+
+## 本世年数(与 calendar() 纪年同口径): 大比届期用它 —— 十年一届(lundao_cycle, 2026-10-12 拍板;
+## 每年 9 月仙盟秋期例会保留为节庆层: 残页/司膳好评照旧, 大比本身逢届之年才开)。
+func _lundao_year() -> int:
+	return (int(run.age_m) - START_AGE_M) / 12 + 1
+
+## 大比方案平月备赛(§3.2 第 7 方案): 大会十年一届, 平月以武会友/以菜会友 —— 异派系在册 NPC 优先,
+## 好感小增; 小概率胜绩传进百话楼(名望 +1, 文脉民账口径)。大会本身走 _lundao_festival_check(_tick_core 2e)。
+func _lundao_plan_tick() -> void:
+	if deterministic or rng.randf() >= float(tune("lundao_spar_chance", 0.35)):
+		return
+	var cands: Array = []
+	for key in run.npcs:
+		if not bool(run.npcs[key].get("met", false)):
+			continue
+		var fac := _npc_faction(String(key))
+		cands.append({"key": String(key), "away": fac != "" and fac != "baimenzong"})
+	if cands.is_empty():
+		return
+	cands.sort_custom(func(a, b): return bool(a.away) and not bool(b.away))   # 异派系优先(同权重保持原序)
+	var pick: Dictionary = cands[rng.randi_range(0, mini(cands.size(), 4) - 1)]
+	var pk := String(pick.key)
+	var v := float(tune("lundao_spar_aff", 5))
+	_bump_aff(pk, v)
+	var how: Array = ["切磋了一场, 点到即止", "拆了三十招, 各有进益", "论了半日道, 相谈甚欢", "陪练一场, 对方讨了份点心去"]
+	var line := "备赛: 与【%s】%s(好感 +%.0f)" % [npc_name(pk), how[rng.randi_range(0, how.size() - 1)], v]
+	if rng.randf() < 0.2:
+		_add_repute(1, "切磋胜绩传进百话楼")
+		line += " · 名望 +1"
+	_report(line)
+
+## 大比论道大会(十年一届, 大比方案挂机才自动参加 —— 非该方案的玩家经照壁与名望 App 隔岸观火):
+## 逢届之年 9 月命中 → 弹框选带菜/空手 → resolve_option("lundao") 检定结算。返回 true=本届已派发(当月止步于弹框, 同灵田打断月惯例)。
+func _lundao_festival_check() -> bool:
+	if is_ended() or String(run.get("plan", "pure")) != "lundao":
+		return false
+	var y := _lundao_year()
+	var cyc := maxi(1, int(tune("lundao_cycle", 10)))
+	# 月窗 9–10 月: 逢届之年若 9 月被灵田打断月占掉, 10 月仍补开(同照壁年节窗重试口径), 整届不落空
+	if (_cal_month() != 9 and _cal_month() != 10) or y % cyc != 0 or int(run.lundao.get("last", -1)) == y:
+		return false
+	run.lundao.last = y   # 先记届次: 弹框无论选什么, 本届不再派发
+	var opp := _lundao_pick_opponent()
+	var opp_f: Dictionary = DataManager.faction(String(opp.fac))
+	# 群像氛围(§12.1): 从各家「大会戏台位/保留节目」抽两条 —— 势力群像的戏台位直接进场
+	var seats: Array = []
+	for f in DataManager.factions:
+		if String(f.get("id", "")) != "baimenzong" and String(f.get("seat", "")) != "":
+			seats.append(String(f.seat))
+	var gossip := ""
+	if not seats.is_empty():
+		var i1 := rng.randi_range(0, seats.size() - 1)
+		var i2 := (i1 + 1 + rng.randi_range(0, maxi(0, seats.size() - 2))) % seats.size()
+		gossip = "\n会上光景: %s %s" % [seats[i1], seats[i2]]
+	var dish := _lundao_best_dish()
+	var opts: Array = []
+	if not dish.is_empty():
+		opts.append({"t": "带【%s】赴会" % dish_display_name(dish), "result": "给评委席递一味点心 —— 检定加成与好感双收(§12.2 带菜赴会)"})
+	opts.append({"t": "空手赴会", "result": "轻装上阵, 全凭本事"})
+	_fire_interrupt("大比论道", "十年一届的秋期大比论道开锣, 九家代表团齐至青梧城(幽都道照旧被章程拒之门外)。你抽的首轮对手是【%s】来的%s。%s\n名望榜由仙盟账房折算、全洲通用 —— 这一战, 打的是十年的名气。" % [String(opp_f.get("name", "同门")), String(opp_f.get("npc_label", "修士")), gossip], opts, "lundao", {"dish": dish, "opp": opp})
+	return true
+
+## 带菜候选(§12.2): 库房成品料理择优一碟(tier 高者优先, 同档随机换换花样), 空库返回 {}
+func _lundao_best_dish() -> Dictionary:
+	var dishes := _dishes()
+	var best: Dictionary = {}
+	var best_rank := -1
+	var rank_of := {"low": 0, "mid": 1, "dark": 2, "high": 3}
+	for rid in dishes:
+		if int(dishes[rid]) <= 0:
+			continue
+		var r := DataManager.recipe(String(rid))
+		if r.is_empty():
+			continue
+		var rank := int(rank_of.get(String(r.get("tier", "low")), 0))
+		if rank > best_rank or (rank == best_rank and rng.randf() < 0.5):
+			best_rank = rank
+			best = r
+	return best
+
+## 大比对手池(§12.2): 按玩家境界序数取 duel_min 达标者的代表团, 档次越高权重越大(通明宫档最硬、名望最高)。
+## 只回档案引用与战力系数, 具体武力在 resolve 时按 §5.4 口径现算 —— 对手境界与玩家同段, 相对难度恒定。
+func _lundao_pick_opponent() -> Dictionary:
+	var ord := int(realm().ordinal)
+	var pool: Array = []
+	var total := 0
+	for f in DataManager.factions:
+		if not bool(f.get("duel", false)) or int(f.get("duel_min", 1)) > ord:
+			continue
+		var w := clampi(int(f.get("duel_min", 1)), 1, 4)
+		pool.append({"f": f, "w": w})
+		total += w
+	if pool.is_empty():
+		return {"fac": "baimenzong", "power": 1.0}
+	var r := rng.randi_range(1, total)
+	var pick: Dictionary = pool[0]
+	for p in pool:
+		r -= int(p.w)
+		if r <= 0:
+			pick = p
+			break
+	return {"fac": String(pick.f.get("id", "")), "power": float(pick.f.get("duel_power", 1.0))}
+
+## 大比贺喜(生态互动主舞台): 名次越好贺喜越厚 —— 在册 NPC 好感微增(+3/+1)
+func _lundao_congrats(base: float) -> void:
+	for key in run.npcs:
+		if bool(run.npcs[key].get("met", false)):
+			_bump_aff(String(key), base)
+
+## 名望(GDD 8.4 §4.2 名望榜/§12.2 三源): 非负累计, 流水留最近 8 条供名望 App 展示;
+## 首破话本门槛(repute_huaben, §10.2)一次性上文脉帖 —— 名望的民间放大器回路。
+## direct=false 走月报行(tick 内结算), resolve 弹框结算传 true 直入纪事(与其他打断结算同惯例)。
+func _add_repute(n: int, why: String, direct := false) -> void:
+	if n == 0:
+		return
+	var before := int(run.get("repute", 0))
+	run.repute = maxi(0, before + n)
+	var log: Array = run.get("repute_log", [])
+	log.push_front({"n": n, "why": why, "y": _lundao_year()})
+	if log.size() > 8:
+		log.resize(8)
+	run.repute_log = log
+	var line := "名望 %+d(%s) —— 现有名望 %d" % [n, why, int(run.repute)]
+	if direct:
+		_log("◇ %s" % line)
+	else:
+		_report(line)
+	var huaben := int(tune("repute_huaben", 20))
+	if before < huaben and int(run.repute) >= huaben:
+		_queue_wall_event("huaben")
+		var ms := "◆ 名望 %d —— 百话楼的茶客间开始传你的故事, 文脉的笔动起来了(名望≥%d, 有资格拥有自己的话本)" % [int(run.repute), huaben]
+		if direct:
+			_log(ms)
+		else:
+			_report(ms)
 
 # ---------------------------------------------------------------- 灵田(详解卷 6.1, 数据: seeds.json + economy_tuning.json)
 
@@ -2589,7 +2853,7 @@ func _farm_tick() -> bool:
 
 ## 收获(6.1.4 品质模型): 产量=基础×四季×灵泉×虫害; 品质=基础档+升档roll(亲和×2, 水火异属禁升上)+变异
 func _harvest_plot(p: Dictionary, s: Dictionary, season: String) -> void:
-	var y := float(s.yield) * _season_mult(season) * (1.0 + facility_level_eff("lingquan")) * (1.0 + _trait_fx("farm"))   # 灵泉产量通道(§6.4.1) · 绿蓑特质产量乘项
+	var y := float(s.yield) * _season_mult(season) * (1.0 + facility_level_eff("lingquan")) * (1.0 + _trait_fx("farm") + meta_fx("tianchan"))   # 灵泉产量通道(§6.4.1) · 绿蓑特质与田诀永久位产量加项
 	if bool(p.get("pest", false)):
 		y *= 1.0 - float(econ("pest_penalty", 0.3))
 	var n := maxi(1, int(round(y)))
@@ -5086,6 +5350,7 @@ func _start_life(origin: Dictionary, forge_times: int, root_choice := {}, trait_
 		"age_m": START_AGE_M,
 		"realm": 0, "layer": 0, "cult": 0.0,
 		"plan": "pure", "focus": "", "follows": [], "pity": 0,
+		"repute": 0, "repute_log": [], "shishan_last": 0, "lundao": {"last": -1, "best": 0},   # 名望(8.4 §12.2 三源)+司膳年账+大比届次账本
 			"inner": 0, "secret": 0, "recover": 0,
 			"buffs": {}, "qi": 100, "aptitude": 0.0, "life_bonus": 0, "luck": 0, "break_bonus": 0.0,
 			"facilities": {"julingzhen": 0, "lingquan": 0, "cangjingge": 0, "daiketingyuan": 0},
@@ -5250,7 +5515,8 @@ func _ending(kind: String) -> void:
 	var bonds := sealed_count()
 	base += int(run.secret) * 5.0 + float(bonds) * float(tune("seal_dao", 50))   # +羁绊×seal_dao(§11)
 	base += float(_qy_frag()) * float(tune("ax_dao_per_frag", 30.0))   # +暗线碎片×30(§11/速查表「已定未实装」落位; H06-a 即时 dao 已移除, 不重复计)
-	var dao := int(base * float(ENDING_MULT.get(kind, 1.0)))
+	var wudao := meta_fx("wudao")   # 悟道永久位: 落幕道韵 +10%/层, 与结局倍率相乘后统一取整
+	var dao := int(base * (1.0 + wudao) * float(ENDING_MULT.get(kind, 1.0)))
 	meta.dao = int(meta.get("dao", 0)) + dao
 	meta.lives = int(meta.get("lives", 0)) + 1
 	if ord > int(meta.get("best_ord", 0)):
@@ -5269,12 +5535,15 @@ func _ending(kind: String) -> void:
 		"kind": kind, "dao": dao, "total_dao": int(meta.dao), "lives": int(meta.lives),
 		"years": (int(run.age_m) - START_AGE_M) / 12, "realm": String(realm().name),
 		"origin": String(run.origin), "decisions": int(k.decisions), "bonds": bonds,
-		"name": player_name(),   # 碑文称名(称谓规约 §8.1: 落幕是名字的归属地)
+		"repute": int(run.get("repute", 0)), "lundao_best": int(run.get("lundao", {}).get("best", 0)),
+		"name": player_name(),   # 碑文称名(称谓规约 §8.1): 落幕是名字的归属地
 	}
 	_log("")
 	_log("═══ 第 %d 世落幕:【%s】═══" % [run.life, kind])
 	_log("%s · 享年 %d 岁 · 止步%s · 印记羁绊 %d · 特殊事件 %d 次" % [summary.name if String(summary.name) != "" else "无名氏", summary.years, summary.realm, bonds, int(k.interrupts)])
-	_log("结算道韵 +%d(×%.1f), 累计 %d 道韵%s" % [dao, float(ENDING_MULT.get(kind, 1.0)), int(meta.dao), (" · 含暗线碎片×%d" % _qy_frag()) if _qy_frag() > 0 else ""])
+	var lb := int(summary.lundao_best)
+	_log("江湖名望 %d%s —— 仙盟官账有据, 茶楼话本有痕(§8.4)" % [int(summary.repute), (" · 大比最好名次: %s" % ["陪榜", "上位", "头名"][lb - 1]) if lb > 0 else ""])
+	_log("结算道韵 +%d(×%.1f%s), 累计 %d 道韵%s" % [dao, float(ENDING_MULT.get(kind, 1.0)), ("·悟道+%.0f%%" % (wudao * 100.0)) if wudao > 0 else "", int(meta.dao), (" · 含暗线碎片×%d" % _qy_frag()) if _qy_frag() > 0 else ""])
 	_log("魂魄印记、三生石与来世重逢(P2)—— 灰盒留白, 情感承诺已记账。")
 	ended.emit(summary)
 	changed.emit()

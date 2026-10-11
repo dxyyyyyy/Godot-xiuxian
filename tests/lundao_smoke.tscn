@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://lundaosmoke01"]
+
+[ext_resource type="Script" path="res://tests/lundao_smoke.gd" id="1_lds"]
+
+[node name="LundaoSmoke" type="Node"]
+script = ExtResource("1_lds")

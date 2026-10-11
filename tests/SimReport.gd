@@ -97,4 +97,4 @@ func _fresh_and_step(seed: int, chunk: int, rounds: int) -> String:
 	return JSON.stringify(Game.run)
 
 func _reset_meta() -> void:
-	Game.meta = {"schema": Game.SCHEMA, "dao": 0, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}}
+	Game.meta = {"schema": Game.SCHEMA, "dao": 0, "lives": 0, "best_ord": 0, "best_name": "无", "bless_pct": 0.0, "bonds": 0, "endings": {}, "lingqiao_n": 0, "wudao_n": 0, "shouyuan_n": 0, "tianchan_n": 0}

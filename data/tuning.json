@@ -150,5 +150,17 @@
  "npc_adult_years": 16,
  "ax_dao_per_frag": 30,
  "kailu_base": 0.55,
- "dujie_panel_cd": 6
+ "dujie_panel_cd": 6,
+ "lundao_cycle": 10,
+ "lundao_spar_chance": 0.35,
+ "lundao_spar_aff": 5,
+ "lundao_repute_win": 12,
+ "lundao_repute_up": 6,
+ "lundao_repute_rest": 2,
+ "lundao_dish_fx": 0.15,
+ "lundao_stones_lo": 60,
+ "lundao_stones_hi": 150,
+ "lundao_shishan_repute": 1,
+ "repute_huaben": 20,
+ "note_lundao": "大比论道(GDD §3.2 第 7 方案/8.4 §12): 大比十年一届(2026-10-12 拍板), 每年 9 月仙盟秋期例会保留为节庆层(lundao_page_chance 残页不动); 名望三源=大比名次+司膳好评+话本传唱(§12.2), 名望≥repute_huaben=话本资格(§10.2, 文脉帖一次性)"
 }

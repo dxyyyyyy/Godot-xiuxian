@@ -1114,5 +1114,255 @@
   ],
   "op_extra": null,
   "report_line": "壁上有人帖: 山门口那位又拦人问「来者何人」了"
+ },
+ {
+  "id": "wall_047",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "shanshen"
+  },
+  "title": "【问事】后山庙又「不收香火」了",
+  "op": {
+   "poster_id": "清溪村挑山货的",
+   "text": "春山祭照旧: 庙祝还是那句「本庙不收香火」—— 但收山货, 野蜜换山菇, 秤比城里公道。就有一样不懂: 庙里借住的那位隐士, 十年才回来看一回门, 每回都挑庙会人多的时候, 这是哪门子讲究?"
+  },
+  "replies": [
+   {
+    "poster_id": "进香三回来的",
+    "text": "山神爷巡山, 微服懂吗? 别问, 问就是路过。"
+   },
+   {
+    "poster_id": "后山采药的",
+    "text": "楼上慎言。山, 看着呢。"
+   }
+  ],
+  "op_extra": "本帖已被庙祝揭走, 理由: 泄露本庙业务范围。",
+  "report_line": "壁上有人帖: 春山祭, 后山庙还是「不收香火」"
+ },
+ {
+  "id": "wall_048",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "huizu"
+  },
+  "title": "【吐槽】白记酒坊后院又埋了一排新坛",
+  "op": {
+   "poster_id": "青梧城跑腿的",
+   "text": "白记后院今天又埋了一排新坛, 坛坛刻着人名, 掌柜的说都是「非卖品」。有坛子泥都换过三遍土了, 刻的名字几十年没来取 —— 那人到底还来不来?"
+  },
+  "replies": [
+   {
+    "poster_id": "酒坊隔壁住着的",
+    "text": "狐族的坛子, 等得起。"
+   },
+   {
+    "poster_id": "听过老话的",
+    "text": "那是约定: 重逢之日, 开坛。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 白记酒坊又埋了一排记名坛"
+ },
+ {
+  "id": "wall_049",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "wenmai"
+  },
+  "title": "【追更】《百味宗女修传》本周停更??",
+  "op": {
+   "poster_id": "百话楼茶客",
+   "text": "说好的三日后更新, 茶楼那位先生攒了两天没开书, 只说「在等一个新章回」。有知情的吗, 主角到底怎么了?"
+  },
+  "replies": [
+   {
+    "poster_id": "懂行规的",
+    "text": "文脉的规矩: 话本不写真名, 写姓不写名, 写名不写脸。你猜主角姓什么。"
+   },
+   {
+    "poster_id": "三天没睡好的",
+    "text": "等新章回+1, 上回那个转折我到现在没缓过来。"
+   }
+  ],
+  "op_extra": "本帖被说书人本人回过一帖: 「快了。好饭不怕晚, 好书也是。」",
+  "report_line": "壁上有人帖: 《百味宗女修传》在等一个新章回"
+ },
+ {
+  "id": "wall_050",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "fangshi"
+  },
+  "title": "【提醒】坊市夜市今晚只点灯笼",
+  "op": {
+   "poster_id": "城西摆摊的",
+   "text": "老规矩再念一遍: 夜里坊市不点仙火, 只点灯笼。上月有个新来的用仙火烤串, 城规最后一条管的就是他 —— 「仙火烤的串没有魂」。客人跑了一半, 赔惨了。"
+  },
+  "replies": [
+   {
+    "poster_id": "吃过亏的",
+    "text": "没有魂的串确实不好吃, 认灯笼。"
+   },
+   {
+    "poster_id": "守法好商贩",
+    "text": "顺便背一遍城规第一条: 先付账, 再修仙。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 坊市夜市, 仙火烤串没有魂"
+ },
+ {
+  "id": "wall_051",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "tongming"
+  },
+  "title": "【见闻】通明宫的仙长下山了, 在问路",
+  "op": {
+   "poster_id": "清溪村口卖豆腐的",
+   "text": "一位通明宫的仙长今早在村口问路, 问「哪家的豆腐最正」。我指了自家摊, 他吃了一筷子, 站了很久, 说了句「有烟火气」, 双倍钱一放就走了。仙门不是辟谷吗?"
+  },
+  "replies": [
+   {
+    "poster_id": "通明宫外门（自称）",
+    "text": "胡说, 我们仙长那是「考察民间疾苦」。"
+   },
+   {
+    "poster_id": "炼气三层不敢说话",
+    "text": "考察到第二碗了。双倍钱是补香火钱, 通明宫的体面。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 通明宫仙长下山问「哪家的豆腐最正」"
+ },
+ {
+  "id": "wall_052",
+  "family": "force",
+  "trigger": {
+   "type": "faction_rotate",
+   "faction": "jianpai"
+  },
+  "title": "【传闻】昨夜霜崖那边万剑齐鸣",
+  "op": {
+   "poster_id": "走西境的商队",
+   "text": "昨夜路过霜崖地界, 剑冢方向剑鸣了整整一刻, 像谁家在点名。老辈人说, 那是又有剑修要登程, 本命剑先回冢了。人还没动身, 剑先到家 —— 这算什么讲究?"
+  },
+  "replies": [
+   {
+    "poster_id": "剑派门下走卒",
+    "text": "剑派的讲究: 人升剑不升。"
+   },
+   {
+    "poster_id": "夜宿霜崖脚下的",
+    "text": "剑替主人记着山门。剑到家了, 家就到了。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 霜崖剑冢夜鸣, 又有剑先回了家"
+ },
+ {
+  "id": "wall_053",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "lundao_win"
+  },
+  "title": "【爆】十年一届大比, 头名是百味宗的（{xingming}）",
+  "op": {
+   "poster_id": "东海卖鱼的",
+   "text": "出大事了 —— 十年一届的大比论道放榜, 头名是百味宗做菜的那位（{xingming}）! 仙盟名望榜今早刚换, 全城都在抄。评委席那位通明宫长老打分的时候, 笔停了一下。"
+  },
+  "replies": [
+   {
+    "poster_id": "某不愿透露籍贯的金丹",
+    "text": "百味宗修的不是仙, 是武德。"
+   },
+   {
+    "poster_id": "炼气三层不敢说话",
+    "text": "求办庆功宴, 流水席我出三个胃。"
+   }
+  ],
+  "op_extra": "本帖已被巡山司揭走, 理由: 围观人群阻塞坊市交通。",
+  "report_line": "壁上有人帖: 大比头名是百味宗的（{xingming}）"
+ },
+ {
+  "id": "wall_054",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "lundao_up"
+  },
+  "title": "【捷报】大比上位席有百味宗一位",
+  "op": {
+   "poster_id": "青梧城城西烤串的",
+   "text": "大比放榜了 —— 百味宗这回不上「重在参与」的榜了,（{xingming}）列了上位席! 我摊子连夜加了一款「庆贺串」, 打八折。"
+  },
+  "replies": [
+   {
+    "poster_id": "陪榜十年的老熟人",
+    "text": "好家伙, 百味宗出息了。"
+   },
+   {
+    "poster_id": "打听彩头的",
+    "text": "上位席的仙盟彩头不赖, 听说够吃三年。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 百味宗（{xingming}）列大比上位席"
+ },
+ {
+  "id": "wall_055",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "lundao_misc"
+  },
+  "title": "【例行】大比放榜, 百味宗照旧「重在参与」",
+  "op": {
+   "poster_id": "不周山看门的",
+   "text": "十年一届大比又散了。榜单前头还是那几家, 百味宗的席还是离灶台最近那张。不过说句公道话: 那桌流水席, 通明宫的长老又是第一筷豆腐。"
+  },
+  "replies": [
+   {
+    "poster_id": "重在参与互助会",
+    "text": "重在参与+1, 但饭是真好吃。"
+   },
+   {
+    "poster_id": "蹲下一届的",
+    "text": "十年后再战。反正灶火比人等得起。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 大比放榜, 百味宗照旧重在参与"
+ },
+ {
+  "id": "wall_056",
+  "family": "protagonist",
+  "trigger": {
+   "type": "event",
+   "event": "huaben"
+  },
+  "title": "【连载】百话楼要开新书了, 就写那位（{xingming}）",
+  "op": {
+   "poster_id": "百话楼说书人",
+   "text": "承蒙不弃。仙盟名望榜过了线的人物, 文脉照例开一本话本 —— 规矩是写姓不写名、写名不写脸, 所以书名就不能叫《（{xingming}）传》。暂定《灶边那些年》, 列位捧场。"
+  },
+  "replies": [
+   {
+    "poster_id": "老茶客",
+    "text": "茶资不欠, 订了。"
+   },
+   {
+    "poster_id": "催更的",
+    "text": "求从入宗门那章写起, 灶房段我全背下来了。"
+   }
+  ],
+  "op_extra": null,
+  "report_line": "壁上有人帖: 百话楼要给（{xingming}）开话本了"
  }
 ]

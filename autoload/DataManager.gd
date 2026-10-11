@@ -24,6 +24,7 @@ var recipes: Array = []
 var dark: Array = []   # 黑暗料理 6 道喜剧文案(小灶图鉴 §黑暗料理): 按菜谱 id 取 {text=赠礼反应, moxiu=猎奇反应, eat=自吃, aff?=好感特例, assemble?=百味乱炖三池拼装}
 var facilities: Array = []
 var wall: Array = []
+var factions: Array = []   # 九家势力单一事实源(GDD 8.4 §2.1/§12.1): 名望 App 档案卡 + 大比对手池 + 大会群像文案池
 var yaoguai: Array = []
 var traits: Array = []
 var gongfa: Array = []   # 功法 12 部(GDD §5.3): 残页合成/坊市购入 → 藏经阁研通 → 装备写 run.tech(×1–×3 活乘数)
@@ -40,6 +41,7 @@ var _recipe_index: Dictionary = {}
 var _dark_index: Dictionary = {}
 var _facility_index: Dictionary = {}
 var _wall_index: Dictionary = {}
+var _faction_index: Dictionary = {}
 var _yaoguai_index: Dictionary = {}
 var _traits_index: Dictionary = {}
 var _gongfa_index: Dictionary = {}
@@ -67,6 +69,7 @@ func _ready() -> void:
 	dark = _load_array("res://data/dark_events.json")   # 黑暗料理喜剧文案(按菜谱 id 索引, Game.kitchen_gift/eat 取词)
 	facilities = _load_array("res://data/facilities.json")
 	wall = _load_array("res://data/wall.json")
+	factions = _load_array("res://data/factions.json")   # 九家势力(GDD 8.4): 表层档案, 点名只在此/照壁/论道/名望榜(NPC 原型仍隐名)
 	yaoguai = _load_array("res://data/yaoguai.json")
 	traits = _load_array("res://data/traits.json")
 	gongfa = _load_array("res://data/gongfa.json")
@@ -87,6 +90,8 @@ func _ready() -> void:
 		_facility_index[String(f.get("id", ""))] = f
 	for w in wall:
 		_wall_index[String(w.get("id", ""))] = w
+	for f in factions:
+		_faction_index[String(f.get("id", ""))] = f
 	for g in yaoguai:
 		_yaoguai_index[String(g.get("id", ""))] = g
 	for t in traits:
@@ -121,6 +126,10 @@ func facility(id: String) -> Dictionary:
 
 func wall_post(id: String) -> Dictionary:
 	return _wall_index.get(id, {})
+
+## 势力档案(按 id 取): 名望 App 档案卡/大比对手池/大会群像共用(GDD 8.4)
+func faction(id: String) -> Dictionary:
+	return _faction_index.get(id, {})
 
 func yaoguai_def(id: String) -> Dictionary:
 	return _yaoguai_index.get(id, {})

@@ -21,28 +21,28 @@ func _ready() -> void:
 	add_child(app)
 	await get_tree().process_frame
 
-	# 1) 卡上有铸体/眷顾两个 + 钮, 开局 100 韵(五行根免费/无特质)两者皆可加
+	# 1) 卡上六个 + 钮(铸体/灵窍/悟道/寿基/田诀/眷顾), 开局 100 韵(五行根免费/无特质)各起价皆可加
 	var plus := _plus_btns(app)
-	_check(plus.size() == 2, "转世卡铸体/眷顾两个 + 钮(实得 %d)" % plus.size())
-	_check(_all_enabled(plus), "开局 100 韵: 铸体/眷顾 + 均可用")
+	_check(plus.size() == 6, "转世卡六个 + 钮: 铸体+永久位四货架+眷顾(实得 %d)" % plus.size())
+	_check(_all_enabled(plus), "开局 100 韵: 六行起价 20/80/50/80/60/50 皆 ≤100, + 均可用")
 
 	# 2) 预算链: 铸体×1+眷顾×1=70 → 眷顾再 +(120>100)置灰、铸体 +(90≤100)可用; 铸体加到 ×2(90)后双双置灰
 	app._step_forge(1)
 	app._step_bless(1)
 	plus = _plus_btns(app)
 	_check(not plus[0].disabled, "70/100: 铸体 + 可用(90≤100)")
-	_check(plus[1].disabled, "70/100: 眷顾 + 置灰(120>100)")
+	_check(plus[5].disabled, "70/100: 眷顾 + 置灰(120>100)")
 	app._step_forge(1)
 	plus = _plus_btns(app)
-	_check(plus[0].disabled and plus[1].disabled, "90/100: 两 + 均置灰(再任加即超支)")
+	_check(plus[0].disabled and plus[5].disabled, "90/100: 铸体/眷顾 + 均置灰(再任加即超支)")
 	app._step_forge(-1)
 	plus = _plus_btns(app)
-	_check(not plus[0].disabled and plus[1].disabled, "退一格: 铸体 + 复活, 眷顾 + 仍锁")
+	_check(not plus[0].disabled and plus[5].disabled, "退一格: 铸体 + 复活, 眷顾 + 仍锁")
 
-	# 3) 特质费入链(预算链与炼灵根同构): 订剑骨 60 → 130>100, 两 + 与转世钮全灰; 退订恢复
+	# 3) 特质费入链(预算链与炼灵根同构): 订剑骨 60 → 130>100, 各 + 与转世钮全灰; 退订恢复
 	app._toggle_trait("jian")
 	plus = _plus_btns(app)
-	_check(plus[0].disabled and plus[1].disabled, "订剑骨 60 → 合计 130: 两 + 置灰")
+	_check(plus[0].disabled and plus[5].disabled, "订剑骨 60 → 合计 130: 铸体/眷顾 + 置灰")
 	var go := _go_btn(app)
 	_check(go != null and go.disabled, "超支时转世钮置灰")
 	app._toggle_trait("jian")
@@ -58,7 +58,7 @@ func _ready() -> void:
 	_check(app._forge_n == 5, "铸体限购 5(连点 7 次止于 5, 实得 %d)" % app._forge_n)
 	plus = _plus_btns(app)
 	_check(plus[0].disabled, "铸体 ×5 封顶: + 置灰")
-	_check(not plus[1].disabled, "眷顾未封顶: + 可用")
+	_check(not plus[5].disabled, "眷顾未封顶: + 可用")
 
 	# 5) 提交: 眷顾再 +1 → 入世; 扣款 5×20+2×50=200, 灵根系数 0.65+0.50, 眷顾累计 +4%, 订购清零
 	app._step_bless(1)
@@ -77,6 +77,34 @@ func _ready() -> void:
 	_check(absf(float(Game.meta.bless_pct) - 0.14) < 1e-9, "眷顾累计 2+5 次 → +14%")
 	Game.rebirth(DataManager.origins[0], -3, -2)
 	_check(int(Game.meta.dao) == 1650 and absf(float(Game.meta.bless_pct) - 0.14) < 1e-9, "负数钳到 0: 分文不动")
+
+	# 7) 永久位货架落账: 灵窍×2 阶梯价 80+120=200 → 提交层数 +2、聚灵乘区 +20%、暂存清零
+	Game.meta.dao = 500
+	app._rebuild()
+	app._step_meta("lingqiao", 2)
+	_check(int(app._meta_n["lingqiao"]) == 2 and app._meta_pending() == 200, "灵窍×2 暂存: 阶梯价 80+120=200(实得 %d)" % app._meta_pending())
+	app._enter_world()
+	_check(Game.meta_bought("lingqiao") == 2, "灵窍×2 落账: 层数 2")
+	_check(int(Game.meta.dao) == 300, "扣款 200 → 余 300(实得 %d)" % int(Game.meta.dao))
+	_check(int(app._meta_n["lingqiao"]) == 0, "提交后永久位暂存清零")
+	_check(absf(Game.meta_fx("lingqiao") - 0.20) < 1e-9, "灵窍效果换算: 聚灵 +20%")
+
+	# 8) 封顶与跨世保留: meta_buys 全 99 → 各钳 10 层(+100%/+20 年), 扣款=满层阶梯总价; 负数分文不动
+	Game.meta.dao = 99999
+	var expect := 0
+	for k in Game.META_SHELF_ORDER:
+		expect += Game.meta_price_batch(String(k), Game.meta_cap(String(k)) - Game.meta_bought(String(k)))   # 各货架补到满层的阶梯总价
+	Game.rebirth(DataManager.origins[0], 0, 0, {}, [], true, 0, {"lingqiao": 99, "wudao": 99, "shouyuan": 99, "tianchan": 99})
+	for k in Game.META_SHELF_ORDER:
+		_check(Game.meta_bought(String(k)) == 10, "%s 满 10 层(实得 %d)" % [String(Game.META_SHELF_NAME[String(k)]), Game.meta_bought(String(k))])
+	_check(int(Game.meta.dao) == 99999 - expect, "满层扣款 %d → 余 %d(实得 %d)" % [expect, 99999 - expect, int(Game.meta.dao)])
+	_check(absf(Game.meta_fx("wudao") - 1.0) < 1e-9 and absf(Game.meta_fx("shouyuan") - 20.0) < 1e-9, "效果封顶: 悟道 +100% / 寿基 +20 年")
+	app._rebuild()
+	_check(not app._meta_can_plus("lingqiao"), "满层后 + 钳制: can_plus=false")
+	app._step_meta("lingqiao", 1)
+	_check(int(app._meta_n["lingqiao"]) == 0, "满层步进自钳: 暂存仍 0")
+	Game.rebirth(DataManager.origins[0], 0, 0, {}, [], true, 0, {"lingqiao": -3})
+	_check(Game.meta_bought("lingqiao") == 10 and int(Game.meta.dao) == 99999 - expect, "负数再订: 分文不动、层数不降")
 
 	print("== lifestone_smoke: %s (%d FAIL) ==" % ["PASS" if _fails == 0 else "FAIL", _fails])
 	get_tree().quit(1 if _fails > 0 else 0)
