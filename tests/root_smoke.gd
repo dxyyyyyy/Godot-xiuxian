@@ -1,7 +1,7 @@
 extends Node
 const TestGuard := preload("res://tests/test_guard.gd")
 ## 炼灵根冒烟: 五行俱全免费默认; 炼至四/三/二/单行累计 30/80/150/240 道韵(边际递增), 不足拒转;
-## 行数定系数(五0.65→单1.65, +0.25/行), 持有五行自择; 多行亲和与反属封锁; 转易换根不换行数; 老档回填。
+## 行数定系数(五0.65→单1.65, +0.25/行), 持有五行自择; 多行亲和与反属封锁; 转易换根不换行数(五/四/三/二/单逐档, 全持空转); 老档回填。
 ## 运行: Godot --headless --path . res://tests/root_smoke.tscn
 
 var _fails := 0
@@ -56,16 +56,32 @@ func _ready() -> void:
 	Game.rebirth(DataManager.origins[0], 0, 0, {"n": 4, "els": ["金", "木", "水", "火"]})
 	_check(not Game._seed_blocked_top(chi) and not Game._seed_blocked_top(bing), "水火同身: 皆亲和免封锁")
 
-	# 5) 五行转易: 换根不换行数(梦蝶仙馔)
-	var roots_before: Array = Array(Game.run.roots).duplicate()
-	Game._apply_dish_fx({"name": "测试", "tier": "low", "effect": "换根", "fx": {"kind": "element"}})
-	var roots_after: Array = Array(Game.run.roots)
-	_check(roots_after.size() == roots_before.size(), "转易后行数不变(%d)" % roots_after.size())
-	var changed := false
-	for e in roots_after:
-		if not roots_before.has(String(e)):
-			changed = true
-	_check(changed and String(Game.run.element) == String(roots_after[0]), "转易换出一行且 element 同步")
+	# 5) 五行转易(梦蝶仙馔): 换根不换行数, 五/四/三/二/单行逐档; 五行全持空转不模零(P0 回归)
+	Game.meta.dao = 1000
+	for case in [[5, ["金", "木", "水", "火", "土"]], [4, ["金", "木", "水", "火"]], [3, ["木", "水", "火"]], [2, ["金", "水"]], [1, ["火"]]]:
+		var n: int = case[0]
+		Game.rebirth(DataManager.origins[0], 0, 0, {"n": n, "els": case[1]})
+		var roots_before: Array = Array(Game.run.roots).duplicate()
+		Game._apply_dish_fx({"name": "测试", "tier": "low", "effect": "换根", "fx": {"kind": "element"}})
+		var roots_after: Array = Array(Game.run.roots)
+		_check(roots_after.size() == n, "n=%d 转易后行数不变(%d)" % [n, roots_after.size()])
+		var uniq: Dictionary = {}
+		for e in roots_after:
+			uniq[String(e)] = true
+		_check(uniq.size() == roots_after.size(), "n=%d 转易后无重复行: %s" % [n, str(roots_after)])
+		if n >= 5:
+			_check(roots_after == roots_before, "n=5 五行全持: 转易空转, roots 原样")
+		else:
+			var n_lost := 0
+			var n_gained := 0
+			for e in roots_before:
+				if not roots_after.has(String(e)):
+					n_lost += 1
+			for e in roots_after:
+				if not roots_before.has(String(e)):
+					n_gained += 1
+			_check(n_lost == 1 and n_gained == 1, "n=%d 恰换出一行: %s→%s" % [n, str(roots_before), str(roots_after)])
+		_check(String(Game.run.element) == String(roots_after[0]), "n=%d element 与 roots[0] 同步" % n)
 
 	# 6) 老档回填: 无 roots/root_count → 按旧单属归一
 	Game.run.erase("roots")

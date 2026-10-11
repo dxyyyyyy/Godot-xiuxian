@@ -3355,12 +3355,16 @@ func _apply_dish_fx(r: Dictionary) -> void:
 			for e in ELEMENTS:
 				if not (String(e) in roots):
 					avail.append(String(e))
-			var neo := String(avail[rng.randi() % avail.size()])
-			roots[idx] = neo
-			run.roots = roots
-			run.root_count = roots.size()
-			run.element = String(roots[0])
-			gain = "灵根·五行转易: %s→%s(亲和修正随之改换)" % [old, neo]
+			if avail.is_empty():
+				# 五行已全持: 无行可换, 本条转易空转(不再模零), 菜仍按档结算
+				gain = "灵根·五行转易: 五行已全持, 无行可换"
+			else:
+				var neo := String(avail[rng.randi() % avail.size()])
+				roots[idx] = neo
+				run.roots = roots
+				run.root_count = roots.size()
+				run.element = String(roots[0])
+				gain = "灵根·五行转易: %s→%s(亲和修正随之改换)" % [old, neo]
 	if String(r.tier) == "high":
 		var gains: Dictionary = econ("eat_gain_months", {"low": 0.05, "mid": 0.25, "high": 6.0})
 		var g := efficiency() * float(realm().max_ap) * float(gains.get("high", 6.0))
