@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://chomelayoutprobe"]
+
+[ext_resource type="Script" path="res://tests/home_layout_probe.gd" id="1_hlp"]
+
+[node name="HomeLayoutProbe" type="Node"]
+script = ExtResource("1_hlp")

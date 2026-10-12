@@ -171,6 +171,10 @@ func _ensure_run() -> void:
 		run.break_bonus = 0.0
 	if not run.has("recover"):
 		run.recover = 0   # 退养闭关剩余月数(老档补 0)
+	if not run.has("secret_cd"):
+		run.secret_cd = 0   # 寻道秘境判定冷却(老档补 0, 不 bump SCHEMA)
+	if not run.has("travel_cd"):
+		run.travel_cd = 0   # 游历判定冷却(老档补 0, 不 bump SCHEMA)
 	if not run.has("roots"):
 		# 老档单属灵根 → 归一为「单行」持有(系数沿用旧值不重算), 不 bump SCHEMA
 		run.roots = [String(run.element)] if String(run.element) in ELEMENTS else ["木"]
@@ -2531,7 +2535,10 @@ func _execute_plan() -> void:
 						if third != "":
 							_luochang_check(third)
 		"travel":
-			_travel_tick()
+			run.travel_cd = int(run.get("travel_cd", 0)) - 1
+			if int(run.travel_cd) <= 0:
+				_travel_tick()
+				run.travel_cd = travel_period()   # 下次周期按当次目的地: 每后一图 +1 月(4–8 月)
 		"seek":
 			run.secret_cd = int(run.secret_cd) - 1
 			if int(run.secret_cd) <= 0:
@@ -2540,7 +2547,7 @@ func _execute_plan() -> void:
 					run.secret_cd = 2   # 气血不济, 短冷却后再生龙活虎
 					_report("寻道受阻: 气血 %d/%d —— 先回洞府吃口热的(§5.4 气血储备)" % [_qi(), scost])
 				else:
-					run.secret_cd = 6
+					run.secret_cd = seek_period()   # 下次周期按当次目的地: 每后一图 +1 月(6–10 月)
 					run.qi = _qi() - scost
 					run.secret = int(run.secret) + 1
 					# §5.4 检定式战斗: 有效战力 = 武力 × 随机扰动 U[0.7, 1.3], 对秘境两条线 ——
@@ -4936,6 +4943,72 @@ func _travel_dest() -> String:
 		if int(run.realm) >= map_unlock_realm(String(k)):
 			unlocked.append(String(k))
 	return "baimenzong" if unlocked.is_empty() else String(unlocked[int(run.age_m) % unlocked.size()])
+
+## 寻道秘境判定基础周期(月): 冷却走满一次即触发检定; 实际按目的地次第 +1 月见 seek_period()(§5.4)。
+const SEEK_PERIOD := 6
+
+## 秘境判定剩余冷却月(0 = 下月即触发检定)。老档缺键防御式读 0。
+func seek_cd() -> int:
+	return maxi(0, int(run.get("secret_cd", 0)))
+
+## 出门游历判定周期(月): 每 4 月遇境/风物判定一次。
+const TRAVEL_PERIOD := 4
+
+## 游历判定剩余冷却月(0 = 下月即判定)。老档缺键防御式读 0。
+func travel_cd() -> int:
+	return maxi(0, int(run.get("travel_cd", 0)))
+
+## 目的地在地图序列中的位次(0 起; 表内查不到按 0)。
+func _map_seq() -> int:
+	return maxi(0, TRAVEL_MAPS.keys().find(_travel_dest()))
+
+## 本次游历判定周期(月): 基础 4 月, 每后一图 +1 月(4–8 月) —— 越远越耗时;
+## 自动轮换按判定当月解析出的目的地定周期。
+func travel_period() -> int:
+	return TRAVEL_PERIOD + _map_seq()
+
+## 秘境检定周期(月): 基础 6 月, 每后一图 +1 月(6–10 月) —— 与游历采获同一目的地口径, 越远越耗时。
+func seek_period() -> int:
+	return SEEK_PERIOD + _map_seq()
+
+## 秘境检定周期进度 0..1: 六个月起满一次(按目的地次第), 走满即检定; 切近图后 cd 超周期钳位。
+func seek_progress() -> float:
+	var per := seek_period()
+	return float(per - clampi(seek_cd(), 0, per)) / float(per)
+
+## 距下届大比论道月数(十年一届, 届年 9–10 月窗派发; 本届已过年窗或已派发则顺延下届)。
+func lundao_months_to_festival() -> int:
+	var cyc := maxi(1, int(tune("lundao_cycle", 10)))
+	var y := _lundao_year()
+	var nf := y   # 下届届年
+	if y % cyc != 0:
+		nf = (y / cyc + 1) * cyc
+	elif _cal_month() >= 11 or int((run.get("lundao", {}) as Dictionary).get("last", -1)) == y:
+		nf = y + cyc   # 已过 10 月补窗 / 本届已派发 → 下届
+	var festival_abs := START_AGE_M + (nf - 1) * 12 + 8   # 届年 9 月
+	return maxi(0, festival_abs - int(run.age_m))
+
+## 行动方案卡周期进度条: 当前方案的多月周期 → {frac: 0..1, label: "N/周期月"};
+## 每月即结算的方案(修炼/灵田/下厨)返回空字典不显示(条恒满, 无信息量)。
+func plan_cycle() -> Dictionary:
+	match String(run.get("plan", "pure")):
+		"seek":
+			var sper := seek_period()   # 每张图周期不同(6–10 月): 文案随目的地走
+			var scd := clampi(seek_cd(), 0, sper)   # 改赴更近的图后 cd 可超周期 → 钳位
+			return {"frac": float(sper - scd) / float(sper), "label": "%d/%d月" % [sper - scd, sper]}
+		"travel":
+			var tper := travel_period()   # 每张图周期不同(4–8 月): 文案随目的地走
+			var tcd := clampi(travel_cd(), 0, tper)   # 改赴更近的图后 cd 可超周期 → 钳位
+			return {"frac": float(tper - tcd) / float(tper), "label": "%d/%d月" % [tper - tcd, tper]}
+		"romance":
+			var per := maxi(1, int(tune("date_cd", 3)))   # 约会每 3 月至多一次(§11)
+			var dcd := clampi(int(run.get("date_cd", 0)), 0, per)   # 无合适对象时长期为负 → 按可约满格
+			return {"frac": float(per - dcd) / float(per), "label": "%d/%d月" % [per - dcd, per]}
+		"lundao":
+			var period := maxi(1, int(tune("lundao_cycle", 10))) * 12   # 十年一届 = 120 月满一次
+			var left := lundao_months_to_festival()
+			return {"frac": clampf(float(period - left) / float(period), 0.0, 1.0), "label": "%d/%d月" % [period - left, period]}
+	return {}
 
 ## 寻道采获: 按当月游历去向(auto 亦解析到轮换中的实地)从该地风物池采得一株植物入库,
 ## 兼拾获灵石(数额随地图 unlock 位阶水涨船高)。返回可直接拼进月报的收获串。

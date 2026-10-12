@@ -84,7 +84,9 @@ func _farm_card() -> PanelContainer:
 func _plot_tile(p: Dictionary, idx: int) -> PanelContainer:
 	var tile := UiKit.padded(UiKit.pink_box(), 10)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tile.custom_minimum_size = Vector2(130, 172)   # 定宽定高地块格: 各列最小宽相等→EXPAND 均分等宽; 高度不随 空地/荒地/已种 内容跳动(按已种+标签态量定)
 	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_theme_constant_override("separation", 4)
 
 	if not bool(p.open):
@@ -94,7 +96,9 @@ func _plot_tile(p: Dictionary, idx: int) -> PanelContainer:
 		vb.add_child(UiKit.circle(40, UiKit.GRAY_200, UiKit.GRAY_300, "lock", 18, UiKit.GRAY_400))
 		if can:
 			vb.add_child(UiKit.label("荒地 · 开垦", 12, UiKit.PINK_600, 600, HORIZONTAL_ALIGNMENT_CENTER))
-			vb.add_child(UiKit.label("%d 灵石 + 灵植 %d 株(存 %d)" % [cost, Game.farm_reclaim_crops(), Game.farm_inv_total()], 11, UiKit.GOLD_600, 500, HORIZONTAL_ALIGNMENT_CENTER))
+			var cost_l := UiKit.label("%d 灵石 + 灵植 %d 株(存 %d)" % [cost, Game.farm_reclaim_crops(), Game.farm_inv_total()], 11, UiKit.GOLD_600, 500, HORIZONTAL_ALIGNMENT_CENTER)
+			cost_l.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY   # 整行最小宽不再撑列(库存数字变长也不跳格)
+			vb.add_child(cost_l)
 		else:
 			vb.add_child(UiKit.label("未开垦", 12, UiKit.GRAY_400, 400, HORIZONTAL_ALIGNMENT_CENTER))
 			var need := Game.farm_plot_need_realm()
@@ -128,6 +132,8 @@ func _plot_tile(p: Dictionary, idx: int) -> PanelContainer:
 	name_row.add_theme_constant_override("separation", 6)
 	var nl := UiKit.label(String(s.name), 13, UiKit.PINK_700, 600)
 	nl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY   # 长作物名断行不撑宽(最小宽=单字), 只占名行本身
+	nl.max_lines_visible = 1
 	nl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_row.add_child(nl)
 	name_row.add_child(UiKit.pill(String(s.affinity) + "亲和", UiKit.WHITE, UiKit.GREEN_400, 10))
@@ -202,7 +208,9 @@ func _kitchen_card() -> PanelContainer:
 func _stove_tile(stoves: Array, i: int) -> PanelContainer:
 	var tile := UiKit.padded(UiKit.pink_box(), 10)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tile.custom_minimum_size = Vector2(195, 192)   # 定宽定高灶格: 两列最小宽相等→EXPAND 均分等宽; 高度不随 未点亮/空灶/烹制/出锅 内容跳动(按已出锅带效果两行量定)
 	var vb := VBoxContainer.new()
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_theme_constant_override("separation", 4)
 
 	if i >= Game.stove_open_count():
@@ -242,6 +250,8 @@ func _stove_tile(stoves: Array, i: int) -> PanelContainer:
 	name_row.add_theme_constant_override("separation", 6)
 	var nl := UiKit.label(Game.dish_display_name(dish), 13, UiKit.PINK_700, 600)
 	nl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nl.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY   # 长菜名断行不撑宽
+	nl.max_lines_visible = 1
 	nl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_row.add_child(nl)
 	name_row.add_child(UiKit.pill(_tier_cn(String(dish.tier)), UiKit.WHITE, _tier_color(String(dish.tier)), 10))
@@ -263,6 +273,8 @@ func _stove_tile(stoves: Array, i: int) -> PanelContainer:
 	# 已出锅: 效果 + 收取
 	var eff := UiKit.label("看不懂的黑暗造物 —— 收了才知道" if hidden_dark else String(dish.get("effect", "")), 11, UiKit.PINK_400)
 	eff.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	eff.max_lines_visible = 2   # 长效果最多两行, 超出省略 —— 配合灶格定高, 一格文字长短不牵动整卡
+	eff.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	vb.add_child(eff)
 	vb.add_child(_mini_button("收取入库", func() -> void: Game.kitchen_collect(i)))
 	tile.add_child(vb)

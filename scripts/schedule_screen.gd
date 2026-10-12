@@ -43,7 +43,10 @@ func _rebuild() -> void:
 	_content.add_child(_clock_card())
 	_content.add_child(_profile_card())
 	_content.add_child(_plan_card())
-	_content.add_child(_travel_card())
+	var pid := String(Game.run.get("plan", "pure"))
+	if pid == "seek" or pid == "travel":
+		# 游历去向只服务这两个方案(寻道秘境/游历遇境都按目的地定内容与周期) —— 其余方案收走不打扰
+		_content.add_child(_travel_card())
 	_content.add_child(_chronicle_card())
 
 
@@ -230,6 +233,17 @@ func _plan_card() -> PanelContainer:
 		b.pressed.connect(func() -> void: Game.set_plan(pid))
 		grid.add_child(b)
 	cv.add_child(grid)
+	var cyc := Game.plan_cycle()
+	if not cyc.is_empty():
+		# 多月周期方案(寻道6–10月/游历4–8月/情缘3月/大比120月): 进度条按周期走满, 满即下月触发检定(月结后卡片随 Game.changed 重建)
+		var srow := HBoxContainer.new()
+		srow.add_theme_constant_override("separation", 6)
+		srow.add_child(UiKit.progress(float(cyc.get("frac", 0.0)), UiKit.JADE_500))
+		var sv := UiKit.label(String(cyc.get("label", "")), 10, UiKit.PINK_500, 600)
+		sv.custom_minimum_size = Vector2(40, 0)
+		sv.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		srow.add_child(sv)
+		cv.add_child(srow)
 	var note := String(DataManager.plan(String(Game.run.plan)).get("note", ""))
 	if note != "":
 		var nl := UiKit.label(note, 10, UiKit.PINK_400)
@@ -239,7 +253,7 @@ func _plan_card() -> PanelContainer:
 	return c
 
 
-# ---- 游历去向（方案「出门游历」时生效）----
+# ---- 游历去向（仅「寻道探索 / 出门游历」方案显示: 两方案的判定内容与周期都吃目的地）----
 
 func _travel_card() -> PanelContainer:
 	var c := UiKit.card()
