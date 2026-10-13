@@ -44,14 +44,14 @@ func _ready() -> void:
 	get_tree().quit(0 if fails == 0 else 1)
 
 
-## 取网格(按列数)每个子格尺寸与网格最小高。
+## 取网格(按列数)每个子格尺寸与网格最小宽高。
 func _tile_stats(hs: Control, cols: int) -> Array:
 	for g in hs.find_children("*", "GridContainer", true, false):
 		if (g as GridContainer).columns == cols:
 			var out: Array = []
 			for t in (g as GridContainer).get_children():
 				out.append({"size": (t as Control).size, "min": (t as Control).get_combined_minimum_size()})
-			out.append({"grid_min_y": (g as GridContainer).get_combined_minimum_size().y})
+			out.append({"grid_min_y": (g as GridContainer).get_combined_minimum_size().y, "grid_min_x": (g as GridContainer).get_combined_minimum_size().x})
 			return out
 	return []
 
@@ -77,6 +77,12 @@ func _check(a: Array, b: Array, label: String) -> int:
 		fails += 1
 	else:
 		print("%s OK: %d 格 A/B 同尺寸, 网格最小高恒 %f" % [label, a.size() - 1, a.back().grid_min_y])
+	# 横向防裁切: 网格最小宽不得超过可用宽(448 − 滚动条6 − 卡片阴影12 − margin_wrap32 = 398), 否则顶破视口裁右缘
+	if a.back().grid_min_x > 398.0:
+		print("%s FAIL: 网格最小宽 %f > 可用宽 398 (裁右缘风险)" % [label, a.back().grid_min_x])
+		fails += 1
+	else:
+		print("%s OK: 网格最小宽 %f ≤ 398 可用宽" % [label, a.back().grid_min_x])
 	return fails
 
 

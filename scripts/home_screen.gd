@@ -84,7 +84,7 @@ func _farm_card() -> PanelContainer:
 func _plot_tile(p: Dictionary, idx: int) -> PanelContainer:
 	var tile := UiKit.padded(UiKit.pink_box(), 10)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tile.custom_minimum_size = Vector2(130, 172)   # 定宽定高地块格: 各列最小宽相等→EXPAND 均分等宽; 高度不随 空地/荒地/已种 内容跳动(按已种+标签态量定)
+	tile.custom_minimum_size = Vector2(120, 172)   # 定宽定高地块格: 最小宽仅为各列等宽下限(须<最窄可用宽398, 否则顶破视口裁右缘), EXPAND 均分撑满; 高度不随 空地/荒地/已种 内容跳动(按已种+标签态量定)
 	var vb := VBoxContainer.new()
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_theme_constant_override("separation", 4)
@@ -208,7 +208,7 @@ func _kitchen_card() -> PanelContainer:
 func _stove_tile(stoves: Array, i: int) -> PanelContainer:
 	var tile := UiKit.padded(UiKit.pink_box(), 10)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tile.custom_minimum_size = Vector2(195, 192)   # 定宽定高灶格: 两列最小宽相等→EXPAND 均分等宽; 高度不随 未点亮/空灶/烹制/出锅 内容跳动(按已出锅带效果两行量定)
+	tile.custom_minimum_size = Vector2(180, 192)   # 定宽定高灶格: 最小宽仅为各列等宽下限(2×180+8 须<最窄可用宽, 否则裁右缘), EXPAND 均分撑满; 高度不随 未点亮/空灶/烹制/出锅 内容跳动(按已出锅带效果两行量定)
 	var vb := VBoxContainer.new()
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_theme_constant_override("separation", 4)
